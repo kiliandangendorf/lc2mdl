@@ -1,0 +1,180 @@
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="quiz">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="question" maxOccurs="unbounded" minOccurs="0">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="name">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element type="xs:string" name="text"/>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+              <xs:element name="questiontext">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element type="xs:string" name="text"/>
+                  </xs:sequence>
+                  <xs:attribute type="xs:string" name="format" use="optional"/>
+                </xs:complexType>
+              </xs:element>
+              <xs:element name="generalfeedback">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element type="xs:string" name="text"/>
+                  </xs:sequence>
+                  <xs:attribute type="xs:string" name="format" use="optional"/>
+                </xs:complexType>
+              </xs:element>
+              <xs:element type="xs:string" name="defaultgrade"/>
+              <xs:element type="xs:string" name="penalty"/>
+              <xs:element type="xs:string" name="hidden"/>
+              <xs:element type="xs:string" name="idnumber"/>
+              <xs:element name="stackversion">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element type="xs:int" name="text"/>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+              <xs:element name="questionvariables">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element type="xs:string" name="text"/>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+              <xs:element name="specificfeedback">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element type="xs:string" name="text"/>
+                  </xs:sequence>
+                  <xs:attribute type="xs:string" name="format" use="optional"/>
+                </xs:complexType>
+              </xs:element>
+              <xs:element name="questionnote">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element type="xs:string" name="text"/>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+              <xs:element type="xs:string" name="questionsimplify"/>
+              <xs:element type="xs:string" name="assumepositive"/>
+              <xs:element type="xs:string" name="assumereal"/>
+              <xs:element name="prtcorrect">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element type="xs:string" name="text"/>
+                  </xs:sequence>
+                  <xs:attribute type="xs:string" name="format" use="optional"/>
+                </xs:complexType>
+              </xs:element>
+              <xs:element name="prtpartiallycorrect">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element type="xs:string" name="text"/>
+                  </xs:sequence>
+                  <xs:attribute type="xs:string" name="format" use="optional"/>
+                </xs:complexType>
+              </xs:element>
+              <xs:element name="prtincorrect">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element type="xs:string" name="text"/>
+                  </xs:sequence>
+                  <xs:attribute type="xs:string" name="format" use="optional"/>
+                </xs:complexType>
+              </xs:element>
+              <xs:element type="xs:string" name="multiplicationsign"/>
+              <xs:element type="xs:string" name="sqrtsign"/>
+              <xs:element type="xs:string" name="complexno"/>
+              <xs:element type="xs:string" name="inversetrig"/>
+              <xs:element type="xs:string" name="matrixparens"/>
+              <xs:element type="xs:string" name="variantsselectionseed"/>
+              <xs:element name="input" maxOccurs="unbounded" minOccurs="0">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element type="xs:string" name="name"/>
+                    <xs:element type="xs:string" name="type"/>
+                    <xs:element type="xs:string" name="tans"/>
+                    <xs:element type="xs:string" name="boxsize"/>
+                    <xs:element type="xs:string" name="strictsyntax"/>
+                    <xs:element type="xs:string" name="insertstars"/>
+                    <xs:element type="xs:string" name="syntaxhint"/>
+                    <xs:element type="xs:string" name="syntaxattribute"/>
+                    <xs:element type="xs:string" name="forbidwords"/>
+                    <xs:element type="xs:string" name="allowwords"/>
+                    <xs:element type="xs:string" name="forbidfloat"/>
+                    <xs:element type="xs:string" name="requirelowestterms"/>
+                    <xs:element type="xs:string" name="checkanswertype"/>
+                    <xs:element type="xs:string" name="mustverify"/>
+                    <xs:element type="xs:string" name="showvalidation"/>
+                    <xs:element type="xs:string" name="options"/>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+              <xs:element name="prt" maxOccurs="unbounded" minOccurs="0">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element type="xs:string" name="name"/>
+                    <xs:element type="xs:string" name="value"/>
+                    <xs:element type="xs:string" name="autosimplify"/>
+                    <xs:element name="feedbackvariables">
+                      <xs:complexType>
+                        <xs:sequence>
+                          <xs:element type="xs:string" name="text"/>
+                        </xs:sequence>
+                      </xs:complexType>
+                    </xs:element>
+                    <xs:element name="node" maxOccurs="unbounded" minOccurs="0">
+                      <xs:complexType>
+                        <xs:sequence>
+                          <xs:element type="xs:string" name="name"/>
+                          <xs:element type="xs:string" name="answertest"/>
+                          <xs:element type="xs:string" name="sans"/>
+                          <xs:element type="xs:string" name="tans"/>
+                          <xs:element type="xs:string" name="testoptions"/>
+                          <xs:element type="xs:string" name="quiet"/>
+                          <xs:element type="xs:string" name="truescoremode"/>
+                          <xs:element type="xs:string" name="truescore"/>
+                          <xs:element type="xs:string" name="truepenalty"/>
+                          <xs:element type="xs:string" name="truenextnode"/>
+                          <xs:element type="xs:string" name="trueanswernote"/>
+                          <xs:element name="truefeedback">
+                            <xs:complexType>
+                              <xs:sequence>
+                                <xs:element type="xs:string" name="text"/>
+                              </xs:sequence>
+                              <xs:attribute type="xs:string" name="format" use="optional"/>
+                            </xs:complexType>
+                          </xs:element>
+                          <xs:element type="xs:string" name="falsescoremode"/>
+                          <xs:element type="xs:string" name="falsescore"/>
+                          <xs:element type="xs:string" name="falsepenalty"/>
+                          <xs:element type="xs:string" name="falsenextnode"/>
+                          <xs:element type="xs:string" name="falseanswernote"/>
+                          <xs:element name="falsefeedback">
+                            <xs:complexType>
+                              <xs:sequence>
+                                <xs:element type="xs:string" name="text"/>
+                              </xs:sequence>
+                              <xs:attribute type="xs:string" name="format" use="optional"/>
+                            </xs:complexType>
+                          </xs:element>
+                        </xs:sequence>
+                      </xs:complexType>
+                    </xs:element>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+            <xs:attribute type="xs:string" name="type" use="optional"/>
+          </xs:complexType>
+        </xs:element>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>
