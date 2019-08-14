@@ -189,7 +189,7 @@ public class QuestionStack extends Question{
 		hintnode.setTruescore(0.0);
 		hintnode.setFalsescore(0.0);
 		
-		//get belonging prt and add hintnode
+		//get belonging prt and add hintnode (node-name will be set)
 		Prt curPrt=getPrtOfNode(parentNode);
 		if(curPrt==null)return;
 		curPrt.addNode(hintnode);
@@ -200,13 +200,22 @@ public class QuestionStack extends Question{
 		hintnode.setTrueanswernote(prtName+"-"+nodeNumber+"-T");
 		hintnode.setFalseanswernote(prtName+"-"+nodeNumber+"-F");
 
+		int nextNode=NodeMdl.NEXT_NODE;
 		//set link from parent
-		if(link)parentNode.setTruenextnode(Integer.parseInt(hintnode.getName()));
-		if(!link)parentNode.setFalsenextnode(Integer.parseInt(hintnode.getName()));
+		if(link){
+			nextNode=parentNode.getTruenextnode();
+			parentNode.setTruenextnode(Integer.parseInt(hintnode.getName()));
+		}
+		if(!link){
+			nextNode=parentNode.getFalsenextnode();
+			parentNode.setFalsenextnode(Integer.parseInt(hintnode.getName()));
+		}
 		
 		//link hintnode to next node
-		hintnode.setTruenextnode(NodeMdl.NEXT_NODE);
-		hintnode.setFalsenextnode(NodeMdl.NEXT_NODE);
+//		hintnode.setTruenextnode(NodeMdl.NEXT_NODE);
+//		hintnode.setFalsenextnode(NodeMdl.NEXT_NODE);
+		hintnode.setTruenextnode(nextNode);
+		hintnode.setFalsenextnode(nextNode);
 	}
 	
 	public void addPrt(Prt p){
