@@ -16,7 +16,7 @@ public class Input extends QuizElement{
 	private boolean syntaxattribute=false; //0
 	private String forbidwords=""; //empty
 	private String allowwords=""; //empty
-	private boolean forbidfloat=true; //1
+	private boolean forbidfloat=false; //1
 	private boolean requirelowestterms=false; //0
 	private boolean checkanswertype; //0
 	private boolean mustverify=true; //1
