@@ -1,5 +1,5 @@
 # lc2mdl
-convert LON-CAPA problem-files into Moodle-STACK xml-files
+This program tries to convert LON-CAPA problem-files into Moodle-STACK xml-files.
 
 # requirements
 Java 8 or higher
@@ -15,5 +15,4 @@ FROMFILE and TOFILE must be both files or folders.
 -r, --recursive		find files recursively in folder
 -t, --rmtmp				remove tmp-files (automatically done if empty)
 -T, --rmlog				remove log-files (NOT RECOMMENDED)
-This program tries to convert LON-CAPA problem-files into Moodle-STACK xml-files.
 ```
