@@ -107,6 +107,9 @@ public class Main{
 					if(c==0)abortedFiles.put(filename,files.get(filename));
 				}
 
+				System.out.println();
+				System.out.println("########################################################");
+				System.out.println("SUMMARY:");
 				System.out.println("Worked on "+files.size()+" files.");
 				System.out.println("converted successfully: "+(converted+convertedFull));
 				System.out.println("- partially:            "+converted);

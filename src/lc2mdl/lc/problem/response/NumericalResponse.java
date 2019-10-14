@@ -45,8 +45,10 @@ public class NumericalResponse extends Response{
 			unit=e.getAttribute("unit");
 			e.removeAttribute("unit");
 			log.finer("-found unit: "+unit);
-		}		
-		
+		}
+
+		remvoveAttributeIfExist(e,"format");
+
 		consumeIdAndName(e);
 
 		if(e.hasAttributes())log.warning("-still unknown attributes in response.");

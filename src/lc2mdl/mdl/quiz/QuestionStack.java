@@ -4,6 +4,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
+import org.w3c.dom.Comment;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -49,13 +50,14 @@ public class QuestionStack extends Question{
 	private String multiplicationsign="dot"; //default dot
 	private String sqrtsign="1"; //default 1
 	private String complexno="i"; //default i
-	private String inversetrig="cos-1"; //default cos-1
-	private String matrixparens="["; //default [
+	private String inversetrig="arccos"; //default arccos
+	private String matrixparens="("; //default (
 	
 	private String variantsselectionseed=""; //default empty
 	
 	private ArrayList<Input> input = new ArrayList<>();
 	private ArrayList<Prt> prt = new ArrayList<>();//Arrays.asList(new Prt()));
+	private ArrayList<String> comm = new ArrayList<>();
 	
 	@Override
 	public Element exportToDom(Document dom) {
@@ -96,7 +98,9 @@ public class QuestionStack extends Question{
 		for(Prt p: prt){
 			e.appendChild(p.exportToDom(dom));
 		}
-				
+		for (String s: comm){
+			e.appendChild(dom.createComment(s));
+		}
 		return e;
 	}
 	
@@ -227,6 +231,10 @@ public class QuestionStack extends Question{
 		
 		//and link name in specificfeedback
 		specificfeedback=specificfeedback+"[[feedback:"+p.getName()+"]]";
+	}
+
+	public void addComment(String s){
+		comm.add(s);
 	}
 	
 	//================================================================================

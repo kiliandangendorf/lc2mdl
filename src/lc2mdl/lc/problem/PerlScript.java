@@ -14,13 +14,17 @@ import lc2mdl.mdl.quiz.QuestionStack;
 public class PerlScript extends ProblemElement{
 
 	private String script;
-	
+	private String scriptComment;
+
 	private int arrayNo=0;
 	
 	@Override
 	public void consumeNode() {
 		log.finer("perl-script:");
 		this.script=node.getTextContent();
+		this.scriptComment="Original Perl Script"+System.lineSeparator()+this.script;
+
+		log.finer("--put original Perl script in comment.");
 		//got everything;)
 		node.setTextContent(null);
 		
@@ -33,6 +37,7 @@ public class PerlScript extends ProblemElement{
 
 	@Override
 	public void addToMdlQuestion(QuestionStack question) {
+		question.addComment(scriptComment);
 		question.addToQuestionVariables(script);
 	}
 
