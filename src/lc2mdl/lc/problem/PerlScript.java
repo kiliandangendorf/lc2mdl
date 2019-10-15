@@ -66,6 +66,7 @@ public class PerlScript extends ProblemElement{
 		replaceSyntax();
 
 		//CONTROL-STRUCTURES
+		replaceControlStructures();
 		searchForControlStructures();
 
 		//SPECIAL CHARS
@@ -98,8 +99,27 @@ public class PerlScript extends ProblemElement{
 		}	
 	}
 
+	private void replaceControlStructures(){
+		ArrayList<String> controlStructures=new ArrayList<>(Arrays.asList("if","for","foreach","while", "until","unless","else","elseif","do"));
+		for(String cs:controlStructures){
+			String csPat="\\W"+cs+"\\W";
+			Matcher matcher=Pattern.compile(csPat).matcher(script);
+			while(matcher.find()){
+				log.warning("--found control structure: "+cs+", try to replace, please check result");
+			}
+		}
+
+		// Find innermost block { ... }
+		String blockPat ="";
+		Matcher matcher=Pattern.compile(blockPat).matcher(script);
+		while(matcher.find()){
+
+		}
+	}
+
+
 	private void searchForControlStructures(){
-		ArrayList<String> controlStructures=new ArrayList<>(Arrays.asList("if","for","foreach","continue","while", "until","next","last","redo","unless","else","elseif","do","goto"));
+		ArrayList<String> controlStructures=new ArrayList<>(Arrays.asList("if","for","foreach","continue","while", "until","next","last","redo","unless","else","elseif","do","goto","sub"));
 		for(String cs:controlStructures){
 			String csPat="\\W"+cs+"\\W";
 			Matcher matcher=Pattern.compile(csPat).matcher(script);
