@@ -10,6 +10,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import lc2mdl.mdl.quiz.QuestionStack;
+import lc2mdl.util.ConvertAndFormatMethods;
 
 public class PerlScript extends ProblemElement{
 
@@ -61,12 +62,15 @@ public class PerlScript extends ProblemElement{
 		//COMMENTS
 		replaceComments();
 
+		//CONTROL-STRUCTURES THAT CAN BE REPLACED
+		replaceControlStructures();
+
 		//SYNTAX (equal sign, semicolon)
-		//need to be placed after arrays and functions!
+		//need to be placed after arrays, functions and control structures !
+		replaceBlocks();
 		replaceSyntax();
 
-		//CONTROL-STRUCTURES
-		replaceControlStructures();
+		//OTHER CONTROL-STRUCTURES
 		searchForControlStructures();
 
 		//SPECIAL CHARS
@@ -100,26 +104,112 @@ public class PerlScript extends ProblemElement{
 	}
 
 	private void replaceControlStructures(){
-		ArrayList<String> controlStructures=new ArrayList<>(Arrays.asList("if","for","foreach","while", "until","unless","else","elseif","do"));
-		for(String cs:controlStructures){
-			String csPat="\\W"+cs+"\\W";
-			Matcher matcher=Pattern.compile(csPat).matcher(script);
-			while(matcher.find()){
-				log.warning("--found control structure: "+cs+", try to replace, please check result");
+		ArrayList<String> controlStructures=new ArrayList<>(Arrays.asList("do","unless","until","for","foreach","while", "if","else","elseif"));
+		for(String cs:controlStructures) {
+			String csPat = "\\W" + cs + "\\W";
+			Matcher matcher = Pattern.compile(csPat).matcher(script);
+			while (matcher.find()) {
+				log.warning("--found control structure: " + cs + ", try to replace, please check result");
+
+				switch (cs) {
+					case "do":
+						int doStart = matcher.start();
+						int blockStart = matcher.end() - 1;
+						int blockEnd = ConvertAndFormatMethods.findMatchingParentheses(script, blockStart, false);
+						if (blockEnd < 0) {
+							log.warning("--unmatched block parantheses {..} ");
+							break;
+						}
+						String blockString = script.substring(blockStart, blockEnd);
+						String whilePat = "((while)|(until))";
+						Matcher csMatcher = Pattern.compile(whilePat).matcher(script.substring(blockEnd));
+						if (csMatcher.find()) {
+							log.warning("-- found do statement with closing "+csMatcher.group()+" -- revert statements -- please check.");
+							int whileStart = csMatcher.start();
+							int whileEnd = csMatcher.end();
+							whileEnd = ConvertAndFormatMethods.findMatchingParentheses(script.substring(blockEnd), whileEnd);
+							int doEnd = blockEnd + whileEnd;
+							String whileString = script.substring(blockEnd).substring(whileStart, whileEnd);
+							String doString = script.substring(doStart, doEnd);
+							String newString = "/* do {..} " +csMatcher.group()+" statement replaced, please check condition */  " + System.lineSeparator() + System.lineSeparator() + whileString + blockString;
+							script = script.replace(doString, newString);
+						} else {
+							log.warning("-- found do statement without closing while or until -- please check condition.");
+						}
+						break;
+					case "unless":
+						int unlessStart = matcher.start();
+						int unlessEnd = matcher.end()-1;
+						while (unlessEnd < script.length()){
+						  if(script.charAt(unlessEnd)=='(') { unlessEnd++; break; }
+						}
+
+						break;
+					case "until":
+						script.replace(cs,"unless");
+						break;
+					case "if": case "elseif":
+						String ifPat = cs+ "[^\\{]*\\{";
+						Matcher ifmatcher = Pattern.compile(ifPat).matcher(script.substring(matcher.end()));
+						String oldIf = matcher.group();
+						oldIf = oldIf.replace("{","");
+						String newIf = oldIf + "then";
+						script = script.replace(oldIf,newIf);
+						break;
+					default: // while, else
+						break;
+				}
+
 			}
 		}
 
-		// Find innermost block { ... }
-		String blockPat ="";
-		Matcher matcher=Pattern.compile(blockPat).matcher(script);
-		while(matcher.find()){
-
+		for(String cs:controlStructures) {
+			String csPat =  cs + "[^\\{]*\\{";
+			Matcher matcher = Pattern.compile(csPat).matcher(script);
+			while (matcher.find()) {
+				String csString = matcher.group();
+				String csNewString = ConvertAndFormatMethods.removeCR(csString);
+				script = script.replace(csString,csNewString);
+			}
 		}
+	}
+
+	private void replaceBlocks(){
+		// Find innermost block { ... }
+		String blockPat ="([\\r\\n]*\\{(?:\\{??[^\\{]*?\\}))+";
+		Matcher matcher=Pattern.compile(blockPat).matcher(script);
+		while(matcher.find()) {
+			log.fine("--replace block.");
+			String block = matcher.group();
+			block = replaceSyntaxInBlock(block);
+			script=script.replaceFirst(blockPat,block);
+			matcher=Pattern.compile(blockPat).matcher(script);
+		}
+	}
+
+	private String replaceSyntaxInBlock(String block){
+		HashMap<String,String> replacements=new HashMap<>();
+		String newBlock = block;
+		replacements.put("[\\r\\n]*\\{", "(");
+		replacements.put("\\}", ")");
+		replacements.put("[\\r\\n]+", " ");
+		replacements.put(";[\\r\\n]*", ", ");
+		replacements.put(";(?=([^\"]*\"[^\"]*\")*[^\"]*;)", ", ");
+		Pattern pattern;
+		Matcher matcher;
+		for(String key:replacements.keySet()){
+			pattern=Pattern.compile(key);
+			matcher=pattern.matcher(newBlock);
+			while(matcher.find()){
+				newBlock=newBlock.replaceFirst(key,replacements.get(key));
+			}
+		}
+		return(newBlock);
 	}
 
 
 	private void searchForControlStructures(){
-		ArrayList<String> controlStructures=new ArrayList<>(Arrays.asList("if","for","foreach","continue","while", "until","next","last","redo","unless","else","elseif","do","goto","sub"));
+		ArrayList<String> controlStructures=new ArrayList<>(Arrays.asList("next","last","redo","goto","sub"));
 		for(String cs:controlStructures){
 			String csPat="\\W"+cs+"\\W";
 			Matcher matcher=Pattern.compile(csPat).matcher(script);
@@ -149,12 +239,12 @@ public class PerlScript extends ProblemElement{
 		}		
 	}
 
-	private void replaceSyntax(){
+		private void replaceSyntax(){
 		HashMap<String,String> syntaxReplacements=new HashMap<>();
 		
 		//single equal sign (left no AND right no equal sign)
 		//and not equal signs in quotes: (?<!=)=(?!=)(?=([^"]*"[^"]*")*[^"]*;)
-		syntaxReplacements.put("(?<!=)=(?!=)(?=([^\"]*\"[^\"]*\")*[^\"]*;)", ": ");
+		syntaxReplacements.put("(?<![!=<>])=(?!=)(?=([^\"]*\"[^\"]*\")*[^\"]*;)", ": ");
 		log.fine("--replace all \"=\" with \": \"");
 
 		//newline or return at the end of line
@@ -162,6 +252,7 @@ public class PerlScript extends ProblemElement{
 		log.fine("--remove multiple empty lines");
 		replaceKeysByValues(syntaxReplacements,true);
 	}
+
 
 	private void replaceFunctions(){
 		HashMap<String,String> functionReplacements=new HashMap<>();
