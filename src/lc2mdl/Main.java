@@ -97,7 +97,9 @@ public class Main{
 						parentDir.mkdirs();
 						System.out.println("created folder: "+parentDir.getAbsolutePath());
 					}
-					
+
+					System.out.println();
+					System.out.println("#######################################################");
 					System.out.println("FROMFILE: "+inputfile.getAbsolutePath());
 					System.out.println("TOFILE:   "+outputfile.getAbsolutePath());
 					int c=conv.convertFile(inputfile,outputfile);
@@ -109,15 +111,18 @@ public class Main{
 
 				System.out.println();
 				System.out.println("########################################################");
-				System.out.println("SUMMARY:");
+				System.out.println("SUMMARY over all files:");
 				System.out.println("Worked on "+files.size()+" files.");
 				System.out.println("converted successfully: "+(converted+convertedFull));
 				System.out.println("- partially:            "+converted);
 				System.out.println("- full:                 "+convertedFull);
-				System.out.println("aborted:                "+(files.size()-(converted+convertedFull)));
-				System.out.println("aborted files (correct error and try again):");
-				for(String abname:abortedFiles.keySet()){
-					System.out.println("lc2mdl -v "+abname+" "+abortedFiles.get(abname));
+				int aborted = (files.size()-(converted+convertedFull));
+				System.out.println("aborted:                "+aborted);
+				if (aborted>0) {
+					System.out.println("aborted files (correct error and try again):");
+					for (String abname : abortedFiles.keySet()) {
+						System.out.println("lc2mdl -v " + abname + " " + abortedFiles.get(abname));
+					}
 				}
 				return;
 			}

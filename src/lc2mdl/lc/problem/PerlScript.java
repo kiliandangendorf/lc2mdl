@@ -62,16 +62,18 @@ public class PerlScript extends ProblemElement{
 		//COMMENTS
 		replaceComments();
 
+		//UNKNOWN CONTROL-STRUCTURES
+		searchForControlStructures();
+
 		//CONTROL-STRUCTURES THAT CAN BE REPLACED
 		replaceControlStructures();
 
 		//SYNTAX (equal sign, semicolon)
 		//need to be placed after arrays, functions and control structures !
 		replaceBlocks();
+
 		replaceSyntax();
 
-		//OTHER CONTROL-STRUCTURES
-		searchForControlStructures();
 
 		//SPECIAL CHARS
 		searchForSpecialChars();
@@ -104,12 +106,21 @@ public class PerlScript extends ProblemElement{
 	}
 
 	private void replaceControlStructures(){
-		ArrayList<String> controlStructures=new ArrayList<>(Arrays.asList("do","unless","until","for","foreach","while", "if","else","elseif"));
+		ArrayList<String> controlStructures=new ArrayList<>(Arrays.asList("do","unless","else","elseif","if","until","for","foreach","while"));
 		for(String cs:controlStructures) {
 			String csPat = "\\W" + cs + "\\W";
 			Matcher matcher = Pattern.compile(csPat).matcher(script);
 			while (matcher.find()) {
 				log.warning("--found control structure: " + cs + ", try to replace, please check result");
+				int csStart = matcher.start()+1;
+				int csEnd = matcher.end()-1;
+				int parenStart = csEnd;
+				int parenEnd = parenStart;
+				while (parenStart < script.length()){
+						if(script.charAt(parenStart)=='(') {  break; }
+						  parenStart++;
+						}
+				if (parenStart < script.length())	parenEnd = ConvertAndFormatMethods.findMatchingParentheses(script, parenStart);
 
 				switch (cs) {
 					case "do":
@@ -124,43 +135,82 @@ public class PerlScript extends ProblemElement{
 						String whilePat = "((while)|(until))";
 						Matcher csMatcher = Pattern.compile(whilePat).matcher(script.substring(blockEnd));
 						if (csMatcher.find()) {
-							log.warning("-- found do statement with closing "+csMatcher.group()+" -- revert statements -- please check.");
+							log.warning("-- found do statement with closing "+csMatcher.group()+" -- revert statements -- please check condition.  ");
 							int whileStart = csMatcher.start();
 							int whileEnd = csMatcher.end();
 							whileEnd = ConvertAndFormatMethods.findMatchingParentheses(script.substring(blockEnd), whileEnd);
 							int doEnd = blockEnd + whileEnd;
 							String whileString = script.substring(blockEnd).substring(whileStart, whileEnd);
 							String doString = script.substring(doStart, doEnd);
-							String newString = "/* do {..} " +csMatcher.group()+" statement replaced, please check condition */  " + System.lineSeparator() + System.lineSeparator() + whileString + blockString;
+							String newString = " "+ whileString + blockString;
 							script = script.replace(doString, newString);
-						} else {
-							log.warning("-- found do statement without closing while or until -- please check condition.");
-						}
-						break;
-					case "unless":
-						int unlessStart = matcher.start();
-						int unlessEnd = matcher.end()-1;
-						while (unlessEnd < script.length()){
-						  if(script.charAt(unlessEnd)=='(') { unlessEnd++; break; }
-						}
 
+						} else {
+							log.warning("-- found do statement without closing while or until -- please check.");
+						}
 						break;
-					case "until":
-						script.replace(cs,"unless");
+
+					case "unless":
+						String condSub = script.substring(parenStart, parenEnd);
+						condSub = "if (!"+ condSub + ")";
+						String cond = script.substring(csStart,parenEnd);
+						script = script.replace(cond,condSub);
 						break;
-					case "if": case "elseif":
-						String ifPat = cs+ "[^\\{]*\\{";
-						Matcher ifmatcher = Pattern.compile(ifPat).matcher(script.substring(matcher.end()));
-						String oldIf = matcher.group();
-						oldIf = oldIf.replace("{","");
-						String newIf = oldIf + "then";
+
+					case "else":
+						String csString = matcher.group();
+						String csNewString = "  "+ConvertAndFormatMethods.removeCR(csString);
+						script = script.replace(csString,csNewString);
+						break;
+
+					case "elseif":
+						 csString = matcher.group();
+						 csNewString = "  "+ConvertAndFormatMethods.removeCR(csString);
+						script = script.replace(csString,csNewString);
+						// nobreak, continue with the if case
+
+					case "if":
+						String oldIf = script.substring(csStart,parenEnd);
+						String newIf = oldIf + " then ";
 						script = script.replace(oldIf,newIf);
 						break;
-					default: // while, else
+
+					case "until":
+						script.replace(cs,"unless");
+						parenEnd++;
+						// nobreak, continue with the while case
+
+					case "while":
+						String oldWhile = script.substring(csStart,parenEnd);
+						String newWhile = oldWhile + " do ";
+						script = script.replace(oldWhile,newWhile);
+						break;
+
+					case "for":
+						String forString = script.substring(csStart,parenEnd);
+						String parenString = script.substring(parenStart+1,parenEnd-1);
+						String[] parenSplit = parenString.split(";");
+						String start = parenSplit[0];
+						start = start.replaceFirst("=",":");
+						cond = parenSplit[1];
+						String next = parenSplit[2];
+						String newForString = "for " + start + " next " + next + "while( " + cond + " ) do";
+						script = script.replace(forString,newForString);
+						break;
+
+					case "foreach":
+						forString = script.substring(csStart,parenEnd);
+						parenString = script.substring(parenStart,parenEnd);
+						String varString = script.substring(csEnd+1,parenStart);
+						newForString = "for " + varString + " in " + parenString + " do ";
+						script = script.replace(forString,newForString);
+						break;
+					default:
 						break;
 				}
 
 			}
+
 		}
 
 		for(String cs:controlStructures) {
@@ -168,33 +218,44 @@ public class PerlScript extends ProblemElement{
 			Matcher matcher = Pattern.compile(csPat).matcher(script);
 			while (matcher.find()) {
 				String csString = matcher.group();
+			//	System.out.println(matcher.group());
 				String csNewString = ConvertAndFormatMethods.removeCR(csString);
 				script = script.replace(csString,csNewString);
 			}
 		}
+
+
 	}
 
 	private void replaceBlocks(){
 		// Find innermost block { ... }
 		String blockPat ="([\\r\\n]*\\{(?:\\{??[^\\{]*?\\}))+";
 		Matcher matcher=Pattern.compile(blockPat).matcher(script);
+		if (matcher.find()) {
+			log.fine("--replace parentheses { .. } to ( .. ) -- please check text variables ");
+		}
 		while(matcher.find()) {
 			log.fine("--replace block.");
 			String block = matcher.group();
-			block = replaceSyntaxInBlock(block);
-			script=script.replaceFirst(blockPat,block);
+			String newBlock = replaceSyntaxInBlock(block);
+			script=script.replace(block,newBlock);
 			matcher=Pattern.compile(blockPat).matcher(script);
 		}
+
+
 	}
 
 	private String replaceSyntaxInBlock(String block){
 		HashMap<String,String> replacements=new HashMap<>();
 		String newBlock = block;
-		replacements.put("[\\r\\n]*\\{", "(");
+
+		replacements.put("(?<![!=<>])=(?!=)(?=([^\"]*\"[^\"]*\")*[^\"]*;)", ": ");
+		replacements.put("\\{", "(");
 		replacements.put("\\}", ")");
 		replacements.put("[\\r\\n]+", " ");
 		replacements.put(";[\\r\\n]*", ", ");
 		replacements.put(";(?=([^\"]*\"[^\"]*\")*[^\"]*;)", ", ");
+		replacements.put(",\\s+\\)"," )");
 		Pattern pattern;
 		Matcher matcher;
 		for(String key:replacements.keySet()){
@@ -214,7 +275,7 @@ public class PerlScript extends ProblemElement{
 			String csPat="\\W"+cs+"\\W";
 			Matcher matcher=Pattern.compile(csPat).matcher(script);
 			while(matcher.find()){
-				log.warning("--found control structure: "+cs);
+				log.warning("--found unknown control structure: "+cs);
 			}			
 		}
 	}
@@ -242,7 +303,7 @@ public class PerlScript extends ProblemElement{
 		private void replaceSyntax(){
 		HashMap<String,String> syntaxReplacements=new HashMap<>();
 		
-		//single equal sign (left no AND right no equal sign)
+		//single equal sign (left no AND right no equal sign, left no !,<,>)
 		//and not equal signs in quotes: (?<!=)=(?!=)(?=([^"]*"[^"]*")*[^"]*;)
 		syntaxReplacements.put("(?<![!=<>])=(?!=)(?=([^\"]*\"[^\"]*\")*[^\"]*;)", ": ");
 		log.fine("--replace all \"=\" with \": \"");
