@@ -1,16 +1,10 @@
 package lc2mdl.xml;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
+import lc2mdl.Prefs;
+
+import java.io.*;
 import java.util.HashMap;
 import java.util.logging.Logger;
-
-import lc2mdl.Prefs;
 
 public class PreParser {	
 	private static final Logger log = Logger.getLogger(PreParser.class.getName());
@@ -39,14 +33,35 @@ public class PreParser {
 		
 		//HTML References
 		//replace NO-BRAKE-SPACE escape by itself
-		xmlReplacements.put("&nbsp;","<![CDATA[ &nbsp; ]]>");
-//		xmlReplacements.put("&nbsp;", " ");
-//		xmlReplacements.put("&infin;", "∞");
+        // HTML stuff
+		xmlReplacements.put("(<td>\\s*)&nbsp;(\\s*</td>)","$1<![CDATA[ &nbsp; ]]>$2");
+		xmlReplacements.put("(<TD>\\s*)&nbsp;(\\s*</TD>)","$1<![CDATA[ &nbsp; ]]>$2");
+		xmlReplacements.put("&nbsp;"," ");
+		xmlReplacements.put("&uuml;","ü");
+		xmlReplacements.put("&auml;","ü");
+		xmlReplacements.put("&ouml;","ü");
+		xmlReplacements.put("&euro;","€");
+		xmlReplacements.put("&le;","\\\\(\\le\\\\)");
+		xmlReplacements.put("&ge;","\\\\(\\ge\\\\)");
+ 		xmlReplacements.put("&lt;","\\\\(\\lt\\\\)");
+		xmlReplacements.put("&gt;","\\\\(\\gt\\\\)");
+       xmlReplacements.put("&infin;", "\\\\( \\infty \\\\)");
+
+		// LON-CAPA inbuilt functions
+		xmlReplacements.put("&check_status","check_status");
+		xmlReplacements.put("&EXT","EXT");
+
+		// make it an correct attribute
+
+		xmlReplacements.put("condition=\"([^<]*)<([^<]*)\"", "condition=\"$1 LT $2\"");
+		xmlReplacements.put("condition=\"([^>]*)>([^>]*)\"", "condition=\"$1 GT $2\"");
+        xmlReplacements.put("options=\"([^<]*)<([^<]*)\"", "options=\"$1 \\\\( \\lt $2\"");
+        xmlReplacements.put("options=\"([^>]*)>([^>]*)\"", "options=\"$1 \\\\( \\gt $2\"");
+
 //		occurs error
 //	    <foilgroup options="('singul&auml;r','regul&auml;r')" texoptions="">
 
-		
-		
+
 		String buf;
 		for(HashMap.Entry<String, String> item : xmlReplacements.entrySet()) {
 			buf=s.replaceAll(item.getKey(), item.getValue());

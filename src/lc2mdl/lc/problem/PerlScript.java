@@ -117,9 +117,12 @@ public class PerlScript extends ProblemElement{
 		for(String cs:controlStructures) {
 			String csPat = "\\W" + cs + "\\W";
 			Matcher matcher = Pattern.compile(csPat).matcher(script);
-			while (matcher.find()) {
+			int startFind = 0;
+			while (matcher.find(startFind)) {
+			  //  System.out.println(startFind+" ");
 				log.warning("--found control structure: " + cs + ", try to replace, please check result");
 				int csStart = matcher.start()+1;
+				startFind = matcher.end()-1;
 				int csEnd = matcher.end()-1;
 				int parenStart = csEnd;
 				int parenEnd = parenStart;
@@ -169,6 +172,7 @@ public class PerlScript extends ProblemElement{
 							String csString = matcher.group();
 							String csNewString = "  " + ConvertAndFormatMethods.removeCR(csString);
 							script = script.replace(csString, csNewString);
+							startFind = csStart+csNewString.length()+1;
 							break;
 
 						case "elseif":
@@ -181,6 +185,7 @@ public class PerlScript extends ProblemElement{
 							String oldIf = script.substring(csStart, parenEnd);
 							String newIf = oldIf + " then ";
 							script = script.replace(oldIf, newIf);
+							startFind = csStart + newIf.length();
 							break;
 
 						case "until":
@@ -192,31 +197,37 @@ public class PerlScript extends ProblemElement{
 							String oldWhile = script.substring(csStart, parenEnd);
 							String newWhile = oldWhile + " do ";
 							script = script.replace(oldWhile, newWhile);
+							startFind = csEnd;
 							break;
 
 						case "for":
 							String forString = script.substring(csStart, parenEnd);
-							String parenString = script.substring(parenStart + 1, parenEnd - 1);
-							String[] parenSplit = parenString.split(";");
-							String start = parenSplit[0];
-							start = start.replaceFirst("=", ":");
-							cond = parenSplit[1];
-							String next = parenSplit[2];
-							String newForString = "for " + start + " next " + next + "while( " + cond + " ) do";
-							script = script.replace(forString, newForString);
+                                String parenString = script.substring(parenStart + 1, parenEnd - 1);
+                                String[] parenSplit = parenString.split(";");
+                               // System.out.println(forString+"  "+parenString+"  "+parenSplit.length);
+                            if (parenSplit.length>2) {
+                                String start = parenSplit[0];
+                                start = start.replaceFirst("=", ":");
+                                cond = parenSplit[1];
+                                String next = parenSplit[2];
+                                String newForString = "for " + start + " next " + next + " while( " + cond + " ) do";
+                                script = script.replace(forString, newForString);
+                                startFind = csStart+newForString.length();
+                            }
 							break;
 
 						case "foreach":
 							forString = script.substring(csStart, parenEnd);
 							parenString = script.substring(parenStart, parenEnd);
 							String varString = script.substring(csEnd + 1, parenStart);
-							newForString = "for " + varString + " in " + parenString + " do ";
+							String newForString = "for " + varString + " in " + parenString + " do ";
 							script = script.replace(forString, newForString);
 							break;
 						default:
 							break;
 					}
 				}
+                //matcher = Pattern.compile(csPat).matcher(script);
 			}
 
 		}
