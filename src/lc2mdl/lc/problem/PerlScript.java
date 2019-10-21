@@ -1,21 +1,21 @@
 package lc2mdl.lc.problem;
 
+import lc2mdl.mdl.quiz.QuestionStack;
+import lc2mdl.util.ConvertAndFormatMethods;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-
-import lc2mdl.mdl.quiz.QuestionStack;
-import lc2mdl.util.ConvertAndFormatMethods;
-
 public class PerlScript extends ProblemElement{
 
 	private String script;
 	private String scriptComment;
+	private String convertWarning;
 
 	private int arrayNo=0;
 	
@@ -24,6 +24,7 @@ public class PerlScript extends ProblemElement{
 		log.finer("perl-script:");
 		this.script=node.getTextContent();
 		this.scriptComment="Original Perl Script"+System.lineSeparator()+this.script;
+		this.convertWarning = "";
 
 		log.finer("--put original Perl script in comment.");
 		//got everything;)
@@ -77,9 +78,15 @@ public class PerlScript extends ProblemElement{
 
 		//SPECIAL CHARS
 		searchForSpecialChars();
-		
+
+		script = convertWarning + System.lineSeparator() + script;
 	}
 	
+
+	private void addConvertWarning(String warning){
+		log.warning(warning);
+		convertWarning = convertWarning + System.lineSeparator() + "/* " + warning + " */";
+	}
 
 	private void searchForSpecialChars(){
 		ArrayList<String> specialChars=new ArrayList<>(Arrays.asList("\\$","@","&","{","}"));
@@ -101,8 +108,8 @@ public class PerlScript extends ProblemElement{
 		matcher=pattern.matcher(script);
 		while(matcher.find()){
 			String func=matcher.group();
-			log.warning("--unknown function: \""+func+"\"");
-		}	
+			addConvertWarning("--unknown function: \""+func+"\"");
+		}
 	}
 
 	private void replaceControlStructures(){
@@ -122,93 +129,94 @@ public class PerlScript extends ProblemElement{
 						}
 				if (parenStart < script.length())	parenEnd = ConvertAndFormatMethods.findMatchingParentheses(script, parenStart);
 
-				switch (cs) {
-					case "do":
-						int doStart = matcher.start();
-						int blockStart = matcher.end() - 1;
-						int blockEnd = ConvertAndFormatMethods.findMatchingParentheses(script, blockStart, false);
-						if (blockEnd < 0) {
-							log.warning("--unmatched block parantheses {..} ");
+				if (parenEnd>0) {
+					switch (cs) {
+						case "do":
+							int doStart = matcher.start();
+							int blockStart = matcher.end() - 1;
+							int blockEnd = ConvertAndFormatMethods.findMatchingParentheses(script, blockStart, false);
+							if (blockEnd < 0) {
+								log.warning("--unmatched block parantheses {..} ");
+								break;
+							}
+							String blockString = script.substring(blockStart, blockEnd);
+							String whilePat = "((while)|(until))";
+							Matcher csMatcher = Pattern.compile(whilePat).matcher(script.substring(blockEnd));
+							if (csMatcher.find()) {
+								addConvertWarning("-- found do statement with closing " + csMatcher.group() + " -- revert statements -- please check condition.  ");
+								int whileStart = csMatcher.start();
+								int whileEnd = csMatcher.end();
+								whileEnd = ConvertAndFormatMethods.findMatchingParentheses(script.substring(blockEnd), whileEnd);
+								int doEnd = blockEnd + whileEnd;
+								String whileString = script.substring(blockEnd).substring(whileStart, whileEnd);
+								String doString = script.substring(doStart, doEnd);
+								String newString = " " + whileString + blockString;
+								script = script.replace(doString, newString);
+
+							} else {
+								addConvertWarning("-- found do statement without closing while or until -- please check.");
+							}
 							break;
-						}
-						String blockString = script.substring(blockStart, blockEnd);
-						String whilePat = "((while)|(until))";
-						Matcher csMatcher = Pattern.compile(whilePat).matcher(script.substring(blockEnd));
-						if (csMatcher.find()) {
-							log.warning("-- found do statement with closing "+csMatcher.group()+" -- revert statements -- please check condition.  ");
-							int whileStart = csMatcher.start();
-							int whileEnd = csMatcher.end();
-							whileEnd = ConvertAndFormatMethods.findMatchingParentheses(script.substring(blockEnd), whileEnd);
-							int doEnd = blockEnd + whileEnd;
-							String whileString = script.substring(blockEnd).substring(whileStart, whileEnd);
-							String doString = script.substring(doStart, doEnd);
-							String newString = " "+ whileString + blockString;
-							script = script.replace(doString, newString);
 
-						} else {
-							log.warning("-- found do statement without closing while or until -- please check.");
-						}
-						break;
+						case "unless":
+							String condSub = script.substring(parenStart, parenEnd);
+							condSub = "if (!" + condSub + ")";
+							String cond = script.substring(csStart, parenEnd);
+							script = script.replace(cond, condSub);
+							break;
 
-					case "unless":
-						String condSub = script.substring(parenStart, parenEnd);
-						condSub = "if (!"+ condSub + ")";
-						String cond = script.substring(csStart,parenEnd);
-						script = script.replace(cond,condSub);
-						break;
+						case "else":
+							String csString = matcher.group();
+							String csNewString = "  " + ConvertAndFormatMethods.removeCR(csString);
+							script = script.replace(csString, csNewString);
+							break;
 
-					case "else":
-						String csString = matcher.group();
-						String csNewString = "  "+ConvertAndFormatMethods.removeCR(csString);
-						script = script.replace(csString,csNewString);
-						break;
+						case "elseif":
+							csString = matcher.group();
+							csNewString = "  " + ConvertAndFormatMethods.removeCR(csString);
+							script = script.replace(csString, csNewString);
+							// nobreak, continue with the if case
 
-					case "elseif":
-						 csString = matcher.group();
-						 csNewString = "  "+ConvertAndFormatMethods.removeCR(csString);
-						script = script.replace(csString,csNewString);
-						// nobreak, continue with the if case
+						case "if":
+							String oldIf = script.substring(csStart, parenEnd);
+							String newIf = oldIf + " then ";
+							script = script.replace(oldIf, newIf);
+							break;
 
-					case "if":
-						String oldIf = script.substring(csStart,parenEnd);
-						String newIf = oldIf + " then ";
-						script = script.replace(oldIf,newIf);
-						break;
+						case "until":
+							script.replace(cs, "unless");
+							parenEnd++;
+							// nobreak, continue with the while case
 
-					case "until":
-						script.replace(cs,"unless");
-						parenEnd++;
-						// nobreak, continue with the while case
+						case "while":
+							String oldWhile = script.substring(csStart, parenEnd);
+							String newWhile = oldWhile + " do ";
+							script = script.replace(oldWhile, newWhile);
+							break;
 
-					case "while":
-						String oldWhile = script.substring(csStart,parenEnd);
-						String newWhile = oldWhile + " do ";
-						script = script.replace(oldWhile,newWhile);
-						break;
+						case "for":
+							String forString = script.substring(csStart, parenEnd);
+							String parenString = script.substring(parenStart + 1, parenEnd - 1);
+							String[] parenSplit = parenString.split(";");
+							String start = parenSplit[0];
+							start = start.replaceFirst("=", ":");
+							cond = parenSplit[1];
+							String next = parenSplit[2];
+							String newForString = "for " + start + " next " + next + "while( " + cond + " ) do";
+							script = script.replace(forString, newForString);
+							break;
 
-					case "for":
-						String forString = script.substring(csStart,parenEnd);
-						String parenString = script.substring(parenStart+1,parenEnd-1);
-						String[] parenSplit = parenString.split(";");
-						String start = parenSplit[0];
-						start = start.replaceFirst("=",":");
-						cond = parenSplit[1];
-						String next = parenSplit[2];
-						String newForString = "for " + start + " next " + next + "while( " + cond + " ) do";
-						script = script.replace(forString,newForString);
-						break;
-
-					case "foreach":
-						forString = script.substring(csStart,parenEnd);
-						parenString = script.substring(parenStart,parenEnd);
-						String varString = script.substring(csEnd+1,parenStart);
-						newForString = "for " + varString + " in " + parenString + " do ";
-						script = script.replace(forString,newForString);
-						break;
-					default:
-						break;
+						case "foreach":
+							forString = script.substring(csStart, parenEnd);
+							parenString = script.substring(parenStart, parenEnd);
+							String varString = script.substring(csEnd + 1, parenStart);
+							newForString = "for " + varString + " in " + parenString + " do ";
+							script = script.replace(forString, newForString);
+							break;
+						default:
+							break;
+					}
 				}
-
 			}
 
 		}
@@ -232,7 +240,11 @@ public class PerlScript extends ProblemElement{
 		String blockPat ="([\\r\\n]*\\{(?:\\{??[^\\{]*?\\}))+";
 		Matcher matcher=Pattern.compile(blockPat).matcher(script);
 		if (matcher.find()) {
-			log.fine("--replace parentheses { .. } to ( .. ) -- please check text variables ");
+			String parenPat ="\"[^\"]*\\{[^\"]*\"";
+			Matcher pMatcher=Pattern.compile(parenPat).matcher(script);
+			if (pMatcher.find()) {
+				addConvertWarning("--replace parentheses { .. } to ( .. ) -- please check text variables ");
+			}
 		}
 		while(matcher.find()) {
 			log.fine("--replace block.");
@@ -275,7 +287,7 @@ public class PerlScript extends ProblemElement{
 			String csPat="\\W"+cs+"\\W";
 			Matcher matcher=Pattern.compile(csPat).matcher(script);
 			while(matcher.find()){
-				log.warning("--found unknown control structure: "+cs);
+				addConvertWarning("--found unknown control structure: "+cs);
 			}			
 		}
 	}

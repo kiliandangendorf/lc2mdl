@@ -39,6 +39,7 @@ public class PreParser {
 		
 		//HTML References
 		//replace NO-BRAKE-SPACE escape by itself
+		xmlReplacements.put("&nbsp;","<![CDATA[ &nbsp; ]]>");
 //		xmlReplacements.put("&nbsp;", " ");
 //		xmlReplacements.put("&infin;", "∞");
 //		occurs error

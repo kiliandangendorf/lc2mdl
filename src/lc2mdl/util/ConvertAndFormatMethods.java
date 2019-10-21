@@ -44,12 +44,14 @@ public class ConvertAndFormatMethods{
 				}
 				end++;
 			}
-			while(bracketCount>0){
-				if(text.charAt(end)==charOpen) bracketCount++;
-				if(text.charAt(end)==charClose) bracketCount--;
-				end++;
-				if (end > text.length()) break;
-			}
+
+
+				while ((bracketCount > 0) && (end<text.length())) {
+					if (text.charAt(end) == charOpen) bracketCount++;
+					if (text.charAt(end) == charClose) bracketCount--;
+					end++;
+
+				}
 
 			if(bracketCount!=0){
 				return (-1);
