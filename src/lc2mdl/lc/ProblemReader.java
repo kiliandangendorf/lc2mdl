@@ -1,23 +1,13 @@
 package lc2mdl.lc;
 
-import java.util.logging.Logger;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-
 import lc2mdl.Prefs;
-import lc2mdl.lc.problem.HtmlElement;
-import lc2mdl.lc.problem.Outtext;
-import lc2mdl.lc.problem.Part;
-import lc2mdl.lc.problem.PerlScript;
-import lc2mdl.lc.problem.Problem;
-import lc2mdl.lc.problem.UnknownElement;
+import lc2mdl.lc.problem.*;
 import lc2mdl.lc.problem.response.FormulaResponse;
 import lc2mdl.lc.problem.response.MathResponse;
 import lc2mdl.lc.problem.response.NumericalResponse;
+import org.w3c.dom.*;
+
+import java.util.logging.Logger;
 
 public class ProblemReader{
 	public static Logger log = Logger.getLogger(ProblemReader.class.getName());
@@ -36,8 +26,8 @@ public class ProblemReader{
 		Problem problem=null;
 		
 		if(dom.getElementsByTagName("problem").getLength()==0){
-			log.severe("no probelm-tag was found. Stop.");
-			throw new Exception("no probelm-tag was found.");
+			log.severe("no problem-tag was found. Stop.");
+			throw new Exception("no problem-tag was found.");
 		}
 
 		if(dom.getElementsByTagName("problem").getLength()>1)log.warning("more than one problem. Only first will be worked on.");

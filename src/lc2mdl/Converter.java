@@ -11,7 +11,7 @@ import lc2mdl.util.LogFormatterKD;
 import lc2mdl.xml.PreParser;
 import lc2mdl.xml.XMLParser;
 import lc2mdl.xml.XMLWriter;
-//import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.w3c.dom.Document;
 
 import java.io.File;
@@ -19,7 +19,6 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.logging.*;
-
 
 public class Converter{
 	public static Logger log=Logger.getLogger(Converter.class.getName());
@@ -139,9 +138,9 @@ public class Converter{
 		}catch(Exception e){
 			log.severe("error while converting: ");
 			log.severe(e.getMessage());
-			//log.severe("Exception : "+ ExceptionUtils.getStackTrace(e));
+			log.severe("Exception : "+ ExceptionUtils.getStackTrace(e));
 			//TODO: here the StackTrace is shown as long as this program is under construction. 
-			e.printStackTrace();
+			// e.printStackTrace();
 
 			log.fine(Prefs.CLI_LINE_SEP);
 			log.info("ABORTED: "+new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));

@@ -1,16 +1,15 @@
 package lc2mdl.lc.problem.response;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-
 import lc2mdl.lc.problem.Problem;
 import lc2mdl.mdl.quiz.Input;
 import lc2mdl.mdl.quiz.NodeMdl;
 import lc2mdl.mdl.quiz.QuestionStack;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class MathResponse extends Response{
 
@@ -66,19 +65,21 @@ public class MathResponse extends Response{
 		if(e.hasAttribute("args")){
 			args=e.getAttribute("args");
 			log.finer("-found args.");
-			if(args.charAt(0)=='$'){
-				//Variable
-				args=args.substring(1);
-				log.finer("--found args-variable: "+args);
-			}else if(args.charAt(0)=='@'){
-				//Array
-				args=args.substring(1);
-				log.finer("--found args-array: "+args);
-			}else{
-				//Maxima or Perl exression
-				//create var (array) from maxima String in questionvariables and reference here
-				args=addAdditionalCASVar(args);	
-				log.warning("-found args as expression (neither var or array). Check if var/array \""+args+"\" is set perperly in questionvariables.");
+			if (!args.equals("")) {
+				if (args.charAt(0) == '$') {
+					//Variable
+					args = args.substring(1);
+					log.finer("--found args-variable: " + args);
+				} else if (args.charAt(0) == '@') {
+					//Array
+					args = args.substring(1);
+					log.finer("--found args-array: " + args);
+				} else {
+					//Maxima or Perl exression
+					//create var (array) from maxima String in questionvariables and reference here
+					args = addAdditionalCASVar(args);
+					log.warning("-found args as expression (neither var or array). Check if var/array \"" + args + "\" is set perperly in questionvariables.");
+				}
 			}
 			e.removeAttribute("args");			
 		}

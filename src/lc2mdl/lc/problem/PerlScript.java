@@ -185,7 +185,7 @@ public class PerlScript extends ProblemElement{
 							String oldIf = script.substring(csStart, parenEnd);
 							String newIf = oldIf + " then ";
 							script = script.replace(oldIf, newIf);
-							startFind = csStart + newIf.length();
+							startFind = csEnd;
 							break;
 
 						case "until":
@@ -212,7 +212,7 @@ public class PerlScript extends ProblemElement{
                                 String next = parenSplit[2];
                                 String newForString = "for " + start + " next " + next + " while( " + cond + " ) do";
                                 script = script.replace(forString, newForString);
-                                startFind = csStart+newForString.length();
+                                startFind = csEnd;
                             }
 							break;
 
@@ -523,7 +523,7 @@ public class PerlScript extends ProblemElement{
 		Matcher matcherAssignment=pattern.matcher(script);	
 		while(matcherAssignment.find()){
 			String varAssignment=matcherAssignment.group();
-			
+			String varAssignmentOriginal = varAssignment;
 			//check if its array assignment or function
 			String leftBracePat="(?<=) {0,}&?\\w*\\((?=[\\s\\S]*?\\) {0,};)";//funtcion incl.
 			String rightBracePat="\\)(?= {0,};)";//only in no function
@@ -553,17 +553,18 @@ public class PerlScript extends ProblemElement{
 			String arrayPat="@\\w+(?= {0,}=)";
 			Pattern pat=Pattern.compile(arrayPat);
 			Matcher matcherArray=pat.matcher(varAssignment);
+			String array="no array";
 			while(matcherArray.find()){
-				String array=matcherArray.group();
+				array=matcherArray.group();
 				array=array.substring(1);//remove first char @
 				if(!arrays.contains(array))arrays.add(array);
 				problem.addVar(array);
 				varAssignment=varAssignment.replaceFirst(arrayPat,array);
 				break;
 			}
-			
+
 			//replace converted array assignment
-			script=script.replaceFirst(varAssignmentPat, varAssignment);
+			script=script.replace(varAssignmentOriginal, varAssignment);
 		}
 		if(arrays.size()>0){
 			//now replace all arrays in script

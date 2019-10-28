@@ -24,9 +24,10 @@ public class PreParser {
 		xmlReplacements.put("<script {0,}type=\"loncapa/perl\" {0,}>", "<script type=\"loncapa/perl\"><![CDATA[");
 		xmlReplacements.put("</script {0,}>", "]]></script>");
 
-		
+		xmlReplacements.put("<answer {0,}name=\"(.*)\" {0,}type=\"(.*)\" {0,}>", "<answer name=\"$1\" type=\"$2\"><![CDATA[");
 		xmlReplacements.put("<answer {0,}type=\"loncapa/perl\" {0,}>", "<answer type=\"loncapa/perl\"><![CDATA[");
 		xmlReplacements.put("<answer {0,}>", "<answer><![CDATA[");
+
 //		xmlReplacements.put("<answer(>| [^>]*>)", "<answer><![CDATA["); would remove attributes
 		xmlReplacements.put("</answer {0,}>", "]]></answer>");
 		
@@ -45,7 +46,11 @@ public class PreParser {
 		xmlReplacements.put("&ge;","\\\\(\\ge\\\\)");
  		xmlReplacements.put("&lt;","\\\\(\\lt\\\\)");
 		xmlReplacements.put("&gt;","\\\\(\\gt\\\\)");
-       xmlReplacements.put("&infin;", "\\\\( \\infty \\\\)");
+       	xmlReplacements.put("&infin;", "\\\\( \\infty \\\\)");
+       	xmlReplacements.put("&epsilon;","\\\\( \\varepsion \\\\)");
+       	xmlReplacements.put("<sub>","\\\\(_");
+       	xmlReplacements.put("</sub>","\\\\)");
+       	xmlReplacements.put("&ne;","\\\\(\\neq\\\\)");
 
 		// LON-CAPA inbuilt functions
 		xmlReplacements.put("&check_status","check_status");
@@ -53,8 +58,16 @@ public class PreParser {
 
 		// make it an correct attribute
 
+		xmlReplacements.put("condition=\"&abs", "condition=\"abs");
 		xmlReplacements.put("condition=\"([^<]*)<([^<]*)\"", "condition=\"$1 LT $2\"");
 		xmlReplacements.put("condition=\"([^>]*)>([^>]*)\"", "condition=\"$1 GT $2\"");
+		xmlReplacements.put("condition=\"([^<]*)<([^<]*)<([^<]*)\"", "condition=\"$1 LT $2 LT $3\"");
+		xmlReplacements.put("condition=\"([^>]*)>([^>]*)>([^>]*)\"", "condition=\"$1 GT $2 GT $3\"");
+		xmlReplacements.put("condition=\"([^<]*)<([^<]*)<([^<]*)<([^<]*)\"", "condition=\"$1 LT $2 LT $3 LT $4\"");
+		xmlReplacements.put("condition=\"([^>]*)>([^>]*)>([^>]*)>([^>]*)\"", "condition=\"$1 GT $2 GT $3 GT $4\"");
+		xmlReplacements.put("condition=\"([^&]*)&&([^&]*)\"", "condition=\"$1 AND $2\"");
+		xmlReplacements.put("condition=\"([^&]*)&&([^&]*)&&([^&]*)\"", "condition=\"$1 AND $2 AND $3\"");
+
         xmlReplacements.put("options=\"([^<]*)<([^<]*)\"", "options=\"$1 \\\\( \\lt $2\"");
         xmlReplacements.put("options=\"([^>]*)>([^>]*)\"", "options=\"$1 \\\\( \\gt $2\"");
 

@@ -17,9 +17,24 @@ public class ConvertAndFormatMethods{
 	}
 
 
+	/**
+	 *
+	 * @param text   String with round parentheses
+	 * @param start  start position
+	 * @return       int end position
+	 */
 	public static int findMatchingParentheses(String text, int start){
 		return (findMatchingParentheses(text, start, true));
 	}
+
+	/**
+	 *
+	 * @param text   String with round or curly parentheses
+	 * @param start  start position
+	 * @param round  true if round, false if curly
+	 *
+	 * @return       int end position (or -1 if nothing found)
+	 */
 	public static int findMatchingParentheses(String text, int start, boolean round){
 
 			int end=start;
@@ -60,6 +75,11 @@ public class ConvertAndFormatMethods{
 			}
 	}
 
+	/**
+	 *  Removes all CR / new lines in
+	 * @param text
+	 * @return
+	 */
 	public static String removeCR(String text){
 		String newText = text.replaceAll("\\n","");
 		newText = newText.replaceAll("\\r", "");
