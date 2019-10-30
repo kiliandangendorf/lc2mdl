@@ -91,10 +91,10 @@ public class Converter{
 			ps.simplify(dom);
 
 			// same for all libraries
-			String libpath= outputfile.getParent();
+			String libpath= outputfile.getParent()+"/";
 			HashMap<String,Document> libDoms = new HashMap<String, Document>();
 			for (String key : libfiles.keySet()){
-				String xmlLibName = libpath + key;
+				String xmlLibName = libpath + key+ Prefs.XML_SUFFIX;
 				File xmlLibFile = pp.preParse(new File(libfiles.get(key)), xmlLibName);
 				Document domLib = xp.parseXML2DOM(xmlLibFile);
 				ps.simplify(dom);
@@ -108,7 +108,7 @@ public class Converter{
 			
 			// READING PROBLEM ELEMENTS
 			ProblemReader pr=new ProblemReader();
-			Problem p=pr.readingDom(dom, problemName);
+			Problem p=pr.readingDom(dom, problemName, libDoms, imagefiles);
 	
 
 			// CONSUMING PROBLEM ELEMENTS

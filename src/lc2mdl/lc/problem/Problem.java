@@ -1,8 +1,9 @@
 package lc2mdl.lc.problem;
 
-import java.util.ArrayList;
-
 import lc2mdl.lc.problem.response.Response;
+
+import java.util.ArrayList;
+import java.util.HashMap;
 
 public class Problem {
 	
@@ -11,12 +12,16 @@ public class Problem {
 	private ArrayList<ProblemElement> elements;
 	
 	private ArrayList<String> vars;
+
+	// key: filename, value: full path of the images
+	private HashMap<String,String> images;
 	
-	public Problem(String problemName){
+	public Problem(String problemName, HashMap<String,String> images){
 		this.problemName=problemName;
 		elements=new ArrayList<>();
 		vars=new ArrayList<>();
 		vars.add("pi");
+		this.images=images;
 	}
 	
 	/**
