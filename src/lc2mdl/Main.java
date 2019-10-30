@@ -1,12 +1,12 @@
 package lc2mdl;
 
+import lc2mdl.util.CmdReader;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Scanner;
 import java.util.logging.Logger;
-
-import lc2mdl.util.CmdReader;
 
 public class Main{
 	public static Logger log=Logger.getLogger(Main.class.getName());
@@ -102,7 +102,7 @@ public class Main{
 					System.out.println("#######################################################");
 					System.out.println("FROMFILE: "+inputfile.getAbsolutePath());
 					System.out.println("TOFILE:   "+outputfile.getAbsolutePath());
-					int c=conv.convertFile(inputfile,outputfile);
+					int c=conv.convertFile(inputfolder,inputfile,outputfile);
 					
 					if(c==1)converted++;
 					if(c==2)convertedFull++;

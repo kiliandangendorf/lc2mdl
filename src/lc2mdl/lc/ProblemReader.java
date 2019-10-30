@@ -43,7 +43,7 @@ public class ProblemReader{
 	private void readingRecursively(Problem problem, Node problemNode){
 		NodeList elements=problemNode.getChildNodes();
 		for(int i=0;i<elements.getLength();i++){
-			
+
 			//make sure, if I can cast to Element
 			if(!(elements.item(i).getNodeType()==Node.ELEMENT_NODE))continue;
 			
@@ -86,6 +86,9 @@ public class ProblemReader{
 					problem.addElement(new HtmlElement(problem,element,HtmlElement.OPEN));					
 					readingRecursively(problem,element);
 					problem.addElement(new HtmlElement(problem,element,HtmlElement.CLOSE));
+					break;
+				case "allow":
+					log.finer("found allow tag - ignoring it.");
 					break;
 				default:
 					log.warning("unknown element: "+element.getTagName());

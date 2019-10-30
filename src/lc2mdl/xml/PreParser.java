@@ -1,6 +1,7 @@
 package lc2mdl.xml;
 
 import lc2mdl.Prefs;
+import lc2mdl.util.FileFinder;
 
 import java.io.*;
 import java.util.HashMap;
@@ -30,7 +31,7 @@ public class PreParser {
 
 //		xmlReplacements.put("<answer(>| [^>]*>)", "<answer><![CDATA["); would remove attributes
 		xmlReplacements.put("</answer {0,}>", "]]></answer>");
-		
+		xmlReplacements.put("importmode=\"\"","");
 		
 		//HTML References
 		//replace NO-BRAKE-SPACE escape by itself
@@ -83,7 +84,77 @@ public class PreParser {
 	    }	
 		return s;
 	}
-		
+
+	public void lookForIncludes(File inputfolder, File infile, HashMap<String,String> libs, HashMap<String,String> images) throws Exception {
+		log.fine(Prefs.CLI_LINE_SEP);
+		log.fine("Starting XML Preparsing -- Look for Imports and Allows.");
+		int line=0;
+		int countlibs=0;
+		int countims=0;
+		FileReader fr=null;
+		BufferedReader br=null;
+		try {
+			fr = new FileReader(infile);
+			br = new BufferedReader(fr);
+
+			String s;
+			while ((s = br.readLine()) != null) {
+				line++;
+
+				if (s.contains("<import") || s.contains("<allow")) {
+
+					if (s.contains("<allow")) {
+						int pathStart = s.indexOf("src=\"") + 4;
+						int pathEnd = s.indexOf("\"", pathStart+1);
+						String path = "";
+						if (pathStart < pathEnd) {
+							path = s.substring(pathStart, pathEnd);
+						} else {
+							throw (new Exception(" allow tag -- no content"));
+						}
+						log.fine("-- found allow tag with path " + path);
+						try {
+							String name = FileFinder.findFilesRecursively(inputfolder, path, images);
+							log.fine("-- found image " + name + " in path " + images.get(name));
+							countims++;
+						}catch (FileNotFoundException e){
+							log.warning(e.getMessage());
+						}
+					}
+					if (s.contains("<import")) {
+						int pathStart = s.indexOf(">") + 1;
+						int pathEnd = s.indexOf("<", pathStart);
+						String path = "";
+						if (pathStart < pathEnd) {
+							path = s.substring(pathStart, pathEnd);
+						} else {
+							throw (new Exception(" import tag -- no content"));
+						}
+
+						log.fine("--found import tag with path " + path);
+						try {
+							String name = FileFinder.findFilesRecursively(inputfolder, path, libs);
+							log.fine("-- found library " + name + " in path " + libs.get(name));
+							log.fine("-- look for includes in library "+ name);
+							lookForIncludes(inputfolder, new File(libs.get(name)),libs,images);
+							countlibs++;
+						}catch (FileNotFoundException e){
+							log.warning(e.getMessage());
+						}
+					}
+				}
+			}
+
+		}catch (FileNotFoundException e){
+			log.warning(e.getMessage());
+		}catch (Exception e)
+		{
+			log.severe(e.getMessage());
+			throw e;
+		}
+		log.fine("-- "+countlibs+" libraries and "+countims+" images found.");
+	}
+
 	public File preParse(final File infile) throws Exception{
 		return preParse(infile, infile.getAbsolutePath()+Prefs.XML_SUFFIX);
 	}

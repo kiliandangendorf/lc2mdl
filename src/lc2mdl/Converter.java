@@ -18,6 +18,7 @@ import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.logging.*;
 
 public class Converter{
@@ -34,14 +35,20 @@ public class Converter{
 	}
 
 	/**
-	 * Converts LON-CAPA inputfile (.problem) into Moodle-STACK outpurfile (.xml)
+	 * Converts LON-CAPA inputfile (.problem) into Moodle-STACK outputfile (.xml)
 	 * @param inputfile
 	 * @param outputfile
 	 * @return 0 in error case 
 	 * <br>1 if convertion was successful 
 	 * <br>2 if convertion was successful AND no unknown tags occured 
 	 */
-	public int convertFile(final File inputfile, final File outputfile){
+
+	public int convertFile(final File inputfile, final File outputfile) {
+	   	File inputfolder=inputfile.getParentFile();
+	   	return convertFile(inputfolder,inputfile,outputfile);
+	}
+
+	public int convertFile(final File inputfolder, final File inputfile, final File outputfile){
 		final File logfile;
 		File xmlfile=null;
 		int convertedSuccessful=0;
@@ -66,20 +73,34 @@ public class Converter{
 		try{
 			// PREPARSE
 			PreParser pp=new PreParser();
+
+			HashMap<String,String> libfiles = new HashMap<String, String>();
+			HashMap<String,String> imagefiles = new HashMap<String, String>();
+
 			//creates XML file
 			String xmlfileName=outputfile.getAbsolutePath()+Prefs.XML_SUFFIX;
+			pp.lookForIncludes(inputfolder,inputfile,libfiles,imagefiles);
 			xmlfile=pp.preParse(inputfile, xmlfileName);
-	
+
 			// PARSE TO DOM
 			XMLParser xp=new XMLParser();
 			Document dom=xp.parseXML2DOM(xmlfile);
-	
-			
+
 			// SIMPLIFY
 			ProblemSimplifier ps=new ProblemSimplifier();
 			ps.simplify(dom);
-	
-			
+
+			// same for all libraries
+			String libpath= outputfile.getParent();
+			HashMap<String,Document> libDoms = new HashMap<String, Document>();
+			for (String key : libfiles.keySet()){
+				String xmlLibName = libpath + key;
+				File xmlLibFile = pp.preParse(new File(libfiles.get(key)), xmlLibName);
+				Document domLib = xp.parseXML2DOM(xmlLibFile);
+				ps.simplify(dom);
+				libDoms.put(key,domLib);
+			}
+
 			// PRINT
 			// DOMPrinter dpr=new DOMPrinter();
 			// dpr.printDoc(dom);
