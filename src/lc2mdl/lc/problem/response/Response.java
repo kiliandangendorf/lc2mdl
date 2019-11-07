@@ -179,7 +179,7 @@ public abstract class Response extends ProblemElement{
 	/**
 	 * Reads response parameter from given element.
 	 */
-	protected void consumeRepsonseParameter(Element e){
+	protected void consumeResponseParameter(Element e){
 		ArrayList<Node> nodesToRemove=new ArrayList<>();
 
 		NodeList responseparams=e.getElementsByTagName("responseparam");

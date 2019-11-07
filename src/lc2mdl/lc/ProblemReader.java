@@ -2,6 +2,8 @@ package lc2mdl.lc;
 
 import lc2mdl.Prefs;
 import lc2mdl.lc.problem.*;
+import lc2mdl.lc.problem.display.PostAnswerDate;
+import lc2mdl.lc.problem.display.Solved;
 import lc2mdl.lc.problem.response.FormulaResponse;
 import lc2mdl.lc.problem.response.MathResponse;
 import lc2mdl.lc.problem.response.NumericalResponse;
@@ -113,6 +115,22 @@ public class ProblemReader{
 				case "allow":
 					log.finer("found allow tag - ignoring it.");
 					break;
+				case "notsolved": case "preduedate":
+					log.finer("found element"+element.getTagName());
+					readingRecursively(problem,element);
+					break;
+				case "solved":
+					log.finer("found solved");
+					if (element.getElementsByTagName("part").getLength()==0) {
+						problem.addElement(new Solved(problem, element));
+					}else{
+						log.warning("--ignore that the part before should be solved before showing the next part.");
+						readingRecursively(problem,element);
+					}
+					break;
+				case "postanswerdate":
+					log.finer("found postanswerdate");
+					problem.addElement(new PostAnswerDate(problem,element));
                 case "import":
                     String path= element.getTextContent();
                     Node libNode = readingLibDom(path);

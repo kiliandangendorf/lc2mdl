@@ -40,8 +40,8 @@ public class PreParser {
 		xmlReplacements.put("(<TD>\\s*)&nbsp;(\\s*</TD>)","$1<![CDATA[ &nbsp; ]]>$2");
 		xmlReplacements.put("&nbsp;"," ");
 		xmlReplacements.put("&uuml;","ü");
-		xmlReplacements.put("&auml;","ü");
-		xmlReplacements.put("&ouml;","ü");
+		xmlReplacements.put("&auml;","ä");
+		xmlReplacements.put("&ouml;","ö");
 		xmlReplacements.put("&euro;","€");
 		xmlReplacements.put("&le;","\\\\(\\le\\\\)");
 		xmlReplacements.put("&ge;","\\\\(\\ge\\\\)");

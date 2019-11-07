@@ -56,7 +56,7 @@ public class NumericalHint extends NumericalResponse implements ConditionalHint{
 		if(e.hasAttributes())log.warning("--still unknown attributes in hint.");
 
 		//RESPONSEPARAM
-		consumeRepsonseParameter(e);
+		consumeResponseParameter(e);
 		
 		
 		

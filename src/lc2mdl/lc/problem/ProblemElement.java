@@ -1,19 +1,18 @@
 package lc2mdl.lc.problem;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.logging.Logger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
+import lc2mdl.Prefs;
+import lc2mdl.mdl.quiz.QuestionStack;
+import lc2mdl.xml.XMLParser;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import lc2mdl.Prefs;
-import lc2mdl.mdl.quiz.QuestionStack;
-import lc2mdl.xml.XMLParser;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public abstract class ProblemElement {
 	public static Logger log = Logger.getLogger(ProblemElement.class.getName());
@@ -79,7 +78,7 @@ public abstract class ProblemElement {
 
 		//ESCAPE LEFT DOLLAR SIGNS
 		if(text.contains("$")){
-			log.warning("--still Dollar-sings in text. Replaced them by the String \"[DOLLAR-SIGN]\" (because Moolde don't like them)");
+			log.warning("--still Dollar-signs in text. Replaced them by the String \"[DOLLAR-SIGN]\" (because Moolde don't like them)");
 			text=text.replaceAll("\\$","[DOLLAR-SIGN]");
 		}
 			

@@ -101,7 +101,7 @@ public class MathResponse extends Response{
 		}
 		
 		//RESPONSEPARAM
-		consumeRepsonseParameter(e);
+		consumeResponseParameter(e);
 		
 		//TEXTLINE size
 		consumeTextline(e);

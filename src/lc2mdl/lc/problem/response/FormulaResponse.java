@@ -44,7 +44,7 @@ public class FormulaResponse extends Response{
 		if(e.hasAttributes())log.warning("-still unknown attributes in response.");
 
 		//RESPONSEPARAM
-		consumeRepsonseParameter(e);
+		consumeResponseParameter(e);
 		
 		//TEXTLINE size
 		consumeTextline(e);
