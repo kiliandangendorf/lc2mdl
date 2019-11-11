@@ -42,7 +42,7 @@ public class NumericalHint extends NumericalResponse implements ConditionalHint{
 			}
 			e.removeAttribute("answer");
 		}else{
-			log.warning("--no answer found in response");
+			log.warning("--no answer found in hint");
 		}
 		
 		if(e.hasAttribute("unit")){
@@ -79,7 +79,7 @@ public class NumericalHint extends NumericalResponse implements ConditionalHint{
 					hinttext.setTextContent(null);
 				}
 
-				remvoveAttributeIfExist(hintpart,"on");
+				removeAttributeIfExist(hintpart,"on");
 				if(hintpart.hasAttributes())log.warning("--still unknown attributes in hintpart.");
 			}
 		}

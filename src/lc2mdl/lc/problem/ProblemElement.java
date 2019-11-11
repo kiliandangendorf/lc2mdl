@@ -45,7 +45,7 @@ public abstract class ProblemElement {
 		n.getParentNode().removeChild(n);
 	}
 
-	protected void remvoveAttributeIfExist(Element e,String attr){
+	protected void removeAttributeIfExist(Element e, String attr){
 		if(e.hasAttribute(attr)){
 			e.removeAttribute(attr);		
 			log.finer("--removed attribut: "+attr);

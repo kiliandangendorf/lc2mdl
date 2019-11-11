@@ -47,7 +47,7 @@ public class NumericalResponse extends Response{
 			log.finer("-found unit: "+unit);
 		}
 
-		remvoveAttributeIfExist(e,"format");
+		removeAttributeIfExist(e,"format");
 
 		consumeIdAndName(e);
 

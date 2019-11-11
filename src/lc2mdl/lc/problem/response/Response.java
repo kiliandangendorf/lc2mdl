@@ -1,15 +1,15 @@
 package lc2mdl.lc.problem.response;
 
-import java.util.ArrayList;
-
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-
 import lc2mdl.lc.problem.Problem;
 import lc2mdl.lc.problem.ProblemElement;
 import lc2mdl.lc.problem.response.hints.ConditionalHint;
 import lc2mdl.lc.problem.response.hints.NumericalHint;
+import lc2mdl.lc.problem.response.hints.StringHint;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
+import java.util.ArrayList;
 
 public abstract class Response extends ProblemElement{
 
@@ -79,7 +79,7 @@ public abstract class Response extends ProblemElement{
 				}else{
 					correct=true;
 				}
-				remvoveAttributeIfExist(hintgroup,"showoncorrect");
+				removeAttributeIfExist(hintgroup,"showoncorrect");
 			}
 			//if there's an empty hintgroup -->remove
 			if(!hintgroup.hasChildNodes()){
@@ -97,11 +97,16 @@ public abstract class Response extends ProblemElement{
 						nh.consumeNode();
 						this.hints.add(nh);
 						break;
+					case "stringhint":
+						StringHint sh = new StringHint(problem, hint,correct);
+						sh.consumeNode();
+						this.hints.add(sh);
+						break;
 					case "hintpart":
 						if(hint.getAttribute("on").equals("default")){
 							//remove attributes, so simplifier will remove it
-							remvoveAttributeIfExist(hint,"on");
-							remvoveAttributeIfExist(hint,"id");
+							removeAttributeIfExist(hint,"on");
+							removeAttributeIfExist(hint,"id");
 							
 							NodeList hinttexts=hint.getElementsByTagName("outtext");
 							for(int k=0;k<hinttexts.getLength();k++){
@@ -136,9 +141,9 @@ public abstract class Response extends ProblemElement{
 	
 	protected void consumeIdAndName(Element e){
 		this.id=e.getAttribute("id");
-		remvoveAttributeIfExist(e,"id");
+		removeAttributeIfExist(e,"id");
 		this.name=e.getAttribute("name");
-		remvoveAttributeIfExist(e,"name");
+		removeAttributeIfExist(e,"name");
 	}
 	
 	/**

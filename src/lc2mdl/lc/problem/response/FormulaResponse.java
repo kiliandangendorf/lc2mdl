@@ -37,7 +37,7 @@ public class FormulaResponse extends Response{
 			log.warning("-no answer found in response");
 		}
 		
-		remvoveAttributeIfExist(e,"samples"); //not needed in AlgEquiv
+		removeAttributeIfExist(e,"samples"); //not needed in AlgEquiv
 
 		consumeIdAndName(e);
 

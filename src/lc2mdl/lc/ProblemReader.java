@@ -7,6 +7,7 @@ import lc2mdl.lc.problem.display.Solved;
 import lc2mdl.lc.problem.response.FormulaResponse;
 import lc2mdl.lc.problem.response.MathResponse;
 import lc2mdl.lc.problem.response.NumericalResponse;
+import lc2mdl.lc.problem.response.StringResponse;
 import org.w3c.dom.*;
 
 import java.util.HashMap;
@@ -98,6 +99,10 @@ public class ProblemReader{
 					log.finer("found mathresponse");
 					problem.addElement(new MathResponse(problem,element));
 					break;
+				case "stringresponse":
+					log.finer("found stringresponse");
+					problem.addElement(new StringResponse(problem,element));
+					break;
 				case "part":
 					log.finer("found part");
 					problem.addElement(new Part(problem,element));
@@ -112,8 +117,12 @@ public class ProblemReader{
 					readingRecursively(problem,element);
 					problem.addElement(new HtmlElement(problem,element,HtmlElement.CLOSE));
 					break;
-				case "allow":
-					log.finer("found allow tag - ignoring it.");
+				case "allow": case "meta":
+					log.finer("found "+element.getTagName()+" tag - ignoring it.");
+					break;
+				case "parameter":
+					log.finer("found parameter");
+					problem.addElement(new Parameter(problem,element));
 					break;
 				case "notsolved": case "preduedate":
 					log.finer("found element"+element.getTagName());

@@ -31,8 +31,8 @@ public class PerlScript extends ProblemElement{
 		node.setTextContent(null);
 		
 		Element e=(Element)node;
-		remvoveAttributeIfExist(e,"type");		
-		remvoveAttributeIfExist(e,"space");
+		removeAttributeIfExist(e,"type");
+		removeAttributeIfExist(e,"space");
 		
 		convertPerlScriptToMaxima();
 	}
