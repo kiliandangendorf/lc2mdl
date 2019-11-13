@@ -24,7 +24,7 @@ public class PerlScript extends ProblemElement{
 		log.finer("perl-script:");
 		this.script=node.getTextContent();
 		this.scriptComment="Original Perl Script"+System.lineSeparator()+this.script;
-		this.convertWarning = "";
+		this.convertWarning = "/*  Start Script Part */";
 
 		log.finer("--put original Perl script in comment.");
 		//got everything;)
@@ -258,7 +258,7 @@ public class PerlScript extends ProblemElement{
 			}
 		}
 		while(matcher.find()) {
-			log.fine("--replace block.");
+			log.finer("--replace block.");
 			String block = matcher.group();
 			String newBlock = replaceSyntaxInBlock(block);
 			script=script.replace(block,newBlock);
@@ -329,11 +329,11 @@ public class PerlScript extends ProblemElement{
 		//single equal sign (left no AND right no equal sign, left no !,<,>)
 		//and not equal signs in quotes: (?<!=)=(?!=)(?=([^"]*"[^"]*")*[^"]*;)
 		syntaxReplacements.put("(?<![!=<>])=(?!=)(?=([^\"]*\"[^\"]*\")*[^\"]*;)", ": ");
-		log.fine("--replace all \"=\" with \": \"");
+		log.finer("--replace all \"=\" with \": \"");
 
 		//newline or return at the end of line
 		syntaxReplacements.put(";[\\r\\n]*", System.lineSeparator());
-		log.fine("--remove multiple empty lines");
+		log.finer("--remove multiple empty lines");
 		replaceKeysByValues(syntaxReplacements,true);
 	}
 
@@ -430,7 +430,7 @@ public class PerlScript extends ProblemElement{
 					//turn from $var=&choose($i, ... ) into array: [...]; $var=array[$i]
 					
 					//generate unique arrayName
-					String arrayName="lc2mdlarray"+problem.getIndex(this)+arrayNo++;
+					String arrayName="lcmdlarray"+problem.getIndex(this)+arrayNo++;
 					problem.addVar(arrayName);
 					
 					StringBuilder arrayDefinition=new StringBuilder(arrayName+": [");

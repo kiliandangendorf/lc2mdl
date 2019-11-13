@@ -40,27 +40,7 @@ public class MathResponse extends Response{
 			log.warning("-found cas not equal maxima. Won't work on this response further.");
 			return;
 		}
-		//answerdisplay
-		if(e.hasAttribute("answerdisplay")){
-			answerDisplay=e.getAttribute("answerdisplay");
-			log.finer("-found answerdisplay.");
 
-			if(answerDisplay.charAt(0)=='$'){
-				//Variable
-				answerDisplay=answerDisplay.substring(1);
-				log.finer("--found answerdisplay-variable: "+answerDisplay);
-			}else if(answerDisplay.charAt(0)=='@'){
-				//Array
-				answerDisplay=answerDisplay.substring(1);
-				log.finer("--found answerdisplay-array: "+answerDisplay);
-			}else{
-				//String
-				//put in quotes, cause it's used as a string.
-				answerDisplay="\""+answerDisplay+"\"";
-				log.finer("-found answerdisplay: "+answerDisplay);
-			}
-			e.removeAttribute("answerdisplay");
-		}
 		
 		if(e.hasAttribute("args")){
 			args=e.getAttribute("args");
@@ -99,7 +79,32 @@ public class MathResponse extends Response{
 			
 			transformAnswerFromLC2Maxima();
 		}
-		
+
+		//answerdisplay
+		answerDisplay="";
+		if(e.hasAttribute("answerdisplay")){
+			answerDisplay=e.getAttribute("answerdisplay");
+			if (!answerDisplay.equals("")) {
+				log.finer("-found answerdisplay.");
+
+				if(answerDisplay.charAt(0)=='$'){
+					//Variable
+					answerDisplay=answerDisplay.substring(1);
+					log.finer("--found answerdisplay-variable: "+answerDisplay);
+				}else if(answerDisplay.charAt(0)=='@'){
+					//Array
+					answerDisplay=answerDisplay.substring(1);
+					log.finer("--found answerdisplay-array: "+answerDisplay);
+				}else{
+					//String
+					//put in quotes, cause it's used as a string.
+					answerDisplay="\""+answerDisplay+"\"";
+					log.finer("-found answerdisplay: "+answerDisplay);
+				}
+			}
+			e.removeAttribute("answerdisplay");
+		}
+
 		//RESPONSEPARAM
 		consumeResponseParameter(e);
 		
@@ -180,6 +185,7 @@ public class MathResponse extends Response{
 		String value=answerMaxima.substring(beginOfLastStatement,answerMaxima.length());
 		answerMaxima=answerMaxima.substring(0,beginOfLastStatement)+var+": "+value;
 		log.finer("--defined var: "+var+" with: "+value);
+
 	}
 
 	@Override

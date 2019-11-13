@@ -51,24 +51,30 @@ public class FileFinder {
         return filesFound;
     }
 
-    private static String matchPath(String pathToFile, List<String> filesFound){
+    private static String matchPath(String pathToFile, List<String> filesFound) {
         String path = "";
-        int depth = 2;
-        int index = 0;
-        String[] pathSplit = pathToFile.split("/");
 
-        while (filesFound.size()>1){
-            for (String f: filesFound){
-                String[] fpathSplit = f.split("/");
-                if (!pathSplit[pathSplit.length-depth].equals(fpathSplit[fpathSplit.length-depth])){
-                    filesFound.remove(f);
-                }
-            }
-            depth++;
-        }
         if (filesFound.size()==1) {
             path = filesFound.get(0);
         }
+        else{
+            int maxindex = 0;
+            String[] pathSplit = pathToFile.split("/");
+            for (int depth=2; depth<pathSplit.length; depth++){
+                int index=0;
+                for (String f : filesFound) {
+                    String[] fpathSplit = f.split("/");
+                    if (pathSplit[pathSplit.length - depth].equals(fpathSplit[fpathSplit.length - depth])) {
+                        maxindex=index;
+                    }
+                    index++;
+                }
+
+                depth++;
+            }
+            path = filesFound.get(maxindex);
+            }
+
         return path;
     }
 }

@@ -23,7 +23,13 @@ public class PreParser {
 		xmlReplacements.put("<endouttext {0,}/>", "]]></outtext>");
 
 		xmlReplacements.put("<script {0,}type=\"loncapa/perl\" {0,}>", "<script type=\"loncapa/perl\"><![CDATA[");
+		xmlReplacements.put("<script {0,}type=\"text/javascript\" {0,}>", "<script type=\"text/javascript\"><![CDATA[");
+		xmlReplacements.put("<script {0,}>", "<script><![CDATA[");
 		xmlReplacements.put("</script {0,}>", "]]></script>");
+		xmlReplacements.put("<textfield([ 0-9a-z\"=δ]*)>", "<textfield $1><![CDATA[");
+		//xmlReplacements.put("<textfield {0,}([0-9a-z\"=]*) {0,}spellcheck=\"none\">", "<textfield $1 spellcheck=\"none\"><![CDATA[");
+		//xmlReplacements.put("<textfield {0,}>", "<textfield><![CDATA[");
+		xmlReplacements.put("</textfield>","]]></textfield>");
 
 		xmlReplacements.put("<answer {0,}name=\"(.*)\" {0,}type=\"(.*)\" {0,}>", "<answer name=\"$1\" type=\"$2\"><![CDATA[");
 		xmlReplacements.put("<answer {0,}type=\"loncapa/perl\" {0,}>", "<answer type=\"loncapa/perl\"><![CDATA[");
@@ -36,6 +42,9 @@ public class PreParser {
 		//HTML References
 		//replace NO-BRAKE-SPACE escape by itself
         // HTML stuff
+		xmlReplacements.put("&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;","<![CDATA[ &emsp;&emsp;&emsp;&emsp;&emsp;&emsp; ]]>");
+		xmlReplacements.put("(<td>\\s*)&emsp;(\\s*</td>)","$1<![CDATA[ &emsp; ]]>$2");
+		xmlReplacements.put("(<TD>\\s*)&emsp;(\\s*</TD>)","$1<![CDATA[ &emsp; ]]>$2");
 		xmlReplacements.put("(<td>\\s*)&nbsp;(\\s*</td>)","$1<![CDATA[ &nbsp; ]]>$2");
 		xmlReplacements.put("(<TD>\\s*)&nbsp;(\\s*</TD>)","$1<![CDATA[ &nbsp; ]]>$2");
 		xmlReplacements.put("&nbsp;"," ");
@@ -60,12 +69,12 @@ public class PreParser {
 		// make it an correct attribute
 
 		xmlReplacements.put("condition=\"&abs", "condition=\"abs");
-		xmlReplacements.put("condition=\"([^<]*)<([^<]*)\"", "condition=\"$1 LT $2\"");
-		xmlReplacements.put("condition=\"([^>]*)>([^>]*)\"", "condition=\"$1 GT $2\"");
-		xmlReplacements.put("condition=\"([^<]*)<([^<]*)<([^<]*)\"", "condition=\"$1 LT $2 LT $3\"");
-		xmlReplacements.put("condition=\"([^>]*)>([^>]*)>([^>]*)\"", "condition=\"$1 GT $2 GT $3\"");
-		xmlReplacements.put("condition=\"([^<]*)<([^<]*)<([^<]*)<([^<]*)\"", "condition=\"$1 LT $2 LT $3 LT $4\"");
-		xmlReplacements.put("condition=\"([^>]*)>([^>]*)>([^>]*)>([^>]*)\"", "condition=\"$1 GT $2 GT $3 GT $4\"");
+		xmlReplacements.put("condition=\"([^<\"]*)<([^<\"]*)\"", "condition=\"$1 LT $2\"");
+		xmlReplacements.put("condition=\"([^>\"]*)>([^>\"]*)\"", "condition=\"$1 GT $2\"");
+		xmlReplacements.put("condition=\"([^<\"]*)<([^<\"]*)<([^<\"]*)\"", "condition=\"$1 LT $2 LT $3\"");
+		xmlReplacements.put("condition=\"([^>\"]*)>([^>\"]*)>([^>\"]*)\"", "condition=\"$1 GT $2 GT $3\"");
+		xmlReplacements.put("condition=\"([^<\"]*)<([^<\"]*)<([^<\"]*)<([^<\"]*)\"", "condition=\"$1 LT $2 LT $3 LT $4\"");
+		xmlReplacements.put("condition=\"([^>\"]*)>([^>\"]*)>([^>\"]*)>([^>\"]*)\"", "condition=\"$1 GT $2 GT $3 GT $4\"");
 		xmlReplacements.put("condition=\"([^&]*)&&([^&]*)\"", "condition=\"$1 AND $2\"");
 		xmlReplacements.put("condition=\"([^&]*)&&([^&]*)&&([^&]*)\"", "condition=\"$1 AND $2 AND $3\"");
 

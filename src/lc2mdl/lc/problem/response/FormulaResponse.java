@@ -25,12 +25,14 @@ public class FormulaResponse extends Response{
 		//ATTRIBUTES
 		if(e.hasAttribute("answer")){
 			answer=e.getAttribute("answer");
-			log.finer("-found answer: "+answer);
-			if(answer.charAt(0)=='$'){
-				answer=answer.substring(1);
-			}else{
-				//if not $ the first symbol, then create a var in questionvariables and reference here
-				answer=addAdditionalCASVar(answer);
+			if (!answer.equals("")) {
+				log.finer("-found answer: " + answer);
+				if (answer.charAt(0) == '$') {
+					answer = answer.substring(1);
+				} else {
+					//if not $ the first symbol, then create a var in questionvariables and reference here
+					answer = addAdditionalCASVar(answer);
+				}
 			}
 			e.removeAttribute("answer");
 		}else{
