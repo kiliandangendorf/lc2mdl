@@ -57,9 +57,7 @@ public class NumericalHint extends NumericalResponse implements ConditionalHint{
 
 		//RESPONSEPARAM
 		consumeResponseParameter(e);
-		
-		
-		
+
 		//HINTPARTS
 		Node hintgroup=node.getParentNode();
 		if(hintgroup==null || hintgroup.getNodeType()!=Node.ELEMENT_NODE){

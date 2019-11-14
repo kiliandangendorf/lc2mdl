@@ -13,10 +13,10 @@ import java.util.regex.Pattern;
 
 public class MathResponse extends Response{
 
-	private String cas;
+	protected String cas;
 	private String answerDisplay;
-	private String args;
-	private String answerMaxima;
+	protected String args;
+	protected String answerMaxima;
 
 	private String boolPrefix="bool";
 	
@@ -41,7 +41,6 @@ public class MathResponse extends Response{
 			return;
 		}
 
-		
 		if(e.hasAttribute("args")){
 			args=e.getAttribute("args");
 			log.finer("-found args.");
@@ -64,9 +63,6 @@ public class MathResponse extends Response{
 			e.removeAttribute("args");			
 		}
 						
-		consumeIdAndName(e);
-
-		if(e.hasAttributes())log.warning("-still unknown attributes in response.");
 
 		//ANSWER
 		NodeList answers=e.getElementsByTagName("answer");
@@ -105,6 +101,10 @@ public class MathResponse extends Response{
 			e.removeAttribute("answerdisplay");
 		}
 
+		consumeIdAndName(e);
+
+		if(e.hasAttributes())log.warning("-still unknown attributes in response.");
+
 		//RESPONSEPARAM
 		consumeResponseParameter(e);
 		
@@ -120,7 +120,7 @@ public class MathResponse extends Response{
 	 * Transforms LON-CAPA Maxima String into valid Maxima String by replacing RESPONSE- and LONCAPALIST-arrays.
 	 * Also assigns last expression to a new boolean-variable. 
 	 */
-	private void transformAnswerFromLC2Maxima(){
+	protected void transformAnswerFromLC2Maxima(){
 		//read size of RESPONSE
 		int maxIndexRESPONSE=0;
 		String regExIndexInRESPONSE="(?<=RESPONSE\\[)\\d(?=\\])";

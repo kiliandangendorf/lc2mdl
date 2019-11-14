@@ -1,5 +1,6 @@
 package lc2mdl.lc.problem;
 
+import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import lc2mdl.mdl.quiz.QuestionStack;
@@ -12,7 +13,9 @@ public class UnknownElement extends ProblemElement{
 
 	@Override
 	public void consumeNode(){
-		log.finer("unknown element:");
+		Element e = (Element)node;
+		String name = e.getTagName();
+		log.finer("consume unknown element: "+name);
 	}
 
 	@Override

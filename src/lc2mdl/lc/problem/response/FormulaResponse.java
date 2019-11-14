@@ -10,7 +10,7 @@ import lc2mdl.mdl.quiz.QuestionStack;
 
 public class FormulaResponse extends Response{
 
-	private String answer;// must fit perl params if there is a $-sign
+	protected String answer;// must fit perl params if there is a $-sign
 
 	public FormulaResponse(Problem problem,Node node){
 		super(problem,node);

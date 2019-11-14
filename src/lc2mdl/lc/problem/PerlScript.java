@@ -132,7 +132,7 @@ public class PerlScript extends ProblemElement{
 						}
 				if (parenStart < script.length())	parenEnd = ConvertAndFormatMethods.findMatchingParentheses(script, parenStart);
 
-				if (parenEnd>0) {
+				if (parenEnd>0){
 					switch (cs) {
 						case "do":
 							int doStart = matcher.start();
@@ -201,24 +201,26 @@ public class PerlScript extends ProblemElement{
 							break;
 
 						case "for":
-							String forString = script.substring(csStart, parenEnd);
-                                String parenString = script.substring(parenStart + 1, parenEnd - 1);
-                                String[] parenSplit = parenString.split(";");
-                               // System.out.println(forString+"  "+parenString+"  "+parenSplit.length);
-                            if (parenSplit.length>2) {
-                                String start = parenSplit[0];
-                                start = start.replaceFirst("=", ":");
-                                cond = parenSplit[1];
-                                String next = parenSplit[2];
-                                String newForString = "for " + start + " next " + next + " while( " + cond + " ) do";
-                                script = script.replace(forString, newForString);
-                                startFind = csEnd;
-                            }
+							if (parenStart<parenEnd) {
+								String forString = script.substring(csStart, parenEnd);
+								String parenString = script.substring(parenStart + 1, parenEnd - 1);
+								String[] parenSplit = parenString.split(";");
+								// System.out.println(forString+"  "+parenString+"  "+parenSplit.length);
+								if (parenSplit.length > 2) {
+									String start = parenSplit[0];
+									start = start.replaceFirst("=", ":");
+									cond = parenSplit[1];
+									String next = parenSplit[2];
+									String newForString = "for " + start + " next " + next + " while( " + cond + " ) do";
+									script = script.replace(forString, newForString);
+									startFind = csEnd;
+								}
+							}
 							break;
 
 						case "foreach":
-							forString = script.substring(csStart, parenEnd);
-							parenString = script.substring(parenStart, parenEnd);
+							String forString = script.substring(csStart, parenEnd);
+							String parenString = script.substring(parenStart, parenEnd);
 							String varString = script.substring(csEnd + 1, parenStart);
 							String newForString = "for " + varString + " in " + parenString + " do ";
 							script = script.replace(forString, newForString);

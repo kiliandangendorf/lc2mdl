@@ -2,9 +2,7 @@ package lc2mdl.lc.problem.response;
 
 import lc2mdl.lc.problem.Problem;
 import lc2mdl.lc.problem.ProblemElement;
-import lc2mdl.lc.problem.response.hints.ConditionalHint;
-import lc2mdl.lc.problem.response.hints.NumericalHint;
-import lc2mdl.lc.problem.response.hints.StringHint;
+import lc2mdl.lc.problem.response.hints.*;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -101,6 +99,16 @@ public abstract class Response extends ProblemElement{
 						StringHint sh = new StringHint(problem, hint,correct);
 						sh.consumeNode();
 						this.hints.add(sh);
+						break;
+					case "mathhint":
+						MathHint mh = new MathHint(problem, hint, correct);
+						mh.consumeNode();
+						this.hints.add(mh);
+						break;
+					case "formulahint":
+						FormulaHint fh = new FormulaHint(problem, hint, correct);
+						fh.consumeNode();
+						this.hints.add(fh);
 						break;
 					case "hintpart":
 						if(hint.getAttribute("on").equals("default")){

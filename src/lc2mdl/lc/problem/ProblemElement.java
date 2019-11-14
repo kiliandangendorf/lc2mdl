@@ -10,6 +10,7 @@ import org.w3c.dom.NodeList;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -116,20 +117,57 @@ public abstract class ProblemElement {
 		//LATEX / MATH-EXPRESSION: <m>...</m> into \( ... \)  (<m eval="on">)
 		String leftMPat;
 		String rightMPat;
-		
-		//TEX <m>$$ ... $$</m> into \[ ... \]
-		leftMPat="<m {0,}(eval=\"on\"){0,1} {0,}> {0,}\\$\\$";
-		rightMPat="\\$\\$ {0,}<\\/ {0,}m>";
-//		Matcher matcherTex=Pattern.compile(leftMPat).matcher(text);
-		text=replacePatternWithString(leftMPat,"\\\\[",text);
-		text=replacePatternWithString(rightMPat,"\\\\]",text);
-		
-		//LaTeX <m>$ ... $</m> into \( ... \)		
+
+		List<String> leftPat = new ArrayList<String>();
+		List<String> rightPat = new ArrayList<String>();
+
+		//TEX all displaymath e.g.<m>$$ ... $$</m> into \[ ... \]
+		leftPat.add("<m {0,}(eval=\"on\"){0,1} {0,}> {0,}\\$\\$");
+		rightPat.add("\\$\\$ {0,}<\\/ {0,}m>");
+
+		leftPat.add("<m {0,}(eval=\"on\"){0,1} {0,}> {0,}\\\\\\[");
+		rightPat.add("\\\\\\] {0,}<\\/ {0,}m>");
+
+		for (String s: leftPat){
+			text=replacePatternWithString(s,"\\\\[",text);
+		}
+		for (String s: rightPat) {
+			text = replacePatternWithString(s, "\\\\]", text);
+		}
+
+		//LaTeX all other math into \( ... \)
+		leftPat.clear();
+		rightPat.clear();
+
+		leftPat.add("<m {0,}(eval=\"on\"){0,1} {0,}>\\${0,1}");
+		rightPat.add("\\${0,1}<\\/ {0,}m>");
+
+		leftPat.add("<algebra {0,}>\\${0,1}");
+		rightPat.add("\\${0,1}<\\/ {0,}algebra>");
+
+		leftPat.add("<tex {0,}>\\${0,1}");
+		rightPat.add("\\${0,1}<\\/ {0,}tex>");
+
+		for (String s: leftPat){
+			text=replacePatternWithString(s,"\\\\(",text);
+		}
+		for (String s: rightPat){
+			text=replacePatternWithString(s,"\\\\)",text);
+		}
+
+/*		//LaTeX <m>$ ... $</m> into \( ... \)
 		leftMPat="<m {0,}(eval=\"on\"){0,1} {0,}>\\${0,1}";
 		rightMPat="\\${0,1}<\\/ {0,}m>";
 		text=replacePatternWithString(leftMPat,"\\\\(",text);
 		text=replacePatternWithString(rightMPat,"\\\\)",text);
-		
+
+		//LaTeX <algebra> ... </algebra> into \( ... \)
+		leftMPat="<algebra {0,}>\\${0,1}";
+		rightMPat="\\${0,1}<\\/ {0,}algebra>";
+		text=replacePatternWithString(leftMPat,"\\\\(",text);
+		text=replacePatternWithString(rightMPat,"\\\\)",text);
+*/
+
 		return text;
 	}
 
