@@ -79,7 +79,7 @@ public abstract class ProblemElement {
 
 		//ESCAPE LEFT DOLLAR SIGNS
 		if(text.contains("$")){
-			log.warning("--still Dollar-signs in text. Replaced them by the String \"[DOLLAR-SIGN]\" (because Moolde don't like them)");
+			log.warning("--still Dollar-signs in text. Replaced them by the String \"[DOLLAR-SIGN]\" (because Moodle doesn't like them)");
 			text=text.replaceAll("\\$","[DOLLAR-SIGN]");
 		}
 			

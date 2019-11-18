@@ -76,10 +76,12 @@ public class PreParser {
 		xmlReplacements.put("condition=\"([^>\"]*)>([^>\"]*)>([^>\"]*)\"", "condition=\"$1 GT $2 GT $3\"");
 		xmlReplacements.put("condition=\"([^<\"]*)<([^<\"]*)<([^<\"]*)<([^<\"]*)\"", "condition=\"$1 LT $2 LT $3 LT $4\"");
 		xmlReplacements.put("condition=\"([^>\"]*)>([^>\"]*)>([^>\"]*)>([^>\"]*)\"", "condition=\"$1 GT $2 GT $3 GT $4\"");
-		xmlReplacements.put("condition=\"([^&]*)&&([^&]*)\"", "condition=\"$1 AND $2\"");
-		xmlReplacements.put("condition=\"([^&]*)&&([^&]*)&&([^&]*)\"", "condition=\"$1 AND $2 AND $3\"");
+		xmlReplacements.put("condition=\"([^&\"]*)&&([^&\"]*)\"", "condition=\"$1 AND $2\"");
+		xmlReplacements.put("condition=\"([^&\"]*)&&([^&\"]*)&&([^&\"]*)\"", "condition=\"$1 AND $2 AND $3\"");
 
-        xmlReplacements.put("options=\"([^<\"]*)<([^<\"]*)\"", "options=\"$1 \\\\( \\\\lt \\\\) $2\"");
+        xmlReplacements.put("options=\"([^\"]*)<=([^\"]*)\"", "options=\"$1 \\\\( \\\\le \\\\) $2\"");
+        xmlReplacements.put("options=\"([^\"]*)>=([^\"]*)\"", "options=\"$1 \\\\( \\\\ge \\\\) $2\"");
+       xmlReplacements.put("options=\"([^<\"]*)<([^<\"]*)\"", "options=\"$1 \\\\( \\\\lt \\\\) $2\"");
         xmlReplacements.put("options=\"([^>\"]*)>([^>\"]*)\"", "options=\"$1 \\\\( \\\\gt \\\\) $2\"");
         xmlReplacements.put("value=\"([^<\"]*)<([^<\"]*)\"", "options=\"$1 \\\\( \\\\lt \\\\) $2\"");
         xmlReplacements.put("value=\"([^>\"]*)>([^>\"]*)\"", "options=\"$1 \\\\( \\\\gt \\\\) $2\"");

@@ -119,6 +119,7 @@ public class ProblemReader{
 					break;
 				case "allow": case "meta":
 					log.finer("found "+element.getTagName()+" tag - ignoring it.");
+					problem.addElement(new IgnoredElement(problem,element));
 					break;
 				case "parameter":
 					log.finer("found parameter");
@@ -135,6 +136,7 @@ public class ProblemReader{
 					}else{
 						log.warning("--ignore that the part before should be solved before showing the next part.");
 						readingRecursively(problem,element);
+						problem.addElement(new IgnoredElement(problem,element));
 					}
 					break;
 				case "postanswerdate":
@@ -146,6 +148,7 @@ public class ProblemReader{
                     if (libNode !=  null){
                        readingRecursively(problem,libNode);
                     }
+                    problem.addElement(new IgnoredElement(problem,element));
                     break;
 				default:
 					log.warning("unknown element: "+element.getTagName());
