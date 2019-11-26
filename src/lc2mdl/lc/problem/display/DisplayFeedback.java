@@ -1,5 +1,6 @@
 package lc2mdl.lc.problem.display;
 
+import lc2mdl.lc.problem.Gnuplot;
 import lc2mdl.lc.problem.Problem;
 import lc2mdl.lc.problem.ProblemElement;
 import lc2mdl.mdl.quiz.QuestionStack;
@@ -33,17 +34,30 @@ public abstract class DisplayFeedback extends ProblemElement {
 
         if(e.hasAttributes())log.warning("-still unknown attributes in solved/postanswerdate.");
 
-        NodeList outtexts=e.getElementsByTagName("outtext");
-        for(int j=0;j<outtexts.getLength();j++){
-            Element text=(Element)outtexts.item(j);
-            String out=text.getTextContent();
-            feedbackText += System.lineSeparator() + out;
-            text.setTextContent(null);
-        }
+        NodeList elements = e.getChildNodes();
+        for (int i=0; i<elements.getLength(); i++){
+            //make sure, if I can cast to Element
+			if(!(elements.item(i).getNodeType()==Node.ELEMENT_NODE))continue;
 
-        String out = e.getTextContent();
-        feedbackText += System.lineSeparator() + out;
-        e.setTextContent(null);
+			Element element=(Element)elements.item(i);
+			switch(element.getTagName()) {
+                case "outtext":
+                    log.finer("found feedback outtext");
+                    String out = element.getTextContent();
+                    feedbackText += System.lineSeparator() + out;
+                    element.setTextContent(null);
+                    break;
+                case "gnuplot":
+                    log.finer("found feedback gnuplot");
+                    Gnuplot gnuplot = new Gnuplot(problem,element);
+                    gnuplot.consumeNode();
+                    feedbackText += System.lineSeparator() + gnuplot.getPlotString();
+                    break;
+                default:
+                    log.warning("found unknown feedback tag " + element.getTagName());
+                    break;
+            }
+        }
 
         feedbackText = transformTextElement(feedbackText);
 

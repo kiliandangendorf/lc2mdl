@@ -79,6 +79,10 @@ public class ProblemReader{
 					log.finer("found outtext");
 					problem.addElement(new Outtext(problem,element));
 					break;
+				case "gnuplot":
+					log.finer("found gnuplot");
+					problem.addElement(new Gnuplot(problem,element));
+					break;
 				case "script":
 					if(nodeHasAttributePair(element,"type","loncapa/perl")){
 						log.finer("found perl-script");

@@ -38,6 +38,7 @@ public class PreParser {
 //		xmlReplacements.put("<answer(>| [^>]*>)", "<answer><![CDATA["); would remove attributes
 		xmlReplacements.put("</answer {0,}>", "]]></answer>");
 		xmlReplacements.put("importmode=\"\"","");
+		xmlReplacements.put("texoptions=\"\"","");
 		
 		//HTML References
 		//replace NO-BRAKE-SPACE escape by itself
@@ -70,6 +71,8 @@ public class PreParser {
 		// make it an correct attribute
 
 		xmlReplacements.put("condition=\"&abs", "condition=\"abs");
+		xmlReplacements.put("condition=\"([^<]*?)<=([^<]*?)<=([^<]*?)<=([^<]*?)<=", "condition=\"$1 LE $2 LE $3 LE $4 LE");
+		xmlReplacements.put("condition=\"([^<]*?)<=([^<]*?)<=", "condition=\"$1 LE $2 LE");
 		xmlReplacements.put("condition=\"([^<\"]*)<([^<\"]*)\"", "condition=\"$1 LT $2\"");
 		xmlReplacements.put("condition=\"([^>\"]*)>([^>\"]*)\"", "condition=\"$1 GT $2\"");
 		xmlReplacements.put("condition=\"([^<\"]*)<([^<\"]*)<([^<\"]*)\"", "condition=\"$1 LT $2 LT $3\"");
@@ -78,6 +81,8 @@ public class PreParser {
 		xmlReplacements.put("condition=\"([^>\"]*)>([^>\"]*)>([^>\"]*)>([^>\"]*)\"", "condition=\"$1 GT $2 GT $3 GT $4\"");
 		xmlReplacements.put("condition=\"([^&\"]*)&&([^&\"]*)\"", "condition=\"$1 AND $2\"");
 		xmlReplacements.put("condition=\"([^&\"]*)&&([^&\"]*)&&([^&\"]*)\"", "condition=\"$1 AND $2 AND $3\"");
+		xmlReplacements.put("condition=\"([^&]*)&&", "condition=\"$1 AND");
+		xmlReplacements.put("condition=\"([^<]*?)<=([^<]*?)<=", "condition=\"$1 LE $2 LE");
 
         xmlReplacements.put("options=\"([^\"]*)<=([^\"]*)\"", "options=\"$1 \\\\( \\\\le \\\\) $2\"");
         xmlReplacements.put("options=\"([^\"]*)>=([^\"]*)\"", "options=\"$1 \\\\( \\\\ge \\\\) $2\"");

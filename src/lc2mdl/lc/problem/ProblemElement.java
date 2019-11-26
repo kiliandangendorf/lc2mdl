@@ -61,6 +61,9 @@ public abstract class ProblemElement {
 	 */
 	protected String transformTextElement(String text){
 		log.finer("-transform text");
+
+		//gnuplot
+		text=replaceGnuPlot(text);
 		
 		//VARS in {@ ... @}
 		text=replaceVariables(text);
@@ -112,12 +115,21 @@ public abstract class ProblemElement {
 		}
 		return text;
 	}
+
+	private String replaceGnuPlot(String text) {
+		String gnuplotPat = "< {0,}gnuplot[\\s\\S]*?\\/ {0,}gnuplot {0,}>";
+		Matcher matcher = Pattern.compile(gnuplotPat).matcher(text);
+		while (matcher.find()) {
+			String gnuString = matcher.group();
+			Gnuplot gnuplotEl = new Gnuplot(problem, node, gnuString);
+			gnuplotEl.consumeNode();
+			text.replace(gnuString, gnuplotEl.getPlotString());
+		}
+		return text;
+	}
 	
 	private String replaceMathTags(String text){
 		//LATEX / MATH-EXPRESSION: <m>...</m> into \( ... \)  (<m eval="on">)
-		String leftMPat;
-		String rightMPat;
-
 		List<String> leftPat = new ArrayList<String>();
 		List<String> rightPat = new ArrayList<String>();
 
@@ -286,14 +298,14 @@ public abstract class ProblemElement {
 			try{
 				Document dom=XMLParser.parseString2DOM(translatedBlock);
 				NodeList langs=dom.getElementsByTagName("lang");
-				for(int i=0;i<langs.getLength();i++){
-					Element lang=(Element)langs.item(i);
-					if(lang.getAttribute("which").equals(defaultLang)){
+				for(int i=0;i<langs.getLength();i++) {
+					Element lang = (Element) langs.item(i);
+					if (lang.getAttribute("which").equals(defaultLang)) {
 						//text in defaultLang
-						textInDefaultLang=lang.getTextContent();
+						textInDefaultLang = lang.getTextContent();
 					}
-					if(lang.getAttribute("which").equals("default")){
-						defaultText=lang.getTextContent();
+					if (lang.getAttribute("which").equals("default")) {
+						defaultText = lang.getTextContent();
 					}
 				}
 				String outtext="";
