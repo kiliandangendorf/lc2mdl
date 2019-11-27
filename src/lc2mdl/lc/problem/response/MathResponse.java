@@ -15,6 +15,7 @@ public class MathResponse extends Response{
 
 	protected String cas;
 	private String answerDisplay;
+	private String example="";
 	protected String args;
 	protected String answerMaxima;
 
@@ -101,9 +102,22 @@ public class MathResponse extends Response{
 			e.removeAttribute("answerdisplay");
 		}
 
+		//example
+		if (e.hasAttribute("example")){
+			example = e.getAttribute("example");
+			if (!example.equals("")) {
+				example = transformTextElement(example);
+			}
+			e.removeAttribute("example");
+		}
+
+
 		consumeIdAndName(e);
 
 		if(e.hasAttributes())log.warning("-still unknown attributes in response.");
+
+		//Additional Text
+		consumeText(e);
 
 		//RESPONSEPARAM
 		consumeResponseParameter(e);
@@ -192,6 +206,7 @@ public class MathResponse extends Response{
 	public void addToMdlQuestion(QuestionStack question){
 		//Add input in questiontext
 		question.addToQuestionText(inputString);
+		question.addToQuestionText(additionalText);
 		
 		//Add additional vars to questionvariables
 		question.addToQuestionVariables(additionalCASVars);
@@ -216,5 +231,11 @@ public class MathResponse extends Response{
 
 		//ADD MAXIMA TO FEEDBACK-VARS IN CURRENT PRT
 		question.addToFeedbackVariablesOfCurrentPrt(answerMaxima);
+
+		//add example
+		if (!example.equals("")){
+			example = question.getPrtexample()+example;
+			question.setGeneralfeedback(question.getGeneralfeedback()+example);
+		}
 	}
 }

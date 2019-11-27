@@ -68,6 +68,9 @@ public class Gnuplot extends ProblemElement {
                 if (s.charAt(0) == '$'){
                     s = s.substring(1);
                 }
+                if (s.equals("x000000")){
+                    s = "black";
+                }
                 color = ",[color,"+s+"]";
             }
             gnu.removeAttribute("fgcolor");
@@ -91,10 +94,27 @@ public class Gnuplot extends ProblemElement {
             gnu.removeAttribute("align");
         }
 
+        String alt = "";
+        if (gnu.hasAttribute("alttag")){
+            String a = gnu.getAttribute("alttag");
+            if (!a.equals("")){
+                    alt = ",[alt,"+a+"]";
+            }
+            gnu.removeAttribute("alttag");
+        }
+
+       String grid = ",grid2d";
+        if (gnu.hasAttribute("grid")){
+            String a = gnu.getAttribute("grid");
+            if (a.equals("off")){
+                    grid = "";
+            }
+            gnu.removeAttribute("grid");
+        }
+
         // remove things that are not supported
         removeAttributeIfExist(gnu,"bgcolor");
         removeAttributeIfExist(gnu,"transparent");
-        removeAttributeIfExist(gnu,"grid");
         removeAttributeIfExist(gnu,"gridlayer");
         removeAttributeIfExist(gnu,"box_border");
         removeAttributeIfExist(gnu,"font");
@@ -115,14 +135,69 @@ public class Gnuplot extends ProblemElement {
         removeAttributeIfExist(gnu,"boxwidth");
         removeAttributeIfExist(gnu,"major_ticscale");
         removeAttributeIfExist(gnu,"minor_ticscale");
-        removeAttributeIfExist(gnu,"alttag");
 
         if (gnu.hasAttributes()){
             log.warning("There still undefined attributes in gnuplot");
         }
 
+        String start="-10.0";
+        String inc = "1";
+        String end = "-10";
+        String tics ="";
+        NodeList list = gnu.getElementsByTagName("xtics");
+        if (list.getLength()>=1) {
+            Element e = (Element)list.item(0);
+            if (e.hasAttribute("start")){
+                String s= e.getAttribute("start");
+                if (!e.equals("")){
+                     start = s;
+                }
+            }
+            if (e.hasAttribute("end")){
+                String s= e.getAttribute("end");
+                if (!e.equals("")){
+                     end = s;
+                }
+            }
+            if (e.hasAttribute("increment")){
+                String s= e.getAttribute("increment");
+                if (!e.equals("")){
+                     inc = s;
+                }
+            }
+           tics += ",[xtics,"+start+","+inc+","+end+"]";
+           removeNodeFromDOM(e);
+        }
+        start="-10.0";
+        inc = "1";
+        end = "-10";
+        list = gnu.getElementsByTagName("ytics");
+        if (list.getLength()>=1) {
+            Element e = (Element)list.item(0);
+            if (e.hasAttribute("start")){
+                String s= e.getAttribute("start");
+                if (!e.equals("")){
+                     start = s;
+                }
+            }
+            if (e.hasAttribute("end")){
+                String s= e.getAttribute("end");
+                if (!e.equals("")){
+                     end = s;
+                }
+            }
+            if (e.hasAttribute("increment")){
+                String s= e.getAttribute("increment");
+                if (!e.equals("")){
+                     inc = s;
+                }
+            }
+           tics += ",[ytics,"+start+","+inc+","+end+"]";
+           removeNodeFromDOM(e);
+        }
+
         String title = "";
-        NodeList list = gnu.getElementsByTagName("title");
+        list = gnu.getElementsByTagName("title");
         if (list.getLength()>1) {
                 log.warning("--found more than one title element, handle only the first one");
              }
@@ -149,19 +224,19 @@ public class Gnuplot extends ProblemElement {
                 e.removeAttribute("xmin");
             }
             if (e.hasAttribute("xmax")) {
-                xmin = e.getAttribute("xmax");
+                xmax = e.getAttribute("xmax");
                 e.removeAttribute("xmax");
             }
-            xminmax = ",[x,"+xmin+","+xmax+"],";
+            xminmax = ",[x,"+xmin+","+xmax+"]";
             if (e.hasAttribute("ymin")) {
                 ymin = e.getAttribute("ymin");
                 e.removeAttribute("ymin");
             }
             if (e.hasAttribute("ymax")) {
-                ymin = e.getAttribute("ymax");
+                ymax = e.getAttribute("ymax");
                 e.removeAttribute("ymax");
             }
-            yminmax = ",[y,"+ymin+","+ymax+"],";
+            yminmax = ",[y,"+ymin+","+ymax+"]";
             //removeNodeFromDOM(e);
         }
 
@@ -190,20 +265,82 @@ public class Gnuplot extends ProblemElement {
             removeAttributeIfExist(e,"color");
             if (e.hasAttribute("xformat")){
                 if (e.getAttribute("xformat").equals("off")){
-                    axes = ",[axes,false]";
+                    axes = ",[axes,y]";
                 }
                 e.removeAttribute("xformat");
             }
             if (e.hasAttribute("yformat")){
                 if (e.getAttribute("yformat").equals("off")){
-                    axes = ",[axes,false]";
+                    if (!axes.equals("")) {
+                        axes = ",[axes,false]";
+                    }else{
+                        axes = ",[axes,x]";
+                    }
                 }
                 e.removeAttribute("yformat");
+            }
+            if (e.hasAttribute("xzero")){
+                if (e.getAttribute("xzero").equals("on")){
+                    axes = ",[axes,solid]";
+                }
+                e.removeAttribute("xzero");
+            }
+            if (e.hasAttribute("yzero")){
+                if (e.getAttribute("yzero").equals("on")){
+                    axes = ",[axes,solid]";
+                }
+                e.removeAttribute("yzero");
             }
 
         }
 
+        String label ="";
+        list = gnu.getElementsByTagName("label");
+        for (int i=0; i<list.getLength();i++){
+            Element e = (Element)list.item(i);
+            String xpos="0";
+            String ypos="0";
+            String textlabel = e.getTextContent();
+            if (!textlabel.equals("")){
+                if (textlabel.charAt(0)=='$'){
+                    textlabel = textlabel.substring(1);
+                }else{
+                    textlabel="\""+textlabel+"\"";
+                }
+            }
+            if (e.hasAttribute("xpos")){
+                String s = e.getAttribute("xpos");
+                if (!s.equals("")){
+                    if (s.charAt(0)=='$') s = s.substring(1);
+                }
+                xpos = s;
+            }
+            if (e.hasAttribute("ypos")){
+                String s = e.getAttribute("ypos");
+                if (!s.equals("")){
+                    if (s.charAt(0)=='$') s = s.substring(1);
+                }
+                ypos = s;
+            }
+            if (i==0){
+                label = ",[label,["+textlabel+","+xpos+","+ypos+"]";
+            }else{
+                label += ",["+textlabel+","+xpos+","+ypos+"]";
+            }
+            removeNodeFromDOM(e);
+        }
+
+        if (!label.equals("")){
+            label += "]";
+        }
+
         String fkt="[";
+        String style = ",[style";
+        String[] pointtypes = {"bullet", "circle", "plus", "times",
+                "asterisk", "box", "square", "triangle", "delta",
+                "wedge", "nabla", "diamond", "lozenge"};
+        String point_type = "[point_type,";
+        Boolean existColor=false;
         list = gnu.getElementsByTagName("curve");
         for (int i=0; i<list.getLength();i++){
             Element e= (Element)list.item(i);
@@ -216,19 +353,111 @@ public class Gnuplot extends ProblemElement {
                     if (fktString.charAt(0)=='$'){
                         fktString = fktString.substring(1);
                     }
-                    if (j>0) {
+                    if ((j>0)||(i>0)) {
                         fkt += ", ";
                     }
                     fkt += fktString;
                 }
-                removeNodeFromDOM(el);
+                e.setTextContent(null);
             }
+
+            NodeList datalist = e.getElementsByTagName("data");
+            log.finer("datalist length"+datalist.getLength());
+
+            for (int j=0; j<datalist.getLength();j++){
+                 Element el = (Element)datalist.item(j);
+                String dataString = el.getTextContent();
+                if (!dataString.equals("")){
+                    if (dataString.charAt(0)=='@'){
+                        dataString = dataString.substring(1);
+                    }else{
+                        dataString = dataString.replaceAll("$","");
+                        dataString = "["+dataString+"]";
+                    }
+                    if (j==0){
+                        if (fktlist.getLength()>0){
+                            fkt += ", ";
+                        }
+                        fkt += "[discrete, "+ dataString;
+                    }else{
+                        fkt += ", "+dataString;
+                    }
+                }
+                el.setTextContent(null);
+            }
+
+             if (datalist.getLength()>0){
+                fkt += "]";
+            }
+
+
+
+            if (e.hasAttribute("color")){
+                String c = e.getAttribute("color");
+                if (!c.equals("")){
+                    if (c.equals("x000000")) c = "black";
+                   if (i==0){
+                        color = "[color,"+c;
+                        existColor = true;
+                    }else
+                    {
+                        color+= ","+c;
+                    }
+                }
+                e.removeAttribute("color");
+            }
+
+            if (e.hasAttribute("linestyle")){
+                String s = e.getAttribute("linestyle");
+                if (!s.equals("")){
+                        style += ","+s;
+                }
+                e.removeAttribute("linestyle");
+            }else{
+                style += ",lines";
+            }
+
+            if (e.hasAttribute("pointtype")){
+                int p = Integer.valueOf(e.getAttribute("pointtype"));
+                point_type += ","+pointtypes[p];
+                e.removeAttribute("pointtype");
+            }else{
+                point_type += ","+pointtypes[1];
+            }
+
+            if (e.hasAttribute("name")){
+                String n = e.getAttribute("name");
+                if (!n.equals("")){
+                    if (title.equals("")){
+                        title = ",[legend,\""+n+"\"]";
+                    }else{
+                        title = title.substring(0, title.length()-2)+" "+n+"\"]";
+                    }
+                }
+                e.removeAttribute("name");
+            }
+
+            // remove not-supported attributes
+            removeAttributeIfExist(e,"arrowangle");
+            removeAttributeIfExist(e,"arrowhead");
+            removeAttributeIfExist(e,"arrowlength");
+            removeAttributeIfExist(e,"arrowstyle");
+            removeAttributeIfExist(e,"limit");
+            removeAttributeIfExist(e,"linetype");
+            removeAttributeIfExist(e,"pointsize");
+            removeAttributeIfExist(e,"arrowbackangle");
+            removeAttributeIfExist(e,"linewidth");
+
         }
         fkt += "]";
+        if (existColor) {
+            color += "]";
+        }
+        style += "]";
 
-        plotString = "{@ plot("+fkt+axes;
+        plotString = "{@ plot("+fkt+xminmax+yminmax+axes+style+tics+label;
 
-        plotString += xlabel+ylabel+xminmax+yminmax+title+align+box+color+size+") @}";
+        plotString += xlabel+ylabel+title+align+box+color+grid+size+alt+") @}";
     }
 
     @Override

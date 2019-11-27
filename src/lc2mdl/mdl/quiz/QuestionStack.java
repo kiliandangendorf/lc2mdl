@@ -1,12 +1,11 @@
 package lc2mdl.mdl.quiz;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-
-import org.w3c.dom.Comment;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 
 public class QuestionStack extends Question{
 //	private String attr_type="stack"; //stack
@@ -46,7 +45,9 @@ public class QuestionStack extends Question{
 	private String prtpartiallycorrect="<span style=\"font-size: 1.5em; color:orange;\"><i class=\"fa fa-adjust\"></i></span> Ihre Antwort ist teilweise korrekt.";//Your answer is partially correct.
 	// text & ggf. CDATA
 	private String prtincorrect="<span style=\"font-size: 1.5em; color:red;\"><i class=\"fa fa-times\"></i></span> Falsche Antwort.";//Incorrect answer.
-	
+
+	private String prtexample="Als ein Beispiel kann man nehmen: <br>";
+
 	private String multiplicationsign="dot"; //default dot
 	private String sqrtsign="1"; //default 1
 	private String complexno="i"; //default i
@@ -431,4 +432,8 @@ public class QuestionStack extends Question{
 	public void setIdnumber(String idnumber){
 		this.idnumber=idnumber;
 	}
+
+	public String getPrtexample() { return prtexample; 	}
+
+	public void setPrtexample(String prtexample) { 	this.prtexample = prtexample; }
 }

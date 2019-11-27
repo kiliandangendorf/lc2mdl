@@ -88,7 +88,10 @@ public class StringResponse extends Response {
             log.warning("-still unknown attributes in response.");
         }
 
-        //RESPONSEPARAM
+ 		//Additional Text
+		consumeText(e);
+
+       //RESPONSEPARAM
 		consumeResponseParameter(e);
 
 		//TEXTLINE size
@@ -103,6 +106,7 @@ public class StringResponse extends Response {
     public void addToMdlQuestion(QuestionStack question) {
         //Add input in questiontext
 		question.addToQuestionText(inputString);
+        question.addToQuestionText(additionalText);
 
 		//Add additional vars to questionvariables
 		question.addToQuestionVariables(additionalCASVars);

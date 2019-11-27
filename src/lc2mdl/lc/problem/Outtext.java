@@ -28,4 +28,7 @@ public class Outtext extends ProblemElement{
 		question.addToQuestionText(text);
 	}
 
+	public String getText() {
+		return text;
+	}
 }

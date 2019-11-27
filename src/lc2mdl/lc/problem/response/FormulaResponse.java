@@ -45,6 +45,9 @@ public class FormulaResponse extends Response{
 
 		if(e.hasAttributes())log.warning("-still unknown attributes in response.");
 
+		//Additional Text
+		consumeText(e);
+
 		//RESPONSEPARAM
 		consumeResponseParameter(e);
 		
@@ -60,7 +63,8 @@ public class FormulaResponse extends Response{
 	public void addToMdlQuestion(QuestionStack question){
 		//Add input in questiontext
 		question.addToQuestionText(inputString);
-		
+		question.addToQuestionText(additionalText);
+
 		//Add additional vars to questionvariables
 		question.addToQuestionVariables(additionalCASVars);
 

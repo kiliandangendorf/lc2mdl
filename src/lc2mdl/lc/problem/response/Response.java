@@ -1,5 +1,6 @@
 package lc2mdl.lc.problem.response;
 
+import lc2mdl.lc.problem.Outtext;
 import lc2mdl.lc.problem.Problem;
 import lc2mdl.lc.problem.ProblemElement;
 import lc2mdl.lc.problem.response.hints.*;
@@ -29,6 +30,7 @@ public abstract class Response extends ProblemElement{
 	protected ArrayList<ConditionalHint> hints=new ArrayList<>();
 	
 	protected String additionalCASVars="";
+	protected String additionalText="";
 	
 	public Response(Problem problem,Node node){
 		super(problem,node);
@@ -84,7 +86,8 @@ public abstract class Response extends ProblemElement{
 				nodesToRemove.add(hintgroup);
 				continue;
 			}
-			
+
+			// be careful, there can be also conditional blocks in there !!!
 			NodeList hintparts=hintgroup.getChildNodes();
 			for(int j=0;j<hintparts.getLength();j++){
 				if(!(hintparts.item(i).getNodeType()==Node.ELEMENT_NODE))continue;
@@ -170,6 +173,7 @@ public abstract class Response extends ProblemElement{
 			}	
 			textline.removeAttribute("size");
 			textline.removeAttribute("readonly");
+			textline.removeAttribute("spellcheck");
 		}else{
 			//textfield
 			isTextline=false;
@@ -184,7 +188,8 @@ public abstract class Response extends ProblemElement{
 				}
 				textfield.removeAttribute("rows");
 				textfield.removeAttribute("cols");
-				textfield.removeAttribute("readonly");		
+				textfield.removeAttribute("readonly");
+				textfield.removeAttribute("spellcheck");
 			}
 		}
 	}
@@ -239,4 +244,18 @@ public abstract class Response extends ProblemElement{
 		}
 		removeNodesFromDOM(nodesToRemove);
 	}
+
+	protected void consumeText(Element e){
+		ArrayList<Node> nodesToRemove=new ArrayList<>();
+
+		NodeList outs = e.getElementsByTagName("outtext");
+		for (int i=0; i<outs.getLength(); i++){
+			Element out = (Element)outs.item(i);
+			Outtext outtext = new Outtext(problem,out);
+			outtext.consumeNode();
+			additionalText += outtext.getText();
+		}
+
+	}
 }
+
