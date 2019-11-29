@@ -5,6 +5,7 @@ import lc2mdl.lc.ProblemReader;
 import lc2mdl.lc.ProblemSimplifier;
 import lc2mdl.lc.problem.Problem;
 import lc2mdl.mdl.QuestionGenerator;
+import lc2mdl.mdl.quiz.QuestionCategory;
 import lc2mdl.mdl.quiz.QuestionStack;
 import lc2mdl.mdl.quiz.Quiz;
 import lc2mdl.util.LogFormatterKD;
@@ -52,13 +53,18 @@ public class Converter{
 		final File logfile;
 		File xmlfile=null;
 		int convertedSuccessful=0;
-		
 
 		// LOGGER CONFIG
 		logfile=new File(outputfile.getAbsolutePath()+Prefs.LOG_SUFFIX);
 		configLogger(logfile.getAbsolutePath());
-		
-		
+
+
+		String pathString = inputfile.getAbsolutePath();
+		String folderString = inputfolder.getAbsolutePath();
+		pathString = pathString.replace(folderString,"");
+		log.finer("Pfad = "+pathString);
+
+
 		// LET'S START
 		log.fine(Prefs.CLI_LINE_SEP);
 		log.info("START: "+new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
@@ -108,7 +114,7 @@ public class Converter{
 			
 			// READING PROBLEM ELEMENTS
 			ProblemReader pr=new ProblemReader();
-			Problem p=pr.readingDom(dom, problemName, libDoms, imagefiles);
+			Problem p=pr.readingDom(dom, problemName, libDoms, imagefiles,pathString);
 	
 
 			// CONSUMING PROBLEM ELEMENTS
@@ -119,6 +125,7 @@ public class Converter{
 			// GENERATE QUESTION DOM
 			QuestionGenerator qg=new QuestionGenerator();
 			QuestionStack question=qg.generatingQuestionStack(p);
+			QuestionCategory category = qg.generatingQuestionCategory(p);
 			
 					
 			// WRITE QUIZ-XML FILE

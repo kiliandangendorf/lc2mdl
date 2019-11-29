@@ -6,9 +6,12 @@ import org.w3c.dom.Element;
 
 import lc2mdl.util.ConvertAndFormatMethods;
 
+import java.util.ArrayList;
+
 public abstract class QuizElement {
 	protected String name="lc2mdl";
-	
+
+
 	/**
 	 * Adding new nodes for every member to given Document and fill them with values. 
 	 */
@@ -65,7 +68,7 @@ public abstract class QuizElement {
 		return addElementAndContent(dom, parent, name, (content?"1":"0"));
 	}
 
-	
+
 	//================================================================================
     // Getter and Setter
     //================================================================================
@@ -76,4 +79,5 @@ public abstract class QuizElement {
 	public void setName(String name) {
 		this.name = name;
 	}
+
 }

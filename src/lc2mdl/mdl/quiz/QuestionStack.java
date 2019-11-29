@@ -59,7 +59,7 @@ public class QuestionStack extends Question{
 	private ArrayList<Input> input = new ArrayList<>();
 	private ArrayList<Prt> prt = new ArrayList<>();//Arrays.asList(new Prt()));
 	private ArrayList<String> comm = new ArrayList<>();
-	
+
 	@Override
 	public Element exportToDom(Document dom) {
 

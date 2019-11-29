@@ -24,7 +24,7 @@ public class ProblemReader{
 	 * @return New Problem-Object containing all LON-CAPA-elements as ProblemElement-objects.
 	 * @throws Exception if no problem-element was found in given Document.
 	 */
-	public Problem readingDom(Document dom, String problemName, HashMap<String,Document> libs, HashMap<String,String> images) throws Exception{
+	public Problem readingDom(Document dom, String problemName, HashMap<String,Document> libs, HashMap<String,String> images, String path) throws Exception{
 		log.fine(Prefs.CLI_LINE_SEP);
 		log.fine("Starting reading DOM.");
 		
@@ -40,7 +40,7 @@ public class ProblemReader{
 
 		this.libs = libs;
 
-		problem=new Problem(problemName,images);
+		problem=new Problem(problemName,images,path);
 		readingRecursively(problem,problemNode);
 		
 		log.fine("Done reading DOM.");
@@ -132,6 +132,7 @@ public class ProblemReader{
 				case "notsolved": case "preduedate":
 					log.finer("found element"+element.getTagName());
 					readingRecursively(problem,element);
+					problem.addElement(new IgnoredElement(problem,element));
 					break;
 				case "solved":
 					log.finer("found solved");

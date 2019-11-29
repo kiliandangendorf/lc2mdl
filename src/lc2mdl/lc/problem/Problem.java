@@ -15,6 +15,8 @@ public class Problem {
 
 	// key: filename, value: full path of the images
 	private HashMap<String,String> images;
+	private ArrayList<String> tags = new ArrayList<>();
+	private String category="";
 	
 	public Problem(String problemName, HashMap<String,String> images){
 		this.problemName=problemName;
@@ -23,7 +25,24 @@ public class Problem {
 		vars.add("pi");
 		this.images=images;
 	}
-	
+
+	public Problem(String problemName, HashMap<String,String> images, String pathString){
+		this.problemName=problemName;
+		elements=new ArrayList<>();
+		vars=new ArrayList<>();
+		vars.add("pi");
+		this.images=images;
+		category = pathString.substring(0,pathString.lastIndexOf("/"));
+		getTagsFromPath(pathString);
+	}
+
+	protected void getTagsFromPath(String path){
+		String[] split = path.split("/");
+		for (int i=0; i<split.length-1; i++){
+			this.tags.add(split[i]);
+		}
+	}
+
 	/**
 	 * Returns index of given ProblemElement in List elements
 	 */
@@ -90,5 +109,13 @@ public class Problem {
 	}
 	public String getProblemName(){
 		return problemName;
+	}
+
+	public ArrayList<String> getTags() {
+		return tags;
+	}
+
+	public String getCategory() {
+		return category;
 	}
 }
