@@ -19,7 +19,8 @@ public class MathResponse extends Response{
 	protected String args;
 	protected String answerMaxima;
 
-	private String boolPrefix="bool";
+	protected String boolPrefix="bool";
+	protected String boolans="boolans";
 	
 	public MathResponse(Problem problem,Node node){
 		super(problem,node);
@@ -66,6 +67,7 @@ public class MathResponse extends Response{
 						
 
 		//ANSWER
+
 		NodeList answers=e.getElementsByTagName("answer");
 		if(answers.getLength()>0){
 			log.finer("-found answer");
@@ -74,7 +76,7 @@ public class MathResponse extends Response{
 			this.answerMaxima=answer.getTextContent();
 			removeNodeFromDOM(answer);
 			
-			transformAnswerFromLC2Maxima();
+			transformAnswerFromLC2Maxima("");
 		}
 
 		//answerdisplay
@@ -134,7 +136,7 @@ public class MathResponse extends Response{
 	 * Transforms LON-CAPA Maxima String into valid Maxima String by replacing RESPONSE- and LONCAPALIST-arrays.
 	 * Also assigns last expression to a new boolean-variable. 
 	 */
-	protected void transformAnswerFromLC2Maxima(){
+	protected void transformAnswerFromLC2Maxima(String postfix){
 		//read size of RESPONSE
 		int maxIndexRESPONSE=0;
 		String regExIndexInRESPONSE="(?<=RESPONSE\\[)\\d(?=\\])";
@@ -192,13 +194,14 @@ public class MathResponse extends Response{
 		}
 		
 		//find last expression and assign to var
-		String var=boolPrefix+inputName;
+		String var=boolPrefix+inputName+postfix;
 		int lastSemicolon=answerMaxima.lastIndexOf(";");
 		int beginOfLastStatement=answerMaxima.substring(0,lastSemicolon).lastIndexOf(';')+1;
 		while(answerMaxima.charAt(beginOfLastStatement)==' ' || answerMaxima.charAt(beginOfLastStatement)=='\n')beginOfLastStatement++;
 		String value=answerMaxima.substring(beginOfLastStatement,answerMaxima.length());
 		answerMaxima=answerMaxima.substring(0,beginOfLastStatement)+var+": "+value;
 		log.finer("--defined var: "+var+" with: "+value);
+		boolans = var;
 
 	}
 
@@ -223,10 +226,10 @@ public class MathResponse extends Response{
 		//NODE-TAG
 		NodeMdl nodeMdl=new NodeMdl();
 		nodeMdl.setAnswertest("AlgEquiv");
-		nodeMdl.setSans(boolPrefix+inputName);
+		nodeMdl.setSans(boolans);
 		nodeMdl.setTans("true");
-		nodeMdl.setTruefeedback(correcthinttext);
-		nodeMdl.setFalsefeedback(incorrecthinttext);
+		addHintsToMdlQuestion(question,nodeMdl);
+
 		question.addNodeToCurrentPrtAndSetNodeLink(nodeMdl);
 
 		//ADD MAXIMA TO FEEDBACK-VARS IN CURRENT PRT

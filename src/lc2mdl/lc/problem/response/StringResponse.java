@@ -1,7 +1,6 @@
 package lc2mdl.lc.problem.response;
 
 import lc2mdl.lc.problem.Problem;
-import lc2mdl.lc.problem.response.hints.ConditionalHint;
 import lc2mdl.mdl.quiz.Input;
 import lc2mdl.mdl.quiz.NodeMdl;
 import lc2mdl.mdl.quiz.QuestionStack;
@@ -130,14 +129,10 @@ public class StringResponse extends Response {
 		    nodeMdl.setTans("supcase("+answer+")");
         }
 		nodeMdl.setAnswertest("String");
-		nodeMdl.setTruefeedback(correcthinttext);
-		nodeMdl.setFalsefeedback(incorrecthinttext);
+
+        addHintsToMdlQuestion(question,nodeMdl);
 		question.addNodeToCurrentPrtAndSetNodeLink(nodeMdl);
 
-		//HINTNODES
-		for(ConditionalHint hint:hints){
-			hint.addHintNodeToMdlQuestion(question,nodeMdl);
-		}
 
 		if (preprocess) {
 		    question.addComment("Cannot do the required preprocessing.");

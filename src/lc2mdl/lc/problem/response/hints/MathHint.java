@@ -15,6 +15,7 @@ public class MathHint extends MathResponse implements ConditionalHint {
 
 	public MathHint(Problem problem, Node node, boolean link){
 		super(problem,node);
+		inputName="ans"+(problem.getIndexFromResponse(this));
 		this.link=link;
 	}
 
@@ -69,8 +70,9 @@ public class MathHint extends MathResponse implements ConditionalHint {
             Element answer=(Element)answers.item(0);
             this.answerMaxima=answer.getTextContent();
             removeNodeFromDOM(answer);
+            String postfix= "_hint"+(problem.getIndexFromSameClassOnly(this));
 
-            transformAnswerFromLC2Maxima();
+            transformAnswerFromLC2Maxima(postfix);
         }
 
 
@@ -116,10 +118,12 @@ public class MathHint extends MathResponse implements ConditionalHint {
 		NodeMdl hintnode=new NodeMdl();
         hintnode.setAnswertest("AlgEquiv");
 
-		hintnode.setSans(parentNode.getSans());
-		hintnode.setTans(answerMaxima);
+		hintnode.setSans(boolans);
+		hintnode.setTans("true");
 		hintnode.setTruefeedback(correcthinttext);
 
+		//ADD MAXIMA TO FEEDBACK-VARS IN CURRENT PRT
+		question.addToFeedbackVariablesOfCurrentPrt(answerMaxima);
 		question.addHintNodeToNode(parentNode,hintnode,link);
 
     }

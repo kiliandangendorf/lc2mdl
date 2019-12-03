@@ -58,7 +58,6 @@ public class QuestionStack extends Question{
 	
 	private ArrayList<Input> input = new ArrayList<>();
 	private ArrayList<Prt> prt = new ArrayList<>();//Arrays.asList(new Prt()));
-	private ArrayList<String> comm = new ArrayList<>();
 
 	@Override
 	public Element exportToDom(Document dom) {
@@ -99,9 +98,9 @@ public class QuestionStack extends Question{
 		for(Prt p: prt){
 			e.appendChild(p.exportToDom(dom));
 		}
-		for (String s: comm){
-			e.appendChild(dom.createComment(s));
-		}
+
+		setTagsAndCommentsInDom(dom,e);
+
 		return e;
 	}
 	
@@ -193,6 +192,7 @@ public class QuestionStack extends Question{
 		//hint nodes doesn't affect score
 		hintnode.setTruescore(0.0);
 		hintnode.setFalsescore(0.0);
+
 		
 		//get belonging prt and add hintnode (node-name will be set)
 		Prt curPrt=getPrtOfNode(parentNode);
@@ -234,10 +234,7 @@ public class QuestionStack extends Question{
 		specificfeedback=specificfeedback+"[[feedback:"+p.getName()+"]]";
 	}
 
-	public void addComment(String s){
-		comm.add(s);
-	}
-	
+
 	//================================================================================
     // Getter and Setter
     //================================================================================

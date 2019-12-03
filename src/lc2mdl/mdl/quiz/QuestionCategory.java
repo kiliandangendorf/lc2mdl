@@ -7,7 +7,7 @@ public class QuestionCategory extends Question{
 
 	// text
 	private String category="$course$/top/Default for mdl_test";
-	private String prefix="$course/top";
+	private String prefix="$course$/top";
 	// text
 	private String info="The default category for questions shared in context 'mdl_test'.";
 
@@ -15,8 +15,6 @@ public class QuestionCategory extends Question{
 	@Override
 	public Element exportToDom(Document dom) {
 
-		
-		
 		//QUESTION COMMENT WITH ID
 		
 		

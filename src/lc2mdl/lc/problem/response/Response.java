@@ -4,6 +4,8 @@ import lc2mdl.lc.problem.Outtext;
 import lc2mdl.lc.problem.Problem;
 import lc2mdl.lc.problem.ProblemElement;
 import lc2mdl.lc.problem.response.hints.*;
+import lc2mdl.mdl.quiz.NodeMdl;
+import lc2mdl.mdl.quiz.QuestionStack;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -46,7 +48,8 @@ public abstract class Response extends ProblemElement{
 	 * @return name of new variable
 	 */
 	protected String addAdditionalCASVar(String value){
-		String var0="lc2mdlvar"+problem.getIndexFromResponse(this);
+		// don't use numbers as internal part of variables, Moodle Stack doesn't like it
+		String var0="lcmdlvar"+problem.getIndexFromResponse(this);
 		String uniqueVar=var0;
 		
 		//check, if var-name already exists in problem
@@ -149,6 +152,16 @@ public abstract class Response extends ProblemElement{
 		if(correct)correcthinttext+=System.lineSeparator()+hinttext.trim();
 		else incorrecthinttext+=System.lineSeparator()+hinttext.trim();
 	}
+
+	protected void addHintsToMdlQuestion(QuestionStack question, NodeMdl nodeMdl){
+		nodeMdl.setTruefeedback(correcthinttext);
+		nodeMdl.setFalsefeedback(incorrecthinttext);
+		//HINTNODES
+		for(ConditionalHint hint:hints){
+			hint.addHintNodeToMdlQuestion(question,nodeMdl);
+		}
+
+	}
 	
 	protected void consumeIdAndName(Element e){
 		this.id=e.getAttribute("id");
@@ -246,14 +259,15 @@ public abstract class Response extends ProblemElement{
 	}
 
 	protected void consumeText(Element e){
-		ArrayList<Node> nodesToRemove=new ArrayList<>();
 
-		NodeList outs = e.getElementsByTagName("outtext");
+		NodeList outs = e.getChildNodes();
 		for (int i=0; i<outs.getLength(); i++){
 			Element out = (Element)outs.item(i);
-			Outtext outtext = new Outtext(problem,out);
-			outtext.consumeNode();
-			additionalText += outtext.getText();
+			if (out.getTagName().equals("outtext")) {
+				Outtext outtext = new Outtext(problem, out);
+				outtext.consumeNode();
+				additionalText += outtext.getText();
+			}
 		}
 
 	}

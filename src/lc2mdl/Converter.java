@@ -58,11 +58,10 @@ public class Converter{
 		logfile=new File(outputfile.getAbsolutePath()+Prefs.LOG_SUFFIX);
 		configLogger(logfile.getAbsolutePath());
 
-
+		// get the relative path to the problem
 		String pathString = inputfile.getAbsolutePath();
 		String folderString = inputfolder.getAbsolutePath();
 		pathString = pathString.replace(folderString,"");
-		log.finer("Pfad = "+pathString);
 
 
 		// LET'S START
@@ -129,7 +128,8 @@ public class Converter{
 			
 					
 			// WRITE QUIZ-XML FILE
-			Quiz quiz=new Quiz();		
+			Quiz quiz=new Quiz();
+			quiz.addQuestion(category);
 			quiz.addQuestion(question);
 			XMLWriter xw=new XMLWriter();
 			xw.writeQuiz2XML(quiz,outputfile);

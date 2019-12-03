@@ -1,14 +1,12 @@
 package lc2mdl.lc.problem.response;
 
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-
 import lc2mdl.lc.problem.Problem;
-import lc2mdl.lc.problem.response.hints.ConditionalHint;
 import lc2mdl.mdl.quiz.Input;
 import lc2mdl.mdl.quiz.NodeMdl;
 import lc2mdl.mdl.quiz.QuestionStack;
 import lc2mdl.util.ConvertAndFormatMethods;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 
 public class NumericalResponse extends Response{
 
@@ -92,14 +90,9 @@ public class NumericalResponse extends Response{
 		nodeMdl.setTestoptions(ConvertAndFormatMethods.double2StackString(tolerance));
 		nodeMdl.setSans(inputName);
 		nodeMdl.setTans(answer);
-		nodeMdl.setTruefeedback(correcthinttext);
-		nodeMdl.setFalsefeedback(incorrecthinttext);
+
+		addHintsToMdlQuestion(question,nodeMdl);
 		question.addNodeToCurrentPrtAndSetNodeLink(nodeMdl);
 
-		//HINTNODES
-		for(ConditionalHint hint:hints){
-			hint.addHintNodeToMdlQuestion(question,nodeMdl);
-		}
-		
 	}
 }

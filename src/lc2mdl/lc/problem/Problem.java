@@ -15,7 +15,9 @@ public class Problem {
 
 	// key: filename, value: full path of the images
 	private HashMap<String,String> images;
+	// tags: got from the relative path of the problem
 	private ArrayList<String> tags = new ArrayList<>();
+	// relative path of the problem, use it as category
 	private String category="";
 	
 	public Problem(String problemName, HashMap<String,String> images){
@@ -34,13 +36,6 @@ public class Problem {
 		this.images=images;
 		category = pathString.substring(0,pathString.lastIndexOf("/"));
 		getTagsFromPath(pathString);
-	}
-
-	protected void getTagsFromPath(String path){
-		String[] split = path.split("/");
-		for (int i=0; i<split.length-1; i++){
-			this.tags.add(split[i]);
-		}
 	}
 
 	/**
@@ -94,7 +89,14 @@ public class Problem {
 		return false;
 	}
 	
-	
+	private void getTagsFromPath(String path){
+		String[] split = path.substring(1).split("/");
+		for (int i=0; i<split.length-1; i++){
+			this.tags.add(split[i]);
+		}
+	}
+
+
 	//================================================================================
     // Getter and Setter
     //================================================================================			

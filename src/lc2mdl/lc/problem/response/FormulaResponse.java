@@ -1,12 +1,11 @@
 package lc2mdl.lc.problem.response;
 
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-
 import lc2mdl.lc.problem.Problem;
 import lc2mdl.mdl.quiz.Input;
 import lc2mdl.mdl.quiz.NodeMdl;
 import lc2mdl.mdl.quiz.QuestionStack;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 
 public class FormulaResponse extends Response{
 
@@ -45,9 +44,6 @@ public class FormulaResponse extends Response{
 
 		if(e.hasAttributes())log.warning("-still unknown attributes in response.");
 
-		//Additional Text
-		consumeText(e);
-
 		//RESPONSEPARAM
 		consumeResponseParameter(e);
 		
@@ -56,7 +52,10 @@ public class FormulaResponse extends Response{
 		
 		//HINTGROUP
 		consumeHintgroups(e);
-				
+
+		//Additional Text
+		consumeText(e);
+
 	}
 
 	@Override
@@ -82,8 +81,8 @@ public class FormulaResponse extends Response{
 		nodeMdl.setAnswertest("AlgEquiv");
 		nodeMdl.setSans(inputName);
 		nodeMdl.setTans(answer);
-		nodeMdl.setTruefeedback(correcthinttext);
-		nodeMdl.setFalsefeedback(incorrecthinttext);
+
+		addHintsToMdlQuestion(question,nodeMdl);
 		question.addNodeToCurrentPrtAndSetNodeLink(nodeMdl);
 
 	}
