@@ -4,10 +4,7 @@ import lc2mdl.Prefs;
 import lc2mdl.lc.problem.*;
 import lc2mdl.lc.problem.display.PostAnswerDate;
 import lc2mdl.lc.problem.display.Solved;
-import lc2mdl.lc.problem.response.FormulaResponse;
-import lc2mdl.lc.problem.response.MathResponse;
-import lc2mdl.lc.problem.response.NumericalResponse;
-import lc2mdl.lc.problem.response.StringResponse;
+import lc2mdl.lc.problem.response.*;
 import org.w3c.dom.*;
 
 import java.util.HashMap;
@@ -107,6 +104,15 @@ public class ProblemReader{
 					log.finer("found stringresponse");
 					problem.addElement(new StringResponse(problem,element));
 					break;
+				case "radiobuttonresponse":
+					log.finer("found radiobuttonresponse");
+					problem.addElement(new RadiobuttonResponse(problem,element));
+					break;
+				case "optionresponse":
+					log.finer("found optionresponse");
+					problem.addElement(new OptionResponse(problem,element));
+					break;
+
 				case "part":
 					log.finer("found part");
 					problem.addElement(new Part(problem,element));

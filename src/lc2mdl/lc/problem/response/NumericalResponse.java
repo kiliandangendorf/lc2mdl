@@ -51,9 +51,6 @@ public class NumericalResponse extends Response{
 
 		if(e.hasAttributes())log.warning("-still unknown attributes in response.");
 
-		//Additional Text
-		consumeText(e);
-
 		//RESPONSEPARAM
 		consumeResponseParameter(e);
 		
@@ -63,6 +60,9 @@ public class NumericalResponse extends Response{
 		//HINTGROUP
 		consumeHintgroups(e);		
 		
+		//Additional Text
+		consumeText(e);
+
 	}
 
 	@Override
