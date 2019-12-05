@@ -18,7 +18,7 @@ public abstract class ChoiceResponse extends Response {
     public ChoiceResponse(Problem problem, Node node) {
 
         super(problem, node);
-        answerdisplay+= (problem.getIndexFromSameClassOnly(this));
+        answerdisplay+= (problem.getIndexFromResponse(this))+1;
         responseprefix+= answerdisplay+"_";
         answer = responseprefix+"true";
     }
@@ -66,6 +66,12 @@ public abstract class ChoiceResponse extends Response {
                         nodesToRemove.add(elementfg);
                     }else {
                         if(elementfg.getTagName().equals("conceptgroup")){
+                            if (elementfg.hasAttribute("concept")){
+                                String concept = elementfg.getAttribute("concept");
+                                additionalCASVars += System.lineSeparator()+responseprefix+"concept["+currentconcept+"] : ";
+                                additionalCASVars += "\""+concept+"\"";
+                                additionalCASVars += System.lineSeparator()+responseprefix+"conceptfoils["+currentconcept+"] : [";
+                            }
                             NodeList cgList = elementfg.getChildNodes();
                             int currentcgfoil=1;
                             String prefix = responseprefix+"concept"+currentconcept+"_";
@@ -75,8 +81,13 @@ public abstract class ChoiceResponse extends Response {
                                     Foil foil = new Foil(elementcg);
                                     if (!foil.value.equals("unused")) {
                                         foil.addFoilVars(prefix, currentfoil);
+                                        if (currentcgfoil>1) {
+                                            additionalCASVars += ",";
+                                        }
+                                        additionalCASVars += foil.name;
                                         currentcgfoil++;
                                     }
+                                    additionalCASVars += "]";
                                     nodesToRemove.add(elementcg);
                                 }
                                 removeAttributeIfExist(elementfg,"concept");
@@ -95,7 +106,10 @@ public abstract class ChoiceResponse extends Response {
 
         }
 
-        additionalCASVars += System.lineSeparator()+answerdisplay+": makelist("+responseprefix+"foil[k],k,1,"+(currentfoil-1)+")";
+        additionalCASVars += System.lineSeparator()+responseprefix+"concepts : makelist("+responseprefix+"concept[k],k,1,"+(currentconcept-1)+")";
+        additionalCASVars += System.lineSeparator()+responseprefix+"conceptfoils : makelist("+responseprefix+"conceptfoils[k],k,1,"+(currentconcept-1)+")";
+
+        additionalCASVars += System.lineSeparator()+answerdisplay+" : makelist("+responseprefix+"foil[k],k,1,"+(currentfoil-1)+")";
         removeNodesFromDOM(nodesToRemove);
 
         if (random){
@@ -157,4 +171,7 @@ public abstract class ChoiceResponse extends Response {
         }
     }
 
+    public String getResponseprefix() {
+        return responseprefix;
+    }
 }

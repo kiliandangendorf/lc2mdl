@@ -99,6 +99,9 @@ public class StringResponse extends Response {
 		//HINTGROUP
 		consumeHintgroups(e);
 
+        //Additional Text
+        consumeText(e);
+
     }
 
     @Override

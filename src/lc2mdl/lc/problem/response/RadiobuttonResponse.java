@@ -13,6 +13,7 @@ public class RadiobuttonResponse extends ChoiceResponse {
 
     public RadiobuttonResponse(Problem problem, Node node) {
         super(problem, node);
+
     }
 
 
