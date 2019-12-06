@@ -5,7 +5,6 @@ import lc2mdl.lc.ProblemReader;
 import lc2mdl.lc.ProblemSimplifier;
 import lc2mdl.lc.problem.Problem;
 import lc2mdl.mdl.QuestionGenerator;
-import lc2mdl.mdl.quiz.QuestionCategory;
 import lc2mdl.mdl.quiz.QuestionStack;
 import lc2mdl.mdl.quiz.Quiz;
 import lc2mdl.util.LogFormatterKD;
@@ -124,12 +123,12 @@ public class Converter{
 			// GENERATE QUESTION DOM
 			QuestionGenerator qg=new QuestionGenerator();
 			QuestionStack question=qg.generatingQuestionStack(p);
-			QuestionCategory category = qg.generatingQuestionCategory(p);
+			//QuestionCategory category = qg.generatingQuestionCategory(p);
 			
 					
 			// WRITE QUIZ-XML FILE
 			Quiz quiz=new Quiz();
-			quiz.addQuestion(category);
+			//quiz.addQuestion(category);
 			quiz.addQuestion(question);
 			XMLWriter xw=new XMLWriter();
 			xw.writeQuiz2XML(quiz,outputfile);

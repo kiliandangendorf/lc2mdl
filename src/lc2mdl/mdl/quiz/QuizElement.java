@@ -1,15 +1,16 @@
 package lc2mdl.mdl.quiz;
 
+import lc2mdl.lc.problem.ProblemElement;
+import lc2mdl.util.ConvertAndFormatMethods;
 import org.w3c.dom.CDATASection;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import lc2mdl.util.ConvertAndFormatMethods;
-
-import java.util.ArrayList;
+import java.util.logging.Logger;
 
 public abstract class QuizElement {
 	protected String name="lc2mdl";
+	public static Logger log = Logger.getLogger(ProblemElement.class.getName());
 
 
 	/**

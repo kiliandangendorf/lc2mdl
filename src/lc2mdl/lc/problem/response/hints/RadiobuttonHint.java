@@ -21,10 +21,12 @@ public class RadiobuttonHint extends RadiobuttonResponse implements ConditionalH
 	public RadiobuttonHint(Problem problem, Node node, boolean link){
 		super(problem,node);
 		this.link=link;
+		int noHints = problem.getNumberOfHints()+1;
+		problem.setNumberOfHints(noHints);
 		inputName="ans"+(problem.getIndexFromResponse(this));
 		responseprefix = "choice"+(problem.getIndexFromResponse(this))+"_";
-		inputHint = inputName+"radiohint"+(problem.getIndexFromSameClassOnly(this));
-		hintPrefix = "radiohint"+(problem.getIndexFromSameClassOnly(this))+"_";
+		inputHint = inputName+"_radiohint"+noHints;
+		hintPrefix = "radiohint"+noHints+"_";
 	}
 
 	@Override
@@ -44,8 +46,7 @@ public class RadiobuttonHint extends RadiobuttonResponse implements ConditionalH
             if(answer.charAt(0)=='$'){
                 answer=answer.substring(1);
             }else{
-                //if not $ the first symbol, then create a var in questionvariables and reference here
-                answer=addAdditionalCASVar(answer);
+                 answer = answer.substring(1,answer.length()-1); // remove parentheses
             }
             e.removeAttribute("answer");
         }else{
@@ -54,7 +55,7 @@ public class RadiobuttonHint extends RadiobuttonResponse implements ConditionalH
         consumeIdAndName(e);
 
         String[] split = answer.split(",");
-        addToFeedbackVariables += System.lineSeparator()+"/* hint name: "+name+"*/";
+        addToFeedbackVariables += System.lineSeparator()+System.lineSeparator()+"/* hint name: "+name+"*/";
         addToFeedbackVariables += System.lineSeparator()+hintPrefix;
         if (split.length>0){
             if (split[0].equals("'foil'")){
@@ -74,19 +75,17 @@ public class RadiobuttonHint extends RadiobuttonResponse implements ConditionalH
                         addToFeedbackVariables += split[i];
                     }
                     addToFeedbackVariables += "]";
-                    addToFeedbackVariables += System.lineSeparator()+hintPrefix+ "foils : []";
-                    addToFeedbackVariables += System.lineSeparator()+hintPrefix+"_k : 1";
-                    addToFeedbackVariables += System.lineSeparator()+"while z in "+responseprefix+"concepts do (";
-                    addToFeedbackVariables += "if member("+hintPrefix+"concepts) then ( append("+hintPrefix+"foils,";
-                    addToFeedbackVariables += responseprefix+"conceptfoils["+hintPrefix+"_k])), ";
-                    addToFeedbackVariables += hintPrefix+"_k : "+hintPrefix+"_k + 1 )";
+                    addToFeedbackVariables += System.lineSeparator()+inputHint+" : false";
+                    addToFeedbackVariables += System.lineSeparator()+"for k : 1 thru length("+responseprefix+"concepts) do (";
+                    addToFeedbackVariables += "if member("+responseprefix+"concepts[k],"+hintPrefix+"concepts) then (";
+                    addToFeedbackVariables += inputHint+" : "+inputHint+" or member("+inputName+",";
+                    addToFeedbackVariables += responseprefix+"conceptfoils[k])) )";
                 }
             }
             addToFeedbackVariables += System.lineSeparator()+inputHint+" : member( "+inputName+","+hintPrefix+"foils)";
         }
 
 
-        consumeIdAndName(e);
 
         if(e.hasAttributes())log.warning("--still unknown attributes in hint.");
 

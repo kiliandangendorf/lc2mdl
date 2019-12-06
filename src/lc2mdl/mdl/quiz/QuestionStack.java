@@ -193,7 +193,6 @@ public class QuestionStack extends Question{
 		hintnode.setTruescore(0.0);
 		hintnode.setFalsescore(0.0);
 
-		
 		//get belonging prt and add hintnode (node-name will be set)
 		Prt curPrt=getPrtOfNode(parentNode);
 		if(curPrt==null)return;

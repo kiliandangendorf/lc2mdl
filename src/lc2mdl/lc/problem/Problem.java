@@ -19,7 +19,9 @@ public class Problem {
 	private ArrayList<String> tags = new ArrayList<>();
 	// relative path of the problem, use it as category
 	private String category="";
-	
+	private int numberOfHints=0;
+
+
 	public Problem(String problemName, HashMap<String,String> images){
 		this.problemName=problemName;
 		elements=new ArrayList<>();
@@ -120,4 +122,9 @@ public class Problem {
 	public String getCategory() {
 		return category;
 	}
+
+	public int getNumberOfHints() { return numberOfHints; }
+
+	public void setNumberOfHints(int numberOfHints) { 	this.numberOfHints = numberOfHints; }
+
 }

@@ -1,6 +1,7 @@
 package lc2mdl.lc.problem.response;
 
 import lc2mdl.lc.problem.Problem;
+import lc2mdl.lc.problem.response.hints.ConditionalHint;
 import lc2mdl.mdl.quiz.Input;
 import lc2mdl.mdl.quiz.NodeMdl;
 import lc2mdl.mdl.quiz.QuestionStack;
@@ -48,9 +49,9 @@ public class OptionResponse extends ChoiceResponse {
                 }
 
                 if (element.hasAttribute("checkboxvalue")){
-                    String checkboxvalue = element.getAttribute("checkboxvalue");
-                    if(!checkboxvalue.equals("")){
-                        checkboxText += checkboxvalue+" sind!";
+                    checkBoxValue = element.getAttribute("checkboxvalue");
+                    if(!checkBoxValue.equals("")){
+                        checkboxText += checkBoxValue+" sind!";
                         checkBox = true;
                     }
                     element.removeAttribute("checkboxvalue");
@@ -137,8 +138,15 @@ public class OptionResponse extends ChoiceResponse {
             nodeMdl.setSans(inputName);
             nodeMdl.setTans(answer);
 
-            addHintsToMdlQuestion(question, nodeMdl);
+            nodeMdl.setTruefeedback(correcthinttext);
+            nodeMdl.setFalsefeedback(incorrecthinttext);
+
             question.addNodeToCurrentPrtAndSetNodeLink(nodeMdl);
+
+            //HINTNODES
+            for(ConditionalHint hint:hints){
+                hint.addHintNodeToMdlQuestion(question,nodeMdl);
+            }
         }else{
             for (int i=1; i<=numberOfFoils; i++){
                 //Add input in questiontext
@@ -146,11 +154,12 @@ public class OptionResponse extends ChoiceResponse {
                 inputString=" [[input:"+inputfoilname+"]] [[validation:"+inputfoilname+"]] ";
                 question.addToQuestionText(inputString);
                 question.addToQuestionText("{@ "+answerdisplay+"["+i+"][3] @}");
-
+                question.addToQuestionText("<br/>");
                 //INPUT-TAG
                 Input input = new Input();
                 input.setName(inputfoilname);
                 input.setType("dropdown");
+                // ab hier TODO
                 input.setTans(answerdisplay); //Liste1
                 input.setBoxsize(textlineSize);
                 input.setMustverify(false);
@@ -163,9 +172,16 @@ public class OptionResponse extends ChoiceResponse {
                 nodeMdl.setSans(inputfoilname);
                 nodeMdl.setTans(answer); //nr.
 
-                addHintsToMdlQuestion(question, nodeMdl);
+                nodeMdl.setTruefeedback(correcthinttext);
+                nodeMdl.setFalsefeedback(incorrecthinttext);
+
                 question.addNodeToCurrentPrtAndSetNodeLink(nodeMdl);
-            }
+
+                //HINTNODES
+                for(ConditionalHint hint:hints){
+                    hint.addHintNodeToMdlQuestion(question,nodeMdl);
+                }
+           }
 
         }
 

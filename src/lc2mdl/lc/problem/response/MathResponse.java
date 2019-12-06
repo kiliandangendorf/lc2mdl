@@ -1,6 +1,7 @@
 package lc2mdl.lc.problem.response;
 
 import lc2mdl.lc.problem.Problem;
+import lc2mdl.lc.problem.response.hints.ConditionalHint;
 import lc2mdl.mdl.quiz.Input;
 import lc2mdl.mdl.quiz.NodeMdl;
 import lc2mdl.mdl.quiz.QuestionStack;
@@ -227,9 +228,15 @@ public class MathResponse extends Response{
 		nodeMdl.setAnswertest("AlgEquiv");
 		nodeMdl.setSans(boolans);
 		nodeMdl.setTans("true");
-		addHintsToMdlQuestion(question,nodeMdl);
+		nodeMdl.setTruefeedback(correcthinttext);
+		nodeMdl.setFalsefeedback(incorrecthinttext);
 
 		question.addNodeToCurrentPrtAndSetNodeLink(nodeMdl);
+
+		//HINTNODES
+		for(ConditionalHint hint:hints){
+			hint.addHintNodeToMdlQuestion(question,nodeMdl);
+		}
 
 		//ADD MAXIMA TO FEEDBACK-VARS IN CURRENT PRT
 		question.addToFeedbackVariablesOfCurrentPrt(answerMaxima);

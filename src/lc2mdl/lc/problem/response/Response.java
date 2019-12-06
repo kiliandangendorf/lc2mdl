@@ -116,6 +116,12 @@ public abstract class Response extends ProblemElement{
 						fh.consumeNode();
 						this.hints.add(fh);
 						break;
+					case "radiobuttonhint":
+						RadiobuttonHint rh = new RadiobuttonHint(problem, hint, correct);
+						rh.consumeNode();
+						this.hints.add(rh);
+						break;
+
 					case "hintpart":
 						if(hint.getAttribute("on").equals("default")){
 							//remove attributes, so simplifier will remove it

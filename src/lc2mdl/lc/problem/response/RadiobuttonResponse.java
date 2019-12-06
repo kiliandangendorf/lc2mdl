@@ -1,6 +1,7 @@
 package lc2mdl.lc.problem.response;
 
 import lc2mdl.lc.problem.Problem;
+import lc2mdl.lc.problem.response.hints.ConditionalHint;
 import lc2mdl.mdl.quiz.Input;
 import lc2mdl.mdl.quiz.NodeMdl;
 import lc2mdl.mdl.quiz.QuestionStack;
@@ -67,12 +68,19 @@ public class RadiobuttonResponse extends ChoiceResponse {
 
         //NODE-TAG - only a single value expected here
         NodeMdl nodeMdl=new NodeMdl();
-        nodeMdl.setAnswertest("AlgEquiv");
+        nodeMdl.setAnswertest("String");
         nodeMdl.setSans(inputName);
         nodeMdl.setTans(answer);
 
-        addHintsToMdlQuestion(question,nodeMdl);
+        nodeMdl.setTruefeedback(correcthinttext);
+        nodeMdl.setFalsefeedback(incorrecthinttext);
+
         question.addNodeToCurrentPrtAndSetNodeLink(nodeMdl);
+
+        //HINTNODES
+        for(ConditionalHint hint:hints){
+            hint.addHintNodeToMdlQuestion(question,nodeMdl);
+        }
 
     }
 

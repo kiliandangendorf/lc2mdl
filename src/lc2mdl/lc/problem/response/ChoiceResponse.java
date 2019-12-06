@@ -14,6 +14,7 @@ public abstract class ChoiceResponse extends Response {
     protected String answerdisplay="choice";
     protected int numberOfFoils=1;
     protected boolean checkBox=false;
+    protected String checkBoxValue ="";
 
     public ChoiceResponse(Problem problem, Node node) {
 
@@ -27,7 +28,7 @@ public abstract class ChoiceResponse extends Response {
 
         boolean random = true;
         int currentfoil=1;
-        int currentconcept=1;
+        int currentconcept=0;
         int max=20;
 
         if (e.hasAttribute("randomize")){
@@ -56,7 +57,9 @@ public abstract class ChoiceResponse extends Response {
                 removeAttributeIfExist(element,"noprompt");
                 NodeList fgList = element.getChildNodes();
                 for (int j=0; j<fgList.getLength(); j++){
+                    additionalCASVars += System.lineSeparator();
                     Element elementfg = (Element)fgList.item(j);
+                    // normal foil
                     if (elementfg.getTagName().equals("foil")){
                         Foil foil=new Foil(elementfg);
                         if (!foil.value.equals("unused")){
@@ -65,37 +68,42 @@ public abstract class ChoiceResponse extends Response {
                         }
                         nodesToRemove.add(elementfg);
                     }else {
+                        // concept group
                         if(elementfg.getTagName().equals("conceptgroup")){
+                            currentconcept++;
                             if (elementfg.hasAttribute("concept")){
-                                String concept = elementfg.getAttribute("concept");
+                                String conceptString = elementfg.getAttribute("concept");
+                                // note concept
                                 additionalCASVars += System.lineSeparator()+responseprefix+"concept["+currentconcept+"] : ";
-                                additionalCASVars += "\""+concept+"\"";
-                                additionalCASVars += System.lineSeparator()+responseprefix+"conceptfoils["+currentconcept+"] : [";
+                                additionalCASVars += "\""+conceptString+"\"";
+                                elementfg.removeAttribute("concept");
                             }
                             NodeList cgList = elementfg.getChildNodes();
                             int currentcgfoil=1;
-                            String prefix = responseprefix+"concept"+currentconcept+"_";
+                            String conceptArray = responseprefix+"concept"+currentconcept;
+                            String prefix = conceptArray+"_";
+                            String conceptfoils = System.lineSeparator()+responseprefix+"conceptfoils["+currentconcept+"] : [";
                             for (int k=0; k<cgList.getLength();k++) {
                                 Element elementcg = (Element) cgList.item(k);
+                                // concept foils
                                 if (elementcg.getTagName().equals("foil")) {
                                     Foil foil = new Foil(elementcg);
                                     if (!foil.value.equals("unused")) {
-                                        foil.addFoilVars(prefix, currentfoil);
+                                        foil.addFoilVars(prefix, currentcgfoil);
                                         if (currentcgfoil>1) {
-                                            additionalCASVars += ",";
+                                            conceptfoils += ",";
                                         }
-                                        additionalCASVars += foil.name;
+                                        conceptfoils += foil.name;
                                         currentcgfoil++;
                                     }
-                                    additionalCASVars += "]";
                                     nodesToRemove.add(elementcg);
                                 }
-                                removeAttributeIfExist(elementfg,"concept");
-                            }
+                             }
+                            conceptfoils += "]";
+                            additionalCASVars += conceptfoils;
                             if (currentcgfoil>1) {
-                                additionalCASVars += System.lineSeparator()+prefix+": makelist("+prefix+"foil[k],k,1,"+(currentcgfoil-1)+")";
-                                additionalCASVars += System.lineSeparator()+responseprefix+"foil["+i+"] : random_selection("+prefix+",1)";
-                                currentconcept++;
+                                additionalCASVars += System.lineSeparator()+conceptArray+": makelist("+prefix+"foil[k],k,1,"+(currentcgfoil-1)+")";
+                                additionalCASVars += System.lineSeparator()+responseprefix+"foil["+currentfoil+"] : random_selection("+conceptArray+",1)";
                                 currentfoil++;
 
                             }
@@ -106,9 +114,13 @@ public abstract class ChoiceResponse extends Response {
 
         }
 
-        additionalCASVars += System.lineSeparator()+responseprefix+"concepts : makelist("+responseprefix+"concept[k],k,1,"+(currentconcept-1)+")";
-        additionalCASVars += System.lineSeparator()+responseprefix+"conceptfoils : makelist("+responseprefix+"conceptfoils[k],k,1,"+(currentconcept-1)+")";
+        if (currentconcept>0) {
+            additionalCASVars += System.lineSeparator();
+            additionalCASVars += System.lineSeparator() + responseprefix + "concepts : makelist(" + responseprefix + "concept[k],k,1," + currentconcept + ")";
+            additionalCASVars += System.lineSeparator() + responseprefix + "conceptfoils : makelist(" + responseprefix + "conceptfoils[k],k,1," + currentconcept + ")";
+        }
 
+        additionalCASVars += System.lineSeparator();
         additionalCASVars += System.lineSeparator()+answerdisplay+" : makelist("+responseprefix+"foil[k],k,1,"+(currentfoil-1)+")";
         removeNodesFromDOM(nodesToRemove);
 
@@ -135,7 +147,18 @@ public abstract class ChoiceResponse extends Response {
         public Foil(Element e){
             if(e.hasAttribute("value")){
                 value = e.getAttribute("value");
-                if (!checkBox) { value = "\""+value+"\""; }
+                if (!checkBox) {
+                    value = "\""+value+"\"";
+                }else {
+                    if (!checkBoxValue.equals("")){
+                        if (value.equals(checkBoxValue)){
+                            value = "true";
+                        }else{
+                            value = "false";
+                        }
+                    }
+
+                }
                 e.removeAttribute("value");
             }else{
                 log.warning("foil without value");

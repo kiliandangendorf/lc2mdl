@@ -97,7 +97,8 @@ public class NumericalHint extends NumericalResponse implements ConditionalHint{
 		
 		hintnode.setSans(parentNode.getSans());		
 		hintnode.setTans(answer);
-		hintnode.setTruefeedback(correcthinttext);		
+		hintnode.setTruefeedback(correcthinttext);
+
 		
 		question.addHintNodeToNode(parentNode,hintnode,link);	
 	}

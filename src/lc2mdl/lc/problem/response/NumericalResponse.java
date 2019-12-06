@@ -1,6 +1,7 @@
 package lc2mdl.lc.problem.response;
 
 import lc2mdl.lc.problem.Problem;
+import lc2mdl.lc.problem.response.hints.ConditionalHint;
 import lc2mdl.mdl.quiz.Input;
 import lc2mdl.mdl.quiz.NodeMdl;
 import lc2mdl.mdl.quiz.QuestionStack;
@@ -61,7 +62,7 @@ public class NumericalResponse extends Response{
 		consumeHintgroups(e);		
 		
 		//Additional Text
-		consumeText(e);
+		//consumeText(e);
 
 	}
 
@@ -69,7 +70,7 @@ public class NumericalResponse extends Response{
 	public void addToMdlQuestion(QuestionStack question){
 		//Add input in questiontext
 		question.addToQuestionText(inputString);
-		question.addToQuestionText(additionalText);
+		//question.addToQuestionText(additionalText);
 
 		//Add additional vars to questionvariables
 		question.addToQuestionVariables(additionalCASVars);
@@ -90,9 +91,17 @@ public class NumericalResponse extends Response{
 		nodeMdl.setTestoptions(ConvertAndFormatMethods.double2StackString(tolerance));
 		nodeMdl.setSans(inputName);
 		nodeMdl.setTans(answer);
+		nodeMdl.setTruefeedback(correcthinttext);
+		nodeMdl.setFalsefeedback(incorrecthinttext);
 
-		addHintsToMdlQuestion(question,nodeMdl);
 		question.addNodeToCurrentPrtAndSetNodeLink(nodeMdl);
+
+		//HINTNODES
+		for(ConditionalHint hint:hints){
+			hint.addHintNodeToMdlQuestion(question,nodeMdl);
+		}
+
+
 
 	}
 }
