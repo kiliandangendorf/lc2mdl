@@ -39,7 +39,10 @@ public class PreParser {
 		xmlReplacements.put("</answer {0,}>", "]]></answer>");
 		xmlReplacements.put("importmode=\"\"","");
 		xmlReplacements.put("texoptions=\"\"","");
-		
+		xmlReplacements.put("checkboxoptions=\"\"","");
+		xmlReplacements.put("mincheck=\"[^\"]*\"","");
+		xmlReplacements.put("maxcheck=\"[^\"]*\"","");
+		xmlReplacements.put("noprompt=\"[^\"]*\"","");
 		//HTML References
 		//replace NO-BRAKE-SPACE escape by itself
         // HTML stuff
@@ -58,8 +61,8 @@ public class PreParser {
 		xmlReplacements.put("&ge;","\\\\(\\\\ge\\\\)");
  		xmlReplacements.put("&lt;","\\\\(\\\\lt\\\\)");
 		xmlReplacements.put("&gt;","\\\\(\\\\gt\\\\)");
-       	xmlReplacements.put("&infin;", "\\\\( \\infty \\\\)");
-       	xmlReplacements.put("&epsilon;","\\\\( \\varepsion \\\\)");
+       	xmlReplacements.put("&infin;", "\\\\( \\\\infty \\\\)");
+       	xmlReplacements.put("&epsilon;","\\\\( \\\\varepsion \\\\)");
        	xmlReplacements.put("<sub>","\\\\(_");
        	xmlReplacements.put("</sub>","\\\\)");
        	xmlReplacements.put("&ne;","\\\\(\\neq\\\\)");

@@ -20,8 +20,8 @@ public abstract class ChoiceResponse extends Response {
 
         super(problem, node);
         answerdisplay+= (problem.getIndexFromResponse(this))+1;
-        responseprefix+= answerdisplay+"_";
-        answer = responseprefix+"true";
+        responseprefix+= answerdisplay;
+        answer = responseprefix+"_true";
     }
 
     protected void consumeFoils(Element e){
@@ -56,6 +56,9 @@ public abstract class ChoiceResponse extends Response {
                 removeAttributeIfExist(element,"texoptions");
                 removeAttributeIfExist(element,"noprompt");
                 NodeList fgList = element.getChildNodes();
+                additionalCASVars += System.lineSeparator()+responseprefix+": []";
+                additionalCASVars += System.lineSeparator()+responseprefix+"_concepts : []";
+                additionalCASVars += System.lineSeparator()+responseprefix+"conceptfoils : []";
                 for (int j=0; j<fgList.getLength(); j++){
                     additionalCASVars += System.lineSeparator();
                     Element elementfg = (Element)fgList.item(j);
@@ -74,15 +77,15 @@ public abstract class ChoiceResponse extends Response {
                             if (elementfg.hasAttribute("concept")){
                                 String conceptString = elementfg.getAttribute("concept");
                                 // note concept
-                                additionalCASVars += System.lineSeparator()+responseprefix+"concept["+currentconcept+"] : ";
-                                additionalCASVars += "\""+conceptString+"\"";
+                                additionalCASVars += System.lineSeparator()+responseprefix+"_concepts : endcons(";
+                                additionalCASVars += "\""+conceptString+"\","+responseprefix+"_concepts)";
                                 elementfg.removeAttribute("concept");
                             }
                             NodeList cgList = elementfg.getChildNodes();
                             int currentcgfoil=1;
-                            String conceptArray = responseprefix+"concept"+currentconcept;
-                            String prefix = conceptArray+"_";
-                            String conceptfoils = System.lineSeparator()+responseprefix+"conceptfoils["+currentconcept+"] : [";
+                            String conceptArray = responseprefix+"_concept"+currentconcept;
+                            String prefix = conceptArray;
+                            String conceptfoils = System.lineSeparator()+responseprefix+"conceptfoils : endcons ( [";
                             for (int k=0; k<cgList.getLength();k++) {
                                 Element elementcg = (Element) cgList.item(k);
                                 // concept foils
@@ -99,11 +102,10 @@ public abstract class ChoiceResponse extends Response {
                                     nodesToRemove.add(elementcg);
                                 }
                              }
-                            conceptfoils += "]";
+                            conceptfoils += "],"+responseprefix+"conceptfoils) ";
                             additionalCASVars += conceptfoils;
                             if (currentcgfoil>1) {
-                                additionalCASVars += System.lineSeparator()+conceptArray+": makelist("+prefix+"foil[k],k,1,"+(currentcgfoil-1)+")";
-                                additionalCASVars += System.lineSeparator()+responseprefix+"foil["+currentfoil+"] : random_selection("+conceptArray+",1)";
+                                additionalCASVars += System.lineSeparator()+responseprefix+" : endcons( random_selection("+conceptArray+",1)"+responseprefix+")";
                                 currentfoil++;
 
                             }
@@ -114,14 +116,7 @@ public abstract class ChoiceResponse extends Response {
 
         }
 
-        if (currentconcept>0) {
-            additionalCASVars += System.lineSeparator();
-            additionalCASVars += System.lineSeparator() + responseprefix + "concepts : makelist(" + responseprefix + "concept[k],k,1," + currentconcept + ")";
-            additionalCASVars += System.lineSeparator() + responseprefix + "conceptfoils : makelist(" + responseprefix + "conceptfoils[k],k,1," + currentconcept + ")";
-        }
-
         additionalCASVars += System.lineSeparator();
-        additionalCASVars += System.lineSeparator()+answerdisplay+" : makelist("+responseprefix+"foil[k],k,1,"+(currentfoil-1)+")";
         removeNodesFromDOM(nodesToRemove);
 
         if (random){
@@ -134,15 +129,13 @@ public abstract class ChoiceResponse extends Response {
             additionalCASVars += System.lineSeparator()+answerdisplay+" : random_selection("+answerdisplay+","+max+")";
         }
 
-
-
     }
 
 
     protected class Foil{
         private String value="";
         private String name="";
-        private String decription="";
+        private String description ="";
 
         public Foil(Element e){
             if(e.hasAttribute("value")){
@@ -171,23 +164,28 @@ public abstract class ChoiceResponse extends Response {
             }
 
             NodeList nlist=e.getChildNodes();
+            description = "";
             for (int i=0; i<nlist.getLength();i++){
                 Element el = (Element)nlist.item(i);
                 if (el.getTagName().equals("outtext")){
-                    decription = el.getTextContent();
-                    decription = "\""+transformTextElement(decription)+"\"";
+                    description += el.getTextContent();
+
+
                 }else{
                     log.warning("found foil content of type "+el.getTagName());
                 }
             }
+            description = transformTextElement(description);
+            description = "\""+description+"\"";
 
         }
 
         public void addFoilVars(String prefix, int i){
-            additionalCASVars += System.lineSeparator()+prefix+"foilvalue["+i+"] : "+value;
-            additionalCASVars += System.lineSeparator()+prefix+"foilname["+i+"] : "+name;
-            additionalCASVars += System.lineSeparator()+prefix+"foildescription["+i+"] : "+decription;
-            additionalCASVars += System.lineSeparator()+prefix+"foil["+i+"] : "+"["+prefix+"foilname["+i+"],"+prefix+"foilvalue["+i+"],"+prefix+"foildescription["+i+"]]";
+            additionalCASVars += System.lineSeparator()+prefix+"_foilvalue : "+value;
+            additionalCASVars += System.lineSeparator()+prefix+"_foilname : "+name;
+            additionalCASVars += System.lineSeparator()+prefix+"_foildescription : "+ description;
+            additionalCASVars += System.lineSeparator()+prefix+"_foil : "+"["+prefix+"_foilname,"+prefix+"_foilvalue,"+prefix+"_foildescription]";
+            additionalCASVars += System.lineSeparator()+prefix+" : endcons("+prefix+"_foil,"+prefix+")";
             if (value.equals("true")){
                 additionalCASVars  += System.lineSeparator()+prefix+"true : "+name;
             }

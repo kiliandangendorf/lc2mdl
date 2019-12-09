@@ -17,8 +17,9 @@ public class OptionResponse extends ChoiceResponse {
     private ArrayList<String> options = new ArrayList<>();
     private int mincheck=0;
     private int maxcheck=0;
-    private String checkboxText="Bitte kreuzen Sie alle Aussagen an, die ";
-    private String answerbox=responseprefix+"box";
+    private String optionText = "Die vorhandenen Optionen sind: ";
+    private String checkboxText="Bitte kreuzen Sie alle Aussagen an, auf die Option ";
+    private String answerbox=responseprefix+"_box";
 
     public OptionResponse(Problem problem, Node node) {
         super(problem, node);
@@ -42,19 +43,30 @@ public class OptionResponse extends ChoiceResponse {
                     // quick and dirty, may be be bit dangerous
                     optionString = optionString.replaceAll("'","");
                     String[] splitOptions = optionString.split(",");
-                    options = new ArrayList<>(Arrays.asList(splitOptions));
+                    if (splitOptions.length==2) { checkBox = true; }
+                    options = new ArrayList<String>(Arrays.asList(splitOptions));
                     element.removeAttribute("options");
+                    optionText += optionString;
                 }else{
                     log.warning("option response without options! ");
                 }
 
+
+
                 if (element.hasAttribute("checkboxvalue")){
                     checkBoxValue = element.getAttribute("checkboxvalue");
                     if(!checkBoxValue.equals("")){
-                        checkboxText += checkBoxValue+" sind!";
                         checkBox = true;
                     }
                     element.removeAttribute("checkboxvalue");
+                }else{
+                    if (checkBox){
+                        checkBoxValue = options.get(0);
+                    }
+                }
+
+                if (checkBox){
+                     checkboxText = optionText+"<br/>"+checkboxText+checkBoxValue+" zutrifft!";
                 }
 
                 if  (element.hasAttribute("maxcheck")){
@@ -79,20 +91,26 @@ public class OptionResponse extends ChoiceResponse {
         consumeFoils(e);
 
         if (checkBox){
-            additionalCASVars += System.lineSeparator()+responseprefix+"truechoice : mcq_correct("+answerdisplay+")";
-            answer = responseprefix+"truechoice";
+            additionalCASVars += System.lineSeparator()+responseprefix+"_truechoice : mcq_correct("+answerdisplay+")";
+            answer = responseprefix+"_truechoice";
         }else{
-            additionalCASVars += System.lineSeparator()+responseprefix+"options : [";
+            additionalCASVars += System.lineSeparator()+responseprefix+"_options : [";
             boolean start=true;
             for (String o : options){
                 if (!start){ additionalCASVars +=","; }
                 additionalCASVars += "\""+o+"\"";
                 start = false;
             }
-            additionalCASVars += "], ";
-            additionalCASVars += System.lineSeparator()+"for i:1 thru "+numberOfFoils+"do(";
-            additionalCASVars += answerbox+"[i] : makelist([i,is("+answerdisplay+"[i][2]=options[k]), options[k]],k,1,length("+responseprefix+"options))";
-            additionalCASVars += ")";
+            additionalCASVars += "] ";
+            additionalCASVars += System.lineSeparator()+answerbox+" : []";
+            additionalCASVars += System.lineSeparator()+"for i:1 thru "+numberOfFoils+" do ( ";
+            additionalCASVars += "box : makelist([k,is("+answerdisplay+"[i][2]="+responseprefix+"_options[k]), "+responseprefix+"_options[k]],k,1,length("+responseprefix+"_options))";
+            additionalCASVars += ", "+answerbox+" : endcons(box,+"+answerbox+") )";
+            additionalCASVars += System.lineSeparator()+responseprefix+"_tans : []";
+            additionalCASVars += System.lineSeparator()+"for i:1 thru "+numberOfFoils+" do ( ";
+            additionalCASVars += "k : 1, while not is("+answerdisplay+"[i][2]="+responseprefix+"_options[k]) do (k : k+1),";
+            additionalCASVars += responseprefix+"_tans : endcons (k,"+responseprefix+"_tans) )";
+
         }
 
 		consumeIdAndName(e);
@@ -160,17 +178,17 @@ public class OptionResponse extends ChoiceResponse {
                 input.setName(inputfoilname);
                 input.setType("dropdown");
                 // ab hier TODO
-                input.setTans(answerdisplay); //Liste1
+                input.setTans(answerbox+"["+i+"]");  // has to be a list
                 input.setBoxsize(textlineSize);
                 input.setMustverify(false);
                 input.setShowvalidation(false);
                 question.addInput(input);
-                //inputString=" [[input:"+inputName+"]] [[validation:"+inputName+"]] ";
+
                 //NODE-TAG
                 NodeMdl nodeMdl = new NodeMdl();
                 nodeMdl.setAnswertest("AlgEquiv");
                 nodeMdl.setSans(inputfoilname);
-                nodeMdl.setTans(answer); //nr.
+                nodeMdl.setTans(responseprefix+"_tans["+i+"]"); // has to be nr. with the true
 
                 nodeMdl.setTruefeedback(correcthinttext);
                 nodeMdl.setFalsefeedback(incorrecthinttext);
@@ -178,8 +196,10 @@ public class OptionResponse extends ChoiceResponse {
                 question.addNodeToCurrentPrtAndSetNodeLink(nodeMdl);
 
                 //HINTNODES
-                for(ConditionalHint hint:hints){
-                    hint.addHintNodeToMdlQuestion(question,nodeMdl);
+                if (i == numberOfFoils) {
+                    for (ConditionalHint hint : hints) {
+                        hint.addHintNodeToMdlQuestion(question, nodeMdl);
+                    }
                 }
            }
 

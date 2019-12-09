@@ -8,12 +8,9 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import java.util.ArrayList;
-
 public class RadiobuttonHint extends RadiobuttonResponse implements ConditionalHint {
 
    	private boolean link;
-   	private ArrayList<String> answerList = new ArrayList<>();
    	private String addToFeedbackVariables="";
    	private String hintPrefix;
    	private String inputHint;
