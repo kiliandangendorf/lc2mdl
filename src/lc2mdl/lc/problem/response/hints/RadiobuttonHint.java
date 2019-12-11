@@ -11,7 +11,6 @@ import org.w3c.dom.NodeList;
 public class RadiobuttonHint extends RadiobuttonResponse implements ConditionalHint {
 
    	private boolean link;
-   	private String addToFeedbackVariables="";
    	private String hintPrefix;
    	private String inputHint;
 
@@ -21,7 +20,7 @@ public class RadiobuttonHint extends RadiobuttonResponse implements ConditionalH
 		int noHints = problem.getNumberOfHints()+1;
 		problem.setNumberOfHints(noHints);
 		inputName="ans"+(problem.getIndexFromResponse(this));
-		responseprefix = "choice"+(problem.getIndexFromResponse(this))+"_";
+		responseprefix = "choice"+(problem.getIndexFromResponse(this));
 		inputHint = inputName+"_radiohint"+noHints;
 		hintPrefix = "radiohint"+noHints+"_";
 	}
@@ -49,12 +48,15 @@ public class RadiobuttonHint extends RadiobuttonResponse implements ConditionalH
         }else{
             log.warning("--no answer found in hint");
         }
-        consumeIdAndName(e);
+
+         consumeIdAndName(e);
 
         String[] split = answer.split(",");
         addToFeedbackVariables += System.lineSeparator()+System.lineSeparator()+"/* hint name: "+name+"*/";
         addToFeedbackVariables += System.lineSeparator()+hintPrefix;
         if (split.length>0){
+
+            // hint on single foils
             if (split[0].equals("'foil'")){
                 addToFeedbackVariables += "foils : [";
                 for (int i=1; i<split.length; i++){
@@ -63,7 +65,10 @@ public class RadiobuttonHint extends RadiobuttonResponse implements ConditionalH
                     addToFeedbackVariables += split[i];
                 }
                 addToFeedbackVariables += "]";
+                addToFeedbackVariables += System.lineSeparator()+inputHint+" :  member("+inputName+","+hintPrefix+"foils)";
             }else{
+
+                // hint on concept group
                 if (split[0].equals("'concept'")) {
                      addToFeedbackVariables += "concepts :[";
                     for (int i = 1; i < split.length; i++) {
@@ -73,13 +78,12 @@ public class RadiobuttonHint extends RadiobuttonResponse implements ConditionalH
                     }
                     addToFeedbackVariables += "]";
                     addToFeedbackVariables += System.lineSeparator()+inputHint+" : false";
-                    addToFeedbackVariables += System.lineSeparator()+"for k : 1 thru length("+responseprefix+"concepts) do (";
-                    addToFeedbackVariables += "if member("+responseprefix+"concepts[k],"+hintPrefix+"concepts) then (";
+                    addToFeedbackVariables += System.lineSeparator()+"for k : 1 thru length("+responseprefix+"_concepts) do (";
+                    addToFeedbackVariables += "if member("+responseprefix+"_concepts[k],"+hintPrefix+"concepts) then (";
                     addToFeedbackVariables += inputHint+" : "+inputHint+" or member("+inputName+",";
-                    addToFeedbackVariables += responseprefix+"conceptfoils[k])) )";
+                    addToFeedbackVariables += responseprefix+"_conceptfoils[k])) )";
                 }
             }
-            addToFeedbackVariables += System.lineSeparator()+inputHint+" : member( "+inputName+","+hintPrefix+"foils)";
         }
 
 

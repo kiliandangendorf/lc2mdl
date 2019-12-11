@@ -13,8 +13,10 @@ public abstract class ChoiceResponse extends Response {
     protected String answer="";
     protected String answerdisplay="choice";
     protected int numberOfFoils=1;
-    protected boolean checkBox=false;
+    protected boolean isCheckBox =false;
     protected String checkBoxValue ="";
+    protected String addToFeedbackVariables="";
+    protected ArrayList<InputFoil> foilsList = new ArrayList<InputFoil>();
 
     public ChoiceResponse(Problem problem, Node node) {
 
@@ -58,7 +60,7 @@ public abstract class ChoiceResponse extends Response {
                 NodeList fgList = element.getChildNodes();
                 additionalCASVars += System.lineSeparator()+responseprefix+": []";
                 additionalCASVars += System.lineSeparator()+responseprefix+"_concepts : []";
-                additionalCASVars += System.lineSeparator()+responseprefix+"conceptfoils : []";
+                additionalCASVars += System.lineSeparator()+responseprefix+"_conceptfoils : []";
                 for (int j=0; j<fgList.getLength(); j++){
                     additionalCASVars += System.lineSeparator();
                     Element elementfg = (Element)fgList.item(j);
@@ -67,6 +69,7 @@ public abstract class ChoiceResponse extends Response {
                         Foil foil=new Foil(elementfg);
                         if (!foil.value.equals("unused")){
                             foil.addFoilVars(responseprefix,currentfoil);
+                            foilsList.add(new InputFoil(currentfoil,foil.name,""));
                             currentfoil++;
                         }
                         nodesToRemove.add(elementfg);
@@ -74,9 +77,11 @@ public abstract class ChoiceResponse extends Response {
                         // concept group
                         if(elementfg.getTagName().equals("conceptgroup")){
                             currentconcept++;
+                            String conceptString = "";
                             if (elementfg.hasAttribute("concept")){
-                                String conceptString = elementfg.getAttribute("concept");
+                                conceptString = elementfg.getAttribute("concept");
                                 // note concept
+                                additionalCASVars += System.lineSeparator()+"/* conceptgroup "+conceptString+" */";
                                 additionalCASVars += System.lineSeparator()+responseprefix+"_concepts : endcons(";
                                 additionalCASVars += "\""+conceptString+"\","+responseprefix+"_concepts)";
                                 elementfg.removeAttribute("concept");
@@ -85,7 +90,8 @@ public abstract class ChoiceResponse extends Response {
                             int currentcgfoil=1;
                             String conceptArray = responseprefix+"_concept"+currentconcept;
                             String prefix = conceptArray;
-                            String conceptfoils = System.lineSeparator()+responseprefix+"conceptfoils : endcons ( [";
+                            additionalCASVars += System.lineSeparator()+conceptArray+": []";
+                            String conceptfoils = System.lineSeparator()+responseprefix+"_conceptfoils : endcons ( [";
                             for (int k=0; k<cgList.getLength();k++) {
                                 Element elementcg = (Element) cgList.item(k);
                                 // concept foils
@@ -98,14 +104,17 @@ public abstract class ChoiceResponse extends Response {
                                         }
                                         conceptfoils += foil.name;
                                         currentcgfoil++;
+                                        foil.setConcept(conceptString);
                                     }
                                     nodesToRemove.add(elementcg);
                                 }
                              }
-                            conceptfoils += "],"+responseprefix+"conceptfoils) ";
+                            conceptfoils += "],"+responseprefix+"_conceptfoils) ";
                             additionalCASVars += conceptfoils;
                             if (currentcgfoil>1) {
-                                additionalCASVars += System.lineSeparator()+responseprefix+" : endcons( random_selection("+conceptArray+",1)"+responseprefix+")";
+                                additionalCASVars += System.lineSeparator()+responseprefix+" : endcons( rand("+conceptArray+"),"+responseprefix+")";
+
+                                foilsList.add(new InputFoil(currentfoil,"",conceptString));
                                 currentfoil++;
 
                             }
@@ -118,15 +127,18 @@ public abstract class ChoiceResponse extends Response {
 
         additionalCASVars += System.lineSeparator();
         removeNodesFromDOM(nodesToRemove);
+        numberOfFoils = currentfoil-1;
 
-        if (random){
+        if (random && isCheckBox){
             additionalCASVars += System.lineSeparator()+answerdisplay+" : random_permutation("+answerdisplay+")";
+            if (max<numberOfFoils){
+                numberOfFoils = max;
+                additionalCASVars += System.lineSeparator()+answerdisplay+" : random_selection("+answerdisplay+","+max+")";
+            }
         }
 
-        numberOfFoils = currentfoil-1;
-        if (max<numberOfFoils){
-            numberOfFoils = max;
-            additionalCASVars += System.lineSeparator()+answerdisplay+" : random_selection("+answerdisplay+","+max+")";
+        if (random && !isCheckBox){
+            log.warning("foils were randomized, they are not in the Moodle Stack question");
         }
 
     }
@@ -136,11 +148,12 @@ public abstract class ChoiceResponse extends Response {
         private String value="";
         private String name="";
         private String description ="";
+        private String concept = "";
 
         public Foil(Element e){
             if(e.hasAttribute("value")){
                 value = e.getAttribute("value");
-                if (!checkBox) {
+                if (!isCheckBox) {
                     value = "\""+value+"\"";
                 }else {
                     if (!checkBoxValue.equals("")){
@@ -186,13 +199,37 @@ public abstract class ChoiceResponse extends Response {
             additionalCASVars += System.lineSeparator()+prefix+"_foildescription : "+ description;
             additionalCASVars += System.lineSeparator()+prefix+"_foil : "+"["+prefix+"_foilname,"+prefix+"_foilvalue,"+prefix+"_foildescription]";
             additionalCASVars += System.lineSeparator()+prefix+" : endcons("+prefix+"_foil,"+prefix+")";
-            if (value.equals("true")){
-                additionalCASVars  += System.lineSeparator()+prefix+"true : "+name;
-            }
         }
+
+        public String getConcept() { return concept; }
+
+        public void setConcept(String concept) {  this.concept = concept; }
     }
 
-    public String getResponseprefix() {
-        return responseprefix;
+    protected class InputFoil{
+        private String foilName="";
+        private String conceptName="";
+        private String inName ="";
+
+        public InputFoil(int i, String foilname, String conceptname){
+            inName = inputName+"_"+i;
+            foilName = foilname;
+            conceptName = conceptname;
+        }
+
+        public String getFoilName() { return foilName; }
+
+        public String getConceptName() { return conceptName; }
+
+        public String getInName() { return inName;  }
     }
+
+    public String getResponseprefix() {  return responseprefix;    }
+
+    public boolean isCheckBox() { return isCheckBox;    }
+
+    public String getCheckBoxValue() { return checkBoxValue;    }
+
+    public ArrayList<InputFoil> getFoilsList() { return foilsList; }
+
 }

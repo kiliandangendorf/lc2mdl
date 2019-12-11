@@ -87,12 +87,12 @@ public class PreParser {
 		xmlReplacements.put("condition=\"([^&]*)&&", "condition=\"$1 AND");
 		xmlReplacements.put("condition=\"([^<]*?)<=([^<]*?)<=", "condition=\"$1 LE $2 LE");
 
-        xmlReplacements.put("options=\"([^\"]*)<=([^\"]*)\"", "options=\"$1 \\\\( \\\\le \\\\) $2\"");
-        xmlReplacements.put("options=\"([^\"]*)>=([^\"]*)\"", "options=\"$1 \\\\( \\\\ge \\\\) $2\"");
-       xmlReplacements.put("options=\"([^<\"]*)<([^<\"]*)\"", "options=\"$1 \\\\( \\\\lt \\\\) $2\"");
-        xmlReplacements.put("options=\"([^>\"]*)>([^>\"]*)\"", "options=\"$1 \\\\( \\\\gt \\\\) $2\"");
-        xmlReplacements.put("value=\"([^<\"]*)<([^<\"]*)\"", "options=\"$1 \\\\( \\\\lt \\\\) $2\"");
-        xmlReplacements.put("value=\"([^>\"]*)>([^>\"]*)\"", "options=\"$1 \\\\( \\\\gt \\\\) $2\"");
+        xmlReplacements.put("options=\"([^\"]*)<=([^\"]*)\"", "options=\"$1 \\\\(\\\\le\\\\) $2\"");
+        xmlReplacements.put("options=\"([^\"]*)>=([^\"]*)\"", "options=\"$1 \\\\(\\\\ge\\\\) $2\"");
+       xmlReplacements.put("options=\"([^<\"]*)<([^<\"]*)\"", "options=\"$1 \\\\(\\\\lt\\\\) $2\"");
+        xmlReplacements.put("options=\"([^>\"]*)>([^>\"]*)\"", "options=\"$1 \\\\(\\\\gt\\\\) $2\"");
+        xmlReplacements.put("value=\"([^<\"]*)<([^<\"]*)\"", "options=\"$1 \\\\(\\\\lt\\\\) $2\"");
+        xmlReplacements.put("value=\"([^>\"]*)>([^>\"]*)\"", "options=\"$1 \\\\(\\\\gt\\\\) $2\"");
 
 //		occurs error
 //	    <foilgroup options="('singul&auml;r','regul&auml;r')" texoptions="">

@@ -63,7 +63,7 @@ public class Problem {
 	
 	/**
 	 * Returns index of given ProblemElement in List elements ONLY from class extending Response
-	 * @return -1 in case of not in list
+	 * @return 0 in case of not in list
 	 */
 	public int getIndexFromResponse(ProblemElement element){
 		int index=-1;
@@ -74,7 +74,23 @@ public class Problem {
 		}
 		return index+1;
 	}
-	
+
+		/**
+	 * Returns index of given ProblemElement in List elements ONLY from class extending Response
+	 * @return -1 in case of not in list
+	 */
+	public Response getCurrentResponse(ProblemElement element){
+		Response curResponse = null;
+		for(int i=0;i<elements.size();i++){
+			if(elements.get(i)==element)break;
+			//If same class then increment index
+			if(Response.class.isAssignableFrom(elements.get(i).getClass())){
+				curResponse = (Response) elements.get(i);
+			}
+		}
+		return curResponse;
+	}
+
 	public void addElement(ProblemElement element) {
 		this.elements.add(element);
 	}

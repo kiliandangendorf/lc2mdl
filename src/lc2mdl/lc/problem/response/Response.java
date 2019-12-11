@@ -121,6 +121,11 @@ public abstract class Response extends ProblemElement{
 						rh.consumeNode();
 						this.hints.add(rh);
 						break;
+					case "optionhint":
+						OptionHint oh = new OptionHint(problem, hint, correct);
+						oh.consumeNode();
+						this.hints.add(oh);
+						break;
 
 					case "hintpart":
 						if(hint.getAttribute("on").equals("default")){

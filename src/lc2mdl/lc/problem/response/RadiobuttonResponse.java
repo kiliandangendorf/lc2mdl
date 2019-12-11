@@ -23,11 +23,13 @@ public class RadiobuttonResponse extends ChoiceResponse {
         log.finer("radiobuttonresponse:");
 
          Element e=(Element)node;
-         checkBox=true;
+         isCheckBox =true;
 
 
         // Foils
         consumeFoils(e);
+        addToFeedbackVariables += System.lineSeparator()+"bool"+inputName+" : member("+inputName+",mcq_correct("+answerdisplay+"))";
+        answer = "true";
 
 		consumeIdAndName(e);
 
@@ -68,9 +70,10 @@ public class RadiobuttonResponse extends ChoiceResponse {
 
         //NODE-TAG - only a single value expected here
         NodeMdl nodeMdl=new NodeMdl();
-        nodeMdl.setAnswertest("String");
-        nodeMdl.setSans(inputName);
+        nodeMdl.setAnswertest("AlgEquiv");
+        nodeMdl.setSans("bool"+inputName);
         nodeMdl.setTans(answer);
+		question.addToFeedbackVariablesOfCurrentPrt(addToFeedbackVariables);
 
         nodeMdl.setTruefeedback(correcthinttext);
         nodeMdl.setFalsefeedback(incorrecthinttext);
