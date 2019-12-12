@@ -50,6 +50,7 @@ public abstract class ChoiceResponse extends Response {
 
         removeAttributeIfExist(e,"TeXlayout");
 
+        additionalCASVars += System.lineSeparator()+System.lineSeparator()+"/* choice response  */";
         ArrayList<Node> nodesToRemove=new ArrayList<>();
         NodeList nodeList = e.getChildNodes();
         for (int i=0; i<nodeList.getLength(); i++){
@@ -104,7 +105,6 @@ public abstract class ChoiceResponse extends Response {
                                         }
                                         conceptfoils += foil.name;
                                         currentcgfoil++;
-                                        foil.setConcept(conceptString);
                                     }
                                     nodesToRemove.add(elementcg);
                                 }
@@ -133,7 +133,7 @@ public abstract class ChoiceResponse extends Response {
             additionalCASVars += System.lineSeparator()+answerdisplay+" : random_permutation("+answerdisplay+")";
             if (max<numberOfFoils){
                 numberOfFoils = max;
-                additionalCASVars += System.lineSeparator()+answerdisplay+" : random_selection("+answerdisplay+","+max+")";
+                additionalCASVars += System.lineSeparator()+answerdisplay+" : rand_selection("+answerdisplay+","+max+")";
             }
         }
 
@@ -148,7 +148,6 @@ public abstract class ChoiceResponse extends Response {
         private String value="";
         private String name="";
         private String description ="";
-        private String concept = "";
 
         public Foil(Element e){
             if(e.hasAttribute("value")){
@@ -182,14 +181,11 @@ public abstract class ChoiceResponse extends Response {
                 Element el = (Element)nlist.item(i);
                 if (el.getTagName().equals("outtext")){
                     description += el.getTextContent();
-
-
                 }else{
                     log.warning("found foil content of type "+el.getTagName());
                 }
             }
-            description = transformTextElement(description);
-            description = "\""+description+"\"";
+            description = transformTextVariable(description);
 
         }
 
@@ -201,10 +197,7 @@ public abstract class ChoiceResponse extends Response {
             additionalCASVars += System.lineSeparator()+prefix+" : endcons("+prefix+"_foil,"+prefix+")";
         }
 
-        public String getConcept() { return concept; }
-
-        public void setConcept(String concept) {  this.concept = concept; }
-    }
+     }
 
     protected class InputFoil{
         private String foilName="";
@@ -223,8 +216,6 @@ public abstract class ChoiceResponse extends Response {
 
         public String getInName() { return inName;  }
     }
-
-    public String getResponseprefix() {  return responseprefix;    }
 
     public boolean isCheckBox() { return isCheckBox;    }
 

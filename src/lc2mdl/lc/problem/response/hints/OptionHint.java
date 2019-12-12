@@ -118,7 +118,7 @@ public class OptionHint extends OptionResponse implements ConditionalHint {
                         String checkString = "";
                         if (!check) { checkString = " not "; }
                         addToFeedbackVariables += System.lineSeparator()+inputHint+" : "+inputHint+" or (";
-                        addToFeedbackVariables += checkString+"member("+foilname+", mcq("+responseprefix+") )";
+                        addToFeedbackVariables += checkString+"member("+foilname+", mcq("+responseprefix+")) )";
                     }
                 }
             }

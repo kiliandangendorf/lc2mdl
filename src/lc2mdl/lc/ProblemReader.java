@@ -112,6 +112,10 @@ public class ProblemReader{
 					log.finer("found optionresponse");
 					problem.addElement(new OptionResponse(problem,element));
 					break;
+				case "customresponse":
+					log.finer("found customresponse");
+					problem.addElement(new CustomResponse(problem,element));
+					break;
 
 				case "part":
 					log.finer("found part");

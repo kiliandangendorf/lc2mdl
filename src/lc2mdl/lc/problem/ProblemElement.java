@@ -88,6 +88,44 @@ public abstract class ProblemElement {
 			
 		return text;
 	}
+
+	/**
+	 * transforms LON-CAPA Outtext-elements (from any parent Element) into Moodle-STACK CAS-Textvariables
+	 * @param text (LON-CAPA Outtext)
+	 * @return converted CAS-Text
+	 */
+	protected String transformTextVariable(String text){
+		log.finer("-transfom text variable");
+		//gnuplot
+		text=replaceGnuPlot(text);
+
+		//HTML-ELEMENTSs
+		text=replaceHTMLTags(text);
+
+		//LANGUAGEBLOCKS
+		text=chooseOneLanguageBlock(text,Prefs.DEFAULT_LANG);
+
+		//TRANSLATED
+		text=chooseOneTranslated(text,Prefs.DEFAULT_LANG);
+
+		//LATEX / MATH-EXPRESSION: <m>...</m> into \( ... \)  (<m eval="on">)
+		text=replaceMathTags(text,true);
+
+		text = replacePatternWithString("\\{@","",text);
+		text = replacePatternWithString("@\\}","",text);
+
+		//VARS use sconcat
+		text=replacesVariablesInTextVariables(text);
+
+
+		//ESCAPE LEFT DOLLAR SIGNS
+		if(text.contains("$")){
+			log.warning("--still Dollar-signs in text. Replaced them by the String \"[DOLLAR-SIGN]\" (because Moodle doesn't like them)");
+			text=text.replaceAll("\\$","[DOLLAR-SIGN]");
+		}
+
+		return text;
+	}
 	
 	/**
 	 * Searches string for first match with given regEx and return matching substring o string
@@ -101,16 +139,64 @@ public abstract class ProblemElement {
 		return null;
 	}
 
+	private String replacesVariablesInTextVariables(String text){
+
+		String buf = text;
+		if (!buf.startsWith("\"")) { buf = "\""+buf; }
+		if (!buf.endsWith("\"")||(buf.length()==1)) { buf += "\""; }
+		text = buf;
+		for(String var:problem.getPerlVars()){
+
+			//only if it's exactly same name
+			String varPat="\\$"+var+"\\[(([\\$a-zA-Z0-9])*?)\\]";
+			Matcher matcher=Pattern.compile(varPat).matcher(buf);
+			while(matcher.find()){
+				String varString=matcher.group();
+				String replacement = varString.substring(1);
+				log.finer("--replace "+varString+" with \", "+replacement+" ,\"");
+				buf=buf.replace(varString,"\", "+replacement+" ,\"");
+			}
+			varPat="\\$"+var+"(?![a-zA-Z0-9])";
+			matcher=Pattern.compile(varPat).matcher(buf);
+			while(matcher.find()){
+				String varString=matcher.group();
+				String replacement = varString.substring(1);
+				log.finer("--replace "+varString+" with \", "+replacement+" ,\"");
+				buf=buf.replace(varString,"\", "+replacement+" ,\"");
+			}
+		}
+
+		if (!buf.equals(text)) {
+			if (buf.startsWith("\", ")) {
+				buf = buf.substring(3);
+			}
+			if (buf.endsWith(" ,\"")) {
+				buf = buf.substring(0, buf.length() - 3);
+			}
+			buf = "sconcat(" +buf+ ")";
+		}
+		return buf;
+	}
+
 	private String replaceVariables(String text){
 		//VARS in {@ ... @}
 		for(String var:problem.getPerlVars()){
 			//only if it's exactly same name
-			String varPat="\\$"+var+"(?![a-zA-Z0-9])";
+			String varPat="\\$"+var+"\\[(([\\$a-zA-Z0-9])*?)\\]";
 			Matcher matcher=Pattern.compile(varPat).matcher(text);
 			while(matcher.find()){
 				String varString=matcher.group();
-				log.finer("--replace "+varString+" with {@"+var+"@}");
-				text=text.replaceAll(varPat,"{@"+var+"@}");
+				String replacement = varString.substring(1);
+				log.finer("--replace "+varString+" with {@"+replacement+"@}");
+				text=text.replace(varString,"{@"+replacement+"@}");
+			}
+			varPat="\\$"+var+"(?![a-zA-Z0-9])";
+			matcher=Pattern.compile(varPat).matcher(text);
+			while(matcher.find()){
+				String varString=matcher.group();
+				String replacement = varString.substring(1);
+				log.finer("--replace "+varString+" with {@"+replacement+"@}");
+				text=text.replace(varString,"{@"+replacement+"@}");
 			}
 		}
 		return text;
@@ -127,31 +213,38 @@ public abstract class ProblemElement {
 		}
 		return text;
 	}
-	
+
 	private String replaceMathTags(String text){
+		return replaceMathTags(text, false);
+	}
+
+	private String replaceMathTags(String text, boolean isVariable){
 		//LATEX / MATH-EXPRESSION: <m>...</m> into \( ... \)  (<m eval="on">)
 		List<String> leftPat = new ArrayList<String>();
 		List<String> rightPat = new ArrayList<String>();
 
+		String addbackslashes ="";
+		if (isVariable) { addbackslashes ="\\\\"; }
+
 		//TEX all displaymath e.g.<m>$$ ... $$</m> into \[ ... \]
-		leftPat.add("<m {0,}(eval=\"on\"){0,1} {0,}> {0,}\\$\\$");
+		leftPat.add("<m {0,}(eval=\"on\"){0,1}(eval=\"off\"){0,1} {0,}> {0,}\\$\\$");
 		rightPat.add("\\$\\$ {0,}<\\/ {0,}m>");
 
-		leftPat.add("<m {0,}(eval=\"on\"){0,1} {0,}> {0,}\\\\\\[");
+		leftPat.add("<m {0,}(eval=\"on\"){0,1}(eval=\"off\"){0,1} {0,}> {0,}\\\\\\[");
 		rightPat.add("\\\\\\] {0,}<\\/ {0,}m>");
 
 		for (String s: leftPat){
-			text=replacePatternWithString(s,"\\\\[",text);
+			text=replacePatternWithString(s,addbackslashes+"\\\\[",text);
 		}
 		for (String s: rightPat) {
-			text = replacePatternWithString(s, "\\\\]", text);
+			text = replacePatternWithString(s, addbackslashes+"\\\\]", text);
 		}
 
 		//LaTeX all other math into \( ... \)
 		leftPat.clear();
 		rightPat.clear();
 
-		leftPat.add("<m {0,}(eval=\"on\"){0,1} {0,}>\\${0,1}");
+		leftPat.add("<m {0,}(eval=\"on\"){0,1}(eval=\"off\"){0,1} {0,}>\\${0,1}");
 		rightPat.add("\\${0,1}<\\/ {0,}m>");
 
 		leftPat.add("<algebra {0,}>\\${0,1}");
@@ -161,24 +254,11 @@ public abstract class ProblemElement {
 		rightPat.add("\\${0,1}<\\/ {0,}tex>");
 
 		for (String s: leftPat){
-			text=replacePatternWithString(s,"\\\\(",text);
+			text=replacePatternWithString(s,addbackslashes+"\\\\(",text);
 		}
 		for (String s: rightPat){
-			text=replacePatternWithString(s,"\\\\)",text);
+			text=replacePatternWithString(s,addbackslashes+"\\\\)",text);
 		}
-
-/*		//LaTeX <m>$ ... $</m> into \( ... \)
-		leftMPat="<m {0,}(eval=\"on\"){0,1} {0,}>\\${0,1}";
-		rightMPat="\\${0,1}<\\/ {0,}m>";
-		text=replacePatternWithString(leftMPat,"\\\\(",text);
-		text=replacePatternWithString(rightMPat,"\\\\)",text);
-
-		//LaTeX <algebra> ... </algebra> into \( ... \)
-		leftMPat="<algebra {0,}>\\${0,1}";
-		rightMPat="\\${0,1}<\\/ {0,}algebra>";
-		text=replacePatternWithString(leftMPat,"\\\\(",text);
-		text=replacePatternWithString(rightMPat,"\\\\)",text);
-*/
 
 		return text;
 	}

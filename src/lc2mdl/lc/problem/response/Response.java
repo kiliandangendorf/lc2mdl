@@ -4,8 +4,6 @@ import lc2mdl.lc.problem.Outtext;
 import lc2mdl.lc.problem.Problem;
 import lc2mdl.lc.problem.ProblemElement;
 import lc2mdl.lc.problem.response.hints.*;
-import lc2mdl.mdl.quiz.NodeMdl;
-import lc2mdl.mdl.quiz.QuestionStack;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -164,16 +162,6 @@ public abstract class Response extends ProblemElement{
 		else incorrecthinttext+=System.lineSeparator()+hinttext.trim();
 	}
 
-	protected void addHintsToMdlQuestion(QuestionStack question, NodeMdl nodeMdl){
-		nodeMdl.setTruefeedback(correcthinttext);
-		nodeMdl.setFalsefeedback(incorrecthinttext);
-		//HINTNODES
-		for(ConditionalHint hint:hints){
-			hint.addHintNodeToMdlQuestion(question,nodeMdl);
-		}
-
-	}
-	
 	protected void consumeIdAndName(Element e){
 		this.id=e.getAttribute("id");
 		removeAttributeIfExist(e,"id");

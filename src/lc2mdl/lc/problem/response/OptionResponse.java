@@ -19,7 +19,7 @@ public class OptionResponse extends ChoiceResponse {
     private int mincheck=0;
     private int maxcheck=0;
     private String optionText = "Die vorhandenen Optionen sind: ";
-    private String checkboxText="Bitte kreuzen Sie alle Aussagen an, auf die Option ";
+    private String checkboxText="Bitte kreuzen Sie alle Aussagen an, auf die die Option ";
     private String answerbox=responseprefix+"_box";
     protected ArrayList<NodeMdl> nodeMdls = new ArrayList<NodeMdl>();
 
@@ -64,6 +64,7 @@ public class OptionResponse extends ChoiceResponse {
                 if (element.hasAttribute("checkboxvalue")){
                     checkBoxValue = element.getAttribute("checkboxvalue");
                     if(!checkBoxValue.equals("")){
+                        log.finer("found checkbox with value "+checkBoxValue);
                         isCheckBox = true;
                     }
                     element.removeAttribute("checkboxvalue");

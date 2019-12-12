@@ -16,8 +16,10 @@ public class PerlScript extends ProblemElement{
 	private String script;
 	private String scriptComment;
 	private String convertWarning;
+	private ArrayList<String> stringsInScript = new ArrayList<String>();
 
 	private int arrayNo=0;
+	private int stringNo=0;
 	
 	@Override
 	public void consumeNode() {
@@ -51,6 +53,9 @@ public class PerlScript extends ProblemElement{
 	private void convertPerlScriptToMaxima(){
 		log.finer("-convert perl-script.");
 
+		// save Strings to prevent them from converting
+		saveStrings();
+
 		//FUNCTIONS
 		replaceFunctions();
 		
@@ -75,9 +80,11 @@ public class PerlScript extends ProblemElement{
 
 		replaceSyntax();
 
-
 		//SPECIAL CHARS
 		searchForSpecialChars();
+
+		// replace Strings
+		replaceStrings();
 
 		script = convertWarning + System.lineSeparator() + script;
 	}
@@ -113,7 +120,7 @@ public class PerlScript extends ProblemElement{
 	}
 
 	private void replaceControlStructures(){
-		ArrayList<String> controlStructures=new ArrayList<>(Arrays.asList("do","unless","else","elseif","if","until","for","foreach","while"));
+		ArrayList<String> controlStructures=new ArrayList<>(Arrays.asList("do","unless","else","elseif","if","until","while","for","foreach"));
 		for(String cs:controlStructures) {
 			String csPat = "\\W" + cs + "\\W";
 			Matcher matcher = Pattern.compile(csPat).matcher(script);
@@ -163,21 +170,21 @@ public class PerlScript extends ProblemElement{
 
 						case "unless":
 							String condSub = script.substring(parenStart, parenEnd);
-							condSub = "if (!" + condSub + ")";
+							condSub = " if (!" + condSub + ") ";
 							String cond = script.substring(csStart, parenEnd);
 							script = script.replace(cond, condSub);
 							break;
 
 						case "else":
 							String csString = matcher.group();
-							String csNewString = "  " + ConvertAndFormatMethods.removeCR(csString);
+							String csNewString = "  " + ConvertAndFormatMethods.removeCR(csString) + " ";
 							script = script.replace(csString, csNewString);
 							startFind = csStart+csNewString.length()+1;
 							break;
 
 						case "elseif":
 							csString = matcher.group();
-							csNewString = "  " + ConvertAndFormatMethods.removeCR(csString);
+							csNewString = "  " + ConvertAndFormatMethods.removeCR(csString) + " ";
 							script = script.replace(csString, csNewString);
 							// nobreak, continue with the if case
 
@@ -577,6 +584,49 @@ public class PerlScript extends ProblemElement{
 		}
 	}
 
+	private void saveStrings(){
+		log.finer("--save strings before transforming");
+		String buf = script;
+		stringNo=0;
+		String patString = "\"(((\\\")|[^\"])*?)\"";
+		Pattern pat = Pattern.compile(patString);
+		Matcher matcher = pat.matcher(buf);
+		while (matcher.find()){
+			String stringText = matcher.group();
+			String replacement = "lc2mdltext"+stringNo;
+			stringNo++;
+			stringsInScript.add(stringText);
+			buf = buf.replaceFirst(patString,replacement);
+		}
+		patString = "'(([^'])*?)'";
+		pat = Pattern.compile(patString);
+		matcher = pat.matcher(buf);
+		while (matcher.find()){
+			String stringText = matcher.group();
+			String replacement = "lc2mdltext"+stringNo;
+			stringNo++;
+			stringsInScript.add(stringText);
+			buf = buf.replaceFirst(patString,replacement);
+		}
+
+		script = buf;
+	}
+
+	private void replaceStrings(){
+		log.finer("--replace variables in strings ");
+		String buf = script;
+		for (int i=0; i<stringNo; i++){
+			String stringText = stringsInScript.get(i);
+			// remove " or '
+			stringText = stringText.substring(1,stringText.length()-1);
+			stringText = transformTextVariable(stringText);
+			log.finer("replace text" + stringText);
+			buf = buf.replaceFirst("lc2mdltext"+i, stringText);
+		}
+
+		script = buf;
+	}
+
 	private void replaceKeysByValues(HashMap<String,String> replacements){
 		replaceKeysByValues(replacements,false);
 	}
@@ -593,5 +643,8 @@ public class PerlScript extends ProblemElement{
 			}
 		}	
 	}
-	
+
+	public String getScript() {	return script; 	}
+
+	public String getScriptComment() { 	return scriptComment; 	}
 }

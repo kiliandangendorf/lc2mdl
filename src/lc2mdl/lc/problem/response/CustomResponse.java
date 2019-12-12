@@ -1,5 +1,6 @@
 package lc2mdl.lc.problem.response;
 
+import lc2mdl.lc.problem.PerlScript;
 import lc2mdl.lc.problem.Problem;
 import lc2mdl.lc.problem.response.hints.ConditionalHint;
 import lc2mdl.mdl.quiz.Input;
@@ -7,49 +8,27 @@ import lc2mdl.mdl.quiz.NodeMdl;
 import lc2mdl.mdl.quiz.QuestionStack;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
-public class StringResponse extends Response {
-    protected String type;
-	protected String answer;// must fit perl params if there is a $-sign
+public class CustomResponse extends Response {
+
+	protected String answer="";// must fit perl params if there is a $-sign
 	private String answerDisplay;
-	protected boolean preprocess;
+	private String addToFeedbackVariables;
+	private String comment;
 
-    public StringResponse(Problem problem, Node node){
-        super(problem,node);
+
+    public CustomResponse(Problem problem, Node node){
+        super(problem, node);
     }
 
     @Override
     public void consumeNode() {
-        log.finer("stringresponse:");
+        log.finer("customresponse:");
 
         Element e=(Element)node;
 
         //ATTRIBUTES
-        if(e.hasAttribute("answer")){
-            answer=e.getAttribute("answer");
-            log.finer("-found answer: "+answer);
-            if(answer.charAt(0)=='$'){
-                answer=answer.substring(1);
-            }else{
-                //if not $ the first symbol, then create a var in questionvariables and reference here
-                answer=addAdditionalCASVar(answer);
-            }
-            e.removeAttribute("answer");
-        }else{
-            log.warning("-no answer found in response");
-        }
-
-        type = "cs";
-        if (e.hasAttribute("type")){
-            type = e.getAttribute("type");
-            log.finer("-found type "+type);
-            if (!(type.equals("cs")||type.equals("ci"))){
-                log.warning("cannot handle type "+type+" Set type to \"cs\"");
-                type="cs";
-            }
-            e.removeAttribute(type);
-        }
-
         if(e.hasAttribute("answerdisplay")){
             answerDisplay=e.getAttribute("answerdisplay");
             if (!answerDisplay.equals("")) {
@@ -77,16 +56,29 @@ public class StringResponse extends Response {
             answerDisplay=answer;
         }
 
-        preprocess=e.hasAttribute("preprocess");
-        if (preprocess){
-            log.warning("String response needs preprocessing, cannot to this.");
-            e.removeAttribute("preprocess");
-        }
-
         consumeIdAndName(e);
         if (e.hasAttributes()){
             log.warning("-still unknown attributes in response.");
         }
+
+        NodeList nlist = e.getChildNodes();
+        for (int i=0; i<nlist.getLength(); i++){
+			Element element = (Element)nlist.item(i);
+			if (element.getTagName().equals("answer")) {
+			    String script =  element.getTextContent();
+			    script = System.lineSeparator()+"submission :"+inputName+System.lineSeparator()+"bool"+inputName+": false";
+			    String patString = "return\\s*?'EXACT_ANS'\\s*;";
+			    script = script.replaceAll(patString, "bool"+inputName+": true");
+			    patString = "return\\s*?'INCORRECT'\\s*;";
+			    script = script.replaceAll(patString, "bool"+inputName+": false");
+                element.setTextContent(script);
+                PerlScript ps= new PerlScript(problem,element);
+                ps.consumeNode();
+                addToFeedbackVariables = ps.getScript();
+                comment = ps.getScriptComment();
+                element.setTextContent(null);
+			}
+		}
 
        //RESPONSEPARAM
 		consumeResponseParameter(e);
@@ -104,9 +96,9 @@ public class StringResponse extends Response {
 
     @Override
     public void addToMdlQuestion(QuestionStack question) {
-        //Add input in questiontext
+		//Add input in questiontext
 		question.addToQuestionText(inputString);
-        question.addToQuestionText(additionalText);
+		question.addToQuestionText(additionalText);
 
 		//Add additional vars to questionvariables
 		question.addToQuestionVariables(additionalCASVars);
@@ -114,7 +106,7 @@ public class StringResponse extends Response {
 		//INPUT-TAG
 		Input input=new Input();
 		input.setName(inputName);
-		input.setType("string"); //because of stringresponse
+		input.setType("algebraic");
 		if(!isTextline)input.setType("textarea"); //if it was a textfield
 		input.setTans(answerDisplay);
 		input.setBoxsize(textlineSize);
@@ -122,28 +114,22 @@ public class StringResponse extends Response {
 
 		//NODE-TAG
 		NodeMdl nodeMdl=new NodeMdl();
-		if (type.equals("cs")) {         // case sensitive
-            nodeMdl.setSans(inputName);
-            nodeMdl.setTans(answer);
-        }else{                          // case insensitive
-		    nodeMdl.setSans("supcase("+inputName+")");
-		    nodeMdl.setTans("supcase("+answer+")");
-        }
-		nodeMdl.setAnswertest("String");
+		nodeMdl.setAnswertest("AlgEquiv");
+		nodeMdl.setSans("bool"+inputName);
+		nodeMdl.setTans("true");
+		nodeMdl.setTruefeedback(correcthinttext);
+		nodeMdl.setFalsefeedback(incorrecthinttext);
 
-        nodeMdl.setTruefeedback(correcthinttext);
-        nodeMdl.setFalsefeedback(incorrecthinttext);
+		question.addNodeToCurrentPrtAndSetNodeLink(nodeMdl);
 
-        question.addNodeToCurrentPrtAndSetNodeLink(nodeMdl);
+		//HINTNODES
+		for(ConditionalHint hint:hints){
+			hint.addHintNodeToMdlQuestion(question,nodeMdl);
+		}
 
-        //HINTNODES
-        for(ConditionalHint hint:hints){
-            hint.addHintNodeToMdlQuestion(question,nodeMdl);
-        }
+		//ADD MAXIMA TO FEEDBACK-VARS IN CURRENT PRT
+		question.addToFeedbackVariablesOfCurrentPrt(addToFeedbackVariables);
 
-
-		if (preprocess) {
-		    question.addComment("Cannot do the required preprocessing.");
-        }
+		question.addComment(comment);
     }
 }
