@@ -80,6 +80,10 @@ public class ProblemReader{
 					log.finer("found gnuplot");
 					problem.addElement(new Gnuplot(problem,element));
 					break;
+				case "img":
+					log.finer("found image");
+					problem.addElement(new Image(problem,element));
+					break;
 				case "script":
 					if(nodeHasAttributePair(element,"type","loncapa/perl")){
 						log.finer("found perl-script");
@@ -116,6 +120,12 @@ public class ProblemReader{
 					log.finer("found customresponse");
 					problem.addElement(new CustomResponse(problem,element));
 					break;
+					// TODO essay response as other moodle question
+				case "essayresponse":
+					log.finer("found essayresponse");
+					problem.addElement(new EssayResponse(problem,element));
+					break;
+
 
 				case "part":
 					log.finer("found part");
@@ -124,7 +134,15 @@ public class ProblemReader{
 					//run again, for all elements within part-element
 					readingRecursively(problem,element);
 					break;
-				case "table":case "tr": case "td": case "ol": case "ul": case "li":
+				case "block":
+					log.finer("found conditional block");
+					problem.addElement(new Block(problem,element));
+
+					//run again, for all elements within part-element
+					readingRecursively(problem,element);
+					break;
+
+				case "table":case "tr": case "td": case "ol": case "ul": case "li" :case "center": case "br": case "hr" : case "div" : case "p":
 					log.finer("found HTML element: "+element.getTagName());
 					//put open-tag before and close-tag behind all child elements
 					problem.addElement(new HtmlElement(problem,element,HtmlElement.OPEN));					

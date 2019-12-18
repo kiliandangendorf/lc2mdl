@@ -24,6 +24,8 @@ public abstract class ChoiceResponse extends Response {
         answerdisplay+= (problem.getIndexFromResponse(this))+1;
         responseprefix+= answerdisplay;
         answer = responseprefix+"_true";
+        problem.addQuestionType(questionType);
+
     }
 
     protected void consumeFoils(Element e){

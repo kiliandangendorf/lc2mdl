@@ -12,10 +12,10 @@ import java.util.ArrayList;
 
 public abstract class Response extends ProblemElement{
 
+	protected String questionType="stack";
 	protected String inputName;
 	protected String inputString;
-	
-	
+
 	protected boolean isTextline=true;
 	protected Integer textlineSize=15; // mdl BoxSize
 
@@ -36,6 +36,7 @@ public abstract class Response extends ProblemElement{
 		super(problem,node);
 		inputName="ans"+(problem.getIndexFromResponse(this)+1);
 		inputString=" [[input:"+inputName+"]] [[validation:"+inputName+"]] ";
+
 	}
 
 	/**
@@ -91,7 +92,7 @@ public abstract class Response extends ProblemElement{
 			// be careful, there can be also conditional blocks in there !!!
 			NodeList hintparts=hintgroup.getChildNodes();
 			for(int j=0;j<hintparts.getLength();j++){
-				if(!(hintparts.item(i).getNodeType()==Node.ELEMENT_NODE))continue;
+				if(!(hintparts.item(j).getNodeType()==Node.ELEMENT_NODE))continue;
 				Element hint=(Element)hintparts.item(j);
 				switch(hint.getTagName()){
 					case "numericalhint":
@@ -124,6 +125,12 @@ public abstract class Response extends ProblemElement{
 						oh.consumeNode();
 						this.hints.add(oh);
 						break;
+					case "customhint":
+						CustomHint ch = new CustomHint(problem, hint, correct);
+						ch.consumeNode();
+						this.hints.add(ch);
+						break;
+
 
 					case "hintpart":
 						if(hint.getAttribute("on").equals("default")){
@@ -186,6 +193,13 @@ public abstract class Response extends ProblemElement{
 			textline.removeAttribute("size");
 			textline.removeAttribute("readonly");
 			textline.removeAttribute("spellcheck");
+			if (textline.hasAttribute("addchars")){
+				String addchars=textline.getAttribute("addchars");
+				if (!addchars.equals("")){
+					additionalText += "Zur Auswahl gehören "+addchars+"bitte entsprechende Ersetzungen vornehmen!";
+				}
+			}
+			textline.removeAttribute("addchars");
 		}else{
 			//textfield
 			isTextline=false;
@@ -246,7 +260,7 @@ public abstract class Response extends ProblemElement{
 						nodesToRemove.add(responseparam);
 						log.finer("---removed, because won't affect anyway.");						
 					}else{
-						log.warning("---different significant firgues. Check if it is required. If not remove it.");
+						log.warning("---different significant figures. Check if it is required. If not remove it.");
 					}
 					break;
 				default:
@@ -261,6 +275,7 @@ public abstract class Response extends ProblemElement{
 
 		NodeList outs = e.getChildNodes();
 		for (int i=0; i<outs.getLength(); i++){
+			if(!(outs.item(i).getNodeType()==Node.ELEMENT_NODE))continue;
 			Element out = (Element)outs.item(i);
 			if (out.getTagName().equals("outtext")) {
 				Outtext outtext = new Outtext(problem, out);

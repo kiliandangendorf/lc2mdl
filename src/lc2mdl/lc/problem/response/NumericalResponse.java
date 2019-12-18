@@ -16,7 +16,10 @@ public class NumericalResponse extends Response{
 	protected String unit="";
 
 	public NumericalResponse(Problem problem,Node node){
-		super(problem,node);		
+
+		super(problem,node);
+		problem.addQuestionType(questionType);
+
 	}
 
 	@Override

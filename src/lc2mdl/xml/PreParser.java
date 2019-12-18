@@ -82,9 +82,9 @@ public class PreParser {
 		xmlReplacements.put("condition=\"([^>\"]*)>([^>\"]*)>([^>\"]*)\"", "condition=\"$1 GT $2 GT $3\"");
 		xmlReplacements.put("condition=\"([^<\"]*)<([^<\"]*)<([^<\"]*)<([^<\"]*)\"", "condition=\"$1 LT $2 LT $3 LT $4\"");
 		xmlReplacements.put("condition=\"([^>\"]*)>([^>\"]*)>([^>\"]*)>([^>\"]*)\"", "condition=\"$1 GT $2 GT $3 GT $4\"");
-		xmlReplacements.put("condition=\"([^&\"]*)&&([^&\"]*)\"", "condition=\"$1 AND $2\"");
-		xmlReplacements.put("condition=\"([^&\"]*)&&([^&\"]*)&&([^&\"]*)\"", "condition=\"$1 AND $2 AND $3\"");
-		xmlReplacements.put("condition=\"([^&]*)&&", "condition=\"$1 AND");
+		xmlReplacements.put("condition=\"([^&\"]*)&&([^&\"]*)\"", "condition=\"$1 and $2\"");
+		xmlReplacements.put("condition=\"([^&\"]*)&&([^&\"]*)&&([^&\"]*)\"", "condition=\"$1 and $2 and $3\"");
+		xmlReplacements.put("condition=\"([^&]*)&&", "condition=\"$1 and");
 		xmlReplacements.put("condition=\"([^<]*?)<=([^<]*?)<=", "condition=\"$1 LE $2 LE");
 
         xmlReplacements.put("options=\"([^\"]*)<=([^\"]*)\"", "options=\"$1 \\\\(\\\\le\\\\) $2\"");

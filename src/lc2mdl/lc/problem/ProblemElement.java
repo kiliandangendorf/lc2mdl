@@ -65,6 +65,9 @@ public abstract class ProblemElement {
 		//gnuplot
 		text=replaceGnuPlot(text);
 		
+		// image tags
+		text = replaceImages(text);
+
 		//VARS in {@ ... @}
 		text=replaceVariables(text);
 				
@@ -98,6 +101,9 @@ public abstract class ProblemElement {
 		log.finer("-transfom text variable");
 		//gnuplot
 		text=replaceGnuPlot(text);
+
+		// img tags
+		text = replaceImages(text);
 
 		//HTML-ELEMENTSs
 		text=replaceHTMLTags(text);
@@ -212,6 +218,19 @@ public abstract class ProblemElement {
 			text.replace(gnuString, gnuplotEl.getPlotString());
 		}
 		return text;
+	}
+
+	private String replaceImages(String text){
+		String imgPat = "< {0,}img[^>]*\\/ {0,}>";
+		Matcher matcher = Pattern.compile(imgPat).matcher(text);
+		while (matcher.find()) {
+			String imgString = matcher.group();
+			Image imageEl = new Image(problem, node, imgString);
+			imageEl.consumeNode();
+			text.replace(imgString, imageEl.getImgString());
+		}
+		return text;
+
 	}
 
 	private String replaceMathTags(String text){

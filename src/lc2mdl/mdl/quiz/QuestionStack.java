@@ -13,15 +13,6 @@ public class QuestionStack extends Question{
 	
 	//inherited from QuizElement private String name;
 	
-	// text & CDATA
-	private String questiontext="";
-	// text
-	private String generalfeedback="";
-	private double defaultgrade=1.0;
-	private double penalty=0.0;//0.1;
-	private boolean hidden=false;
-	
-	private String idnumber="";
 
 	// text
 	// to make sure, its "newer" Stack (not old Syntax)
@@ -61,18 +52,9 @@ public class QuestionStack extends Question{
 
 	@Override
 	public Element exportToDom(Document dom) {
-
-		Element e=dom.createElement("question");
+		Element e = super.exportToDom(dom);
 		e.setAttribute("type", "stack");
 
-		addElementAndTextContent(dom, e, "name", name); //only this classes name is in text-tags
-		
-		addElementAndTextContent(dom, e, "questiontext", questiontext).setAttribute("format", "html");
-		addElementAndTextContent(dom, e, "generalfeedback", generalfeedback).setAttribute("format", "html");;
-		addElementAndContent(dom, e, "defaultgrade", defaultgrade);
-		addElementAndContent(dom, e, "penalty", penalty);
-		addElementAndContent(dom, e, "hidden", hidden);
-		addElementAndContent(dom, e, "idnumber", idnumber);
 		addElementAndTextContent(dom, e, "stackversion", stackversion);
 		addElementAndTextContent(dom, e, "questionvariables", questionvariables);
 		addElementAndTextContent(dom, e, "specificfeedback", specificfeedback).setAttribute("format", "html");;
@@ -134,10 +116,6 @@ public class QuestionStack extends Question{
 	}
 
 	
-	public void addToQuestionText(String s){
-		if(s==null)return;
-		this.questiontext = this.questiontext+System.lineSeparator()+s.trim();
-	}
 	public void addToQuestionVariables(String s){
 		if(s==null)return;
 		this.questionvariables= this.questionvariables+System.lineSeparator()+s.trim();
@@ -233,49 +211,23 @@ public class QuestionStack extends Question{
 		specificfeedback=specificfeedback+"[[feedback:"+p.getName()+"]]";
 	}
 
+	private Element setTagsAndCommentsInDom(Document dom, Element e){
+		tags.add("lc2mdl");
+		Element t = dom.createElement("tags");
+		e.appendChild(t);
+		for (String s: tags) {
+			addElementAndTextContent(dom, t, "tag", s);
+		}
+		e = setCommentsInDom(dom,e);
+
+		return e;
+	}
+
+
 
 	//================================================================================
     // Getter and Setter
     //================================================================================
-	public String getQuestiontext() {
-		return questiontext;
-	}
-
-	public void setQuestiontext(String questiontext) {
-		this.questiontext = questiontext;
-	}
-
-	public String getGeneralfeedback() {
-		return generalfeedback;
-	}
-
-	public void setGeneralfeedback(String generalfeedback) {
-		this.generalfeedback = generalfeedback;
-	}
-
-	public double getDefaultgrade() {
-		return defaultgrade;
-	}
-
-	public void setDefaultgrade(double defaultgrade) {
-		this.defaultgrade = defaultgrade;
-	}
-
-	public double getPenalty() {
-		return penalty;
-	}
-
-	public void setPenalty(double penalty) {
-		this.penalty = penalty;
-	}
-
-	public boolean isHidden() {
-		return hidden;
-	}
-
-	public void setHidden(boolean hidden) {
-		this.hidden = hidden;
-	}
 
 	public String getStackversion() {
 		return stackversion;

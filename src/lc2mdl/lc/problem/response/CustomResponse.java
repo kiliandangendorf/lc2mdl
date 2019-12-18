@@ -14,12 +14,13 @@ public class CustomResponse extends Response {
 
 	protected String answer="";// must fit perl params if there is a $-sign
 	private String answerDisplay;
-	private String addToFeedbackVariables;
-	private String comment;
+	protected String addToFeedbackVariables;
+	protected String comment;
 
 
     public CustomResponse(Problem problem, Node node){
         super(problem, node);
+        answer = "bool"+inputName;
     }
 
     @Override
@@ -61,24 +62,8 @@ public class CustomResponse extends Response {
             log.warning("-still unknown attributes in response.");
         }
 
-        NodeList nlist = e.getChildNodes();
-        for (int i=0; i<nlist.getLength(); i++){
-			Element element = (Element)nlist.item(i);
-			if (element.getTagName().equals("answer")) {
-			    String script =  element.getTextContent();
-			    script = System.lineSeparator()+"submission :"+inputName+System.lineSeparator()+"bool"+inputName+": false";
-			    String patString = "return\\s*?'EXACT_ANS'\\s*;";
-			    script = script.replaceAll(patString, "bool"+inputName+": true");
-			    patString = "return\\s*?'INCORRECT'\\s*;";
-			    script = script.replaceAll(patString, "bool"+inputName+": false");
-                element.setTextContent(script);
-                PerlScript ps= new PerlScript(problem,element);
-                ps.consumeNode();
-                addToFeedbackVariables = ps.getScript();
-                comment = ps.getScriptComment();
-                element.setTextContent(null);
-			}
-		}
+        // Answer
+        consumeAnswer(e);
 
        //RESPONSEPARAM
 		consumeResponseParameter(e);
@@ -115,7 +100,7 @@ public class CustomResponse extends Response {
 		//NODE-TAG
 		NodeMdl nodeMdl=new NodeMdl();
 		nodeMdl.setAnswertest("AlgEquiv");
-		nodeMdl.setSans("bool"+inputName);
+		nodeMdl.setSans(answer);
 		nodeMdl.setTans("true");
 		nodeMdl.setTruefeedback(correcthinttext);
 		nodeMdl.setFalsefeedback(incorrecthinttext);
@@ -131,5 +116,28 @@ public class CustomResponse extends Response {
 		question.addToFeedbackVariablesOfCurrentPrt(addToFeedbackVariables);
 
 		question.addComment(comment);
+    }
+
+    protected void consumeAnswer(Element e){
+        NodeList nlist = e.getChildNodes();
+        for (int i=0; i<nlist.getLength(); i++){
+            if(!(nlist.item(i).getNodeType()==Node.ELEMENT_NODE))continue;
+			Element element = (Element)nlist.item(i);
+			if (element.getTagName().equals("answer")) {
+			    String script =  element.getTextContent();
+			    String startString = System.lineSeparator()+"submission : "+inputName+System.lineSeparator()+answer+" : false";
+			    String patString = "return\\s*?'EXACT_ANS'\\s*;";
+			    script = script.replaceAll(patString, answer+" : true");
+			    patString = "return\\s*?'INCORRECT'\\s*;";
+			    script = script.replaceAll(patString, answer+" : false");
+			    script = startString+System.lineSeparator()+script;
+                element.setTextContent(script);
+                PerlScript ps= new PerlScript(problem,element);
+                ps.consumeNode();
+                addToFeedbackVariables = ps.getScript();
+                comment = ps.getScriptComment();
+                element.setTextContent(null);
+			}
+		}
     }
 }

@@ -1,8 +1,8 @@
 package lc2mdl.lc.problem;
 
-import org.w3c.dom.Node;
-
+import lc2mdl.mdl.quiz.Question;
 import lc2mdl.mdl.quiz.QuestionStack;
+import org.w3c.dom.Node;
 
 public class Outtext extends ProblemElement{
 	
@@ -28,6 +28,10 @@ public class Outtext extends ProblemElement{
 		question.addToQuestionText(text);
 	}
 
+	public void addToMdlQuestion(Question question) {
+		//Add content to questiontext
+		question.addToQuestionText(text);
+	}
 	public String getText() {
 		return text;
 	}

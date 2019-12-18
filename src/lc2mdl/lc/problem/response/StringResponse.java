@@ -15,7 +15,10 @@ public class StringResponse extends Response {
 	protected boolean preprocess;
 
     public StringResponse(Problem problem, Node node){
+
         super(problem,node);
+        problem.addQuestionType(questionType);
+
     }
 
     @Override
@@ -47,7 +50,7 @@ public class StringResponse extends Response {
                 log.warning("cannot handle type "+type+" Set type to \"cs\"");
                 type="cs";
             }
-            e.removeAttribute(type);
+            e.removeAttribute("type");
         }
 
         if(e.hasAttribute("answerdisplay")){

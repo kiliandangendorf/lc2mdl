@@ -1,23 +1,28 @@
 package lc2mdl.mdl.quiz;
 
-import java.util.ArrayList;
-
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import java.util.ArrayList;
+
 public class Quiz{
 
-	private ArrayList<Question> questions = new ArrayList<>();
+	private ArrayList<QuizElement> questions = new ArrayList<>();
 
-	public void addQuestion(Question question){
+	public void addQuizelement(QuizElement question){
 		questions.add(question);
+
+	}
+
+	public void addAllQuizelements(ArrayList<QuizElement> list){
+		questions.addAll(list);
 	}
 	
 	public Element exportToDom(Document dom) {
 
 		Element e=dom.createElement("quiz");
 		
-		for(Question q: questions){
+		for(QuizElement q: questions){
 			e.appendChild(q.exportToDom(dom));
 		}
 		return e;

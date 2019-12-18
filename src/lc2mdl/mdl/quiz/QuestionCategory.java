@@ -3,7 +3,7 @@ package lc2mdl.mdl.quiz;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-public class QuestionCategory extends Question{
+public class QuestionCategory extends QuizElement{
 
 	// text
 	private String category="$course$/top/Default for mdl_test";
@@ -36,18 +36,15 @@ public class QuestionCategory extends Question{
 		return category;
 	}
 
-
 	public void setCategory(String category) {
 		this.category = category;
 	}
 
 	public void setCategoryWithPrefix(String category){ this.category = prefix+category; }
 
-
 	public String getInfo() {
 		return info;
 	}
-
 
 	public void setInfo(String info) {
 		this.info = info;

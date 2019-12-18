@@ -8,8 +8,6 @@ import java.util.List;
 
 public class FileFinder {
 
-
-
     public static String findFilesRecursively(File inputfolder,  String pathToFile, HashMap<String,String> files) throws FileNotFoundException {
 
         String[] pathSplit = pathToFile.split("/");
@@ -34,6 +32,11 @@ public class FileFinder {
         }
 
         return fileName;
+    }
+
+    public static String extractFileName(String pathName){
+        String filename = pathName.substring(pathName.lastIndexOf("/")+1);
+        return filename;
     }
 
     private static List<String> searchFile(File inputFolder, String fileName){

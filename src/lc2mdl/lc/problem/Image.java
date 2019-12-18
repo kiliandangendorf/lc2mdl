@@ -1,6 +1,7 @@
 package lc2mdl.lc.problem;
 
 import lc2mdl.mdl.quiz.QuestionStack;
+import lc2mdl.util.FileFinder;
 import lc2mdl.xml.XMLParser;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -23,11 +24,11 @@ public class Image extends ProblemElement {
         super(problem, node);
         try{
              Document dom= XMLParser.parseString2DOM(LCimgString);
-             NodeList gnuList = dom.getElementsByTagName("img");
-             if (gnuList.getLength()>1) {
+             NodeList imgList = dom.getElementsByTagName("img");
+             if (imgList.getLength()>1) {
                 log.warning("--found more than one img element, handle only the first one");
              }
-             img = (Element)gnuList.item(0);
+             img = (Element)imgList.item(0);
         }catch(Exception e){
 				log.warning("--unable to read img-block.");
 				e.printStackTrace();
@@ -45,8 +46,15 @@ public class Image extends ProblemElement {
             if (src.charAt(0) == '$') {
                 imgString = "{@ " + src.substring(1) + " @}";
             } else {
-
+                String key = FileFinder.extractFileName(src);
+                String svgString = problem.getImagesSVG().get(key);
+                if (svgString==null){
+                    log.warning("--did not find svg for image "+key);
+                    svgString="";
+                }
+                imgString = svgString;
             }
+            img.removeAttribute("src");
         }else{
             log.warning("no src in image");
         }

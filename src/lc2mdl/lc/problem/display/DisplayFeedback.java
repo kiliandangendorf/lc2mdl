@@ -1,6 +1,7 @@
 package lc2mdl.lc.problem.display;
 
 import lc2mdl.lc.problem.Gnuplot;
+import lc2mdl.lc.problem.Image;
 import lc2mdl.lc.problem.Problem;
 import lc2mdl.lc.problem.ProblemElement;
 import lc2mdl.mdl.quiz.QuestionStack;
@@ -52,6 +53,12 @@ public abstract class DisplayFeedback extends ProblemElement {
                     Gnuplot gnuplot = new Gnuplot(problem,element);
                     gnuplot.consumeNode();
                     feedbackText += System.lineSeparator() + gnuplot.getPlotString();
+                    break;
+                case "img":
+                    log.finer("found feedback image");
+                    Image image = new Image(problem,element);
+                    image.consumeNode();
+                    feedbackText += System.lineSeparator() + image.getImgString();
                     break;
                 default:
                     log.warning("found unknown feedback tag " + element.getTagName());

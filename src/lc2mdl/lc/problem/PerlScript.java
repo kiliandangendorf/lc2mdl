@@ -2,6 +2,7 @@ package lc2mdl.lc.problem;
 
 import lc2mdl.mdl.quiz.QuestionStack;
 import lc2mdl.util.ConvertAndFormatMethods;
+import lc2mdl.util.FileFinder;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
@@ -80,11 +81,11 @@ public class PerlScript extends ProblemElement{
 
 		replaceSyntax();
 
-		//SPECIAL CHARS
-		searchForSpecialChars();
-
 		// replace Strings
 		replaceStrings();
+
+		//SPECIAL CHARS
+		searchForSpecialChars();
 
 		script = convertWarning + System.lineSeparator() + script;
 	}
@@ -96,6 +97,7 @@ public class PerlScript extends ProblemElement{
 	}
 
 	private void searchForSpecialChars(){
+		log.finer("-- search for special characters");
 		ArrayList<String> specialChars=new ArrayList<>(Arrays.asList("\\$","@","&","{","}"));
 		int[] count=new int[specialChars.size()];
 		Arrays.fill(count,0);
@@ -348,6 +350,7 @@ public class PerlScript extends ProblemElement{
 
 
 	private void replaceFunctions(){
+		log.finer("-- replace functions");
 		HashMap<String,String> functionReplacements=new HashMap<>();
 
 		//ONE BY ONE CONVERSION (same parameters)
@@ -588,11 +591,13 @@ public class PerlScript extends ProblemElement{
 		log.finer("--save strings before transforming");
 		String buf = script;
 		stringNo=0;
-		String patString = "\"(((\\\")|[^\"])*?)\"";
+		// TODO there are still problems with this regex
+		String patString = "(\"\")|((?<!\\\\)\"(((\\\")|[^\"])*?)[^\\\\]\")";
 		Pattern pat = Pattern.compile(patString);
 		Matcher matcher = pat.matcher(buf);
 		while (matcher.find()){
 			String stringText = matcher.group();
+			//log.finer("--- found "+stringText);
 			String replacement = "lc2mdltext"+stringNo;
 			stringNo++;
 			stringsInScript.add(stringText);
@@ -603,6 +608,7 @@ public class PerlScript extends ProblemElement{
 		matcher = pat.matcher(buf);
 		while (matcher.find()){
 			String stringText = matcher.group();
+			//log.finer("--- found "+stringText);
 			String replacement = "lc2mdltext"+stringNo;
 			stringNo++;
 			stringsInScript.add(stringText);
@@ -620,11 +626,27 @@ public class PerlScript extends ProblemElement{
 			// remove " or '
 			stringText = stringText.substring(1,stringText.length()-1);
 			stringText = transformTextVariable(stringText);
-			log.finer("replace text" + stringText);
+			stringText = replaceImagePathBySVG(stringText);
+			//log.finer("replace text" + stringText);
 			buf = buf.replaceFirst("lc2mdltext"+i, stringText);
 		}
 
 		script = buf;
+	}
+
+	private String replaceImagePathBySVG(String pathString){
+		String svgString=pathString;
+		pathString = pathString.substring(1,pathString.length()-1); // remove " "
+		if (pathString.endsWith(".png") || pathString.endsWith(".jpg") || pathString.endsWith("gif") || pathString.endsWith(".PNG") ||  pathString.endsWith(".JPG") ||  pathString.endsWith("GIF")){
+			svgString = FileFinder.extractFileName(pathString);
+			log.finer("pathname = "+pathString+" , filename = "+svgString);
+			svgString = problem.getImagesSVG().get(svgString);
+			if (svgString==null){
+				log.warning("did not find svg for image "+pathString);
+				svgString = pathString;
+			}
+		}
+		return svgString;
 	}
 
 	private void replaceKeysByValues(HashMap<String,String> replacements){
