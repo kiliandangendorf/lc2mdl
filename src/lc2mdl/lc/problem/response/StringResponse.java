@@ -17,6 +17,7 @@ public class StringResponse extends Response {
     public StringResponse(Problem problem, Node node){
 
         super(problem,node);
+        questionType = "stack";
         problem.addQuestionType(questionType);
 
     }

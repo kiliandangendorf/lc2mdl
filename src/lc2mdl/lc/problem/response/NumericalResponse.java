@@ -18,6 +18,7 @@ public class NumericalResponse extends Response{
 	public NumericalResponse(Problem problem,Node node){
 
 		super(problem,node);
+		questionType = "stack";
 		problem.addQuestionType(questionType);
 
 	}

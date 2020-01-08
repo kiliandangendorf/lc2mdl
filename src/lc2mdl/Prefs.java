@@ -21,4 +21,17 @@ public class Prefs {
 
 	public static final String BIN_DIR="/usr/bin/";
 	 // directory for convert (ImageMagick)
+
+	// text for option responses with checkboxes
+	public static final String OPTION_TEXT="Die vorhandenen Optionen sind: ";
+	public static final String CHECKBOX_TEXT="Bitte kreuzen Sie alle Aussagen an, auf die die Option ";
+	public static final String CHECKBOX_TEXT_END=" zutrifft!";
+
+	// text for essay response within a stack question
+	public static final String ESSAY_TEXT_FIELD_STACK="Bitte beantworten Sie die Frage im Textfeld der nachfolgenden Frage!";
+	public static final String ESSAY_TEXT_FILE_STACK="Bitte beantworten Sie die Frage durch Hochladen der passenden Datei in der nachfolgenden Frage!";
+	public static final String ESSAY_TEXT_FIELD_ESSAY="Bitte beantworten Sie die vorhergehende Frage in diesem Textfeld!";
+	public static final String ESSAY_TEXT_FILE_ESSAY="Bitte beantworten Sie die vorhergehende Frage durch Hochladen der passenden Datei!";
+
+
 }

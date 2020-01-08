@@ -3,10 +3,8 @@ package lc2mdl.mdl;
 import lc2mdl.Prefs;
 import lc2mdl.lc.problem.Problem;
 import lc2mdl.lc.problem.ProblemElement;
-import lc2mdl.mdl.quiz.Question;
-import lc2mdl.mdl.quiz.QuestionCategory;
-import lc2mdl.mdl.quiz.QuestionEssay;
-import lc2mdl.mdl.quiz.QuestionStack;
+import lc2mdl.lc.problem.response.EssayResponse;
+import lc2mdl.mdl.quiz.*;
 
 import java.util.ArrayList;
 import java.util.logging.Logger;
@@ -14,34 +12,52 @@ import java.util.logging.Logger;
 public class QuestionGenerator{
 	public static Logger log = Logger.getLogger(QuestionGenerator.class.getName());
 
-	public ArrayList<Question> generatingQuestions(Problem p){
+	public ArrayList<QuizElement> generatingQuestions(Problem p){
 		log.fine(Prefs.CLI_LINE_SEP);
 		log.fine("Starting generating Question.");
 
-		ArrayList<Question> qlist = new ArrayList<>();
+		ArrayList<QuizElement> qlist = new ArrayList<QuizElement>();
+
+		QuestionCategory category = generatingQuestionCategory(p);
+		qlist.add(category);
 
 		ArrayList<String> types = p.getQuestiontypes();
 		Boolean isList = (types.size()>1);
 
-		for (String t : types){
-			switch (t) {
-				case "stack":
-					QuestionStack qs = generatingQuestionStack(p);
-					if (isList) {
-						qs.setName(qs.getName()+t);
-					}
-					qlist.add(qs);
-					break;
-				case "essay":
-					QuestionEssay qe = generatingQuestionEssay(p);
-					if (isList) {
-						qe.setName(qe.getName()+t);
-					}
-					qlist.add(qe);
-					break;
-				default:
-					log.warning("unknown question type "+t);
-					break;
+		if (isList) {
+			for (String t : types) {
+				switch (t) {
+					case "stack":
+						QuestionStack qs = generatingQuestionStack(p);
+						qs.setName(qs.getName() + t);
+						qlist.add(qs);
+						break;
+					case "essay":
+						QuestionEssay qe = generatingQuestionEssay(p);
+						qe.setName(qe.getName() + t);
+						qlist.add(qe);
+						break;
+					default:
+						log.warning("unknown question type " + t);
+						break;
+				}
+			}
+		}else{
+			if (!types.isEmpty()) {
+				String t = types.get(0);
+				switch (t) {
+					case "stack":
+						QuestionStack qs = generatingQuestionStack(p);
+						qlist.add(qs);
+						break;
+					case "essay":
+						QuestionEssay qe = generatingAdditionalQuestionEssay(p);
+						qlist.add(qe);
+						break;
+					default:
+						log.warning("unknown question type " + t);
+						break;
+				}
 			}
 		}
 
@@ -76,7 +92,7 @@ public class QuestionGenerator{
 	 */
 	public QuestionEssay generatingQuestionEssay(Problem p){
 		log.fine(Prefs.CLI_LINE_SEP);
-		log.fine("Starting generating Question.");
+		log.fine("Starting generating Essay Question.");
 
 		QuestionEssay question=new QuestionEssay();
 
@@ -84,12 +100,39 @@ public class QuestionGenerator{
 		question.setTags(p.getTags());
 		log.finer("add converted elements to question");
 		for(ProblemElement e:p.getElements()){
-			// e.addToMdlQuestion(question);
+			e.addToMdlQuestion(question);
 		}
 
-		log.fine("Done generating Question.");
+		log.fine("Done generating Essay Question.");
 		return question;
 	}
+
+	public QuestionEssay generatingAdditionalQuestionEssay(Problem p){
+		log.fine(Prefs.CLI_LINE_SEP);
+		log.fine("Starting generating additional Essay Question.");
+
+		QuestionEssay question=new QuestionEssay();
+
+		question.setName(p.getProblemName());
+		question.setTags(p.getTags());
+		for(ProblemElement e:p.getElements()){
+			if (e.getQuestionType().equals("essay")){
+				EssayResponse er = (EssayResponse)e;
+				er.addToMdlQuestion(question);
+				if (question.isFile()){
+					question.addToQuestionText(Prefs.ESSAY_TEXT_FILE_ESSAY);
+				}else{
+					question.addToQuestionText(Prefs.ESSAY_TEXT_FIELD_ESSAY);
+				}
+
+			}
+
+		}
+
+		log.fine("Done generating addtional Question.");
+		return question;
+	}
+
 	/**
 	 * Generates a questioncategry object and fills it with the path to the problem
 	 */

@@ -5,9 +5,8 @@ import lc2mdl.lc.ProblemReader;
 import lc2mdl.lc.ProblemSimplifier;
 import lc2mdl.lc.problem.Problem;
 import lc2mdl.mdl.QuestionGenerator;
-import lc2mdl.mdl.quiz.QuestionCategory;
-import lc2mdl.mdl.quiz.QuestionStack;
 import lc2mdl.mdl.quiz.Quiz;
+import lc2mdl.mdl.quiz.QuizElement;
 import lc2mdl.util.LogFormatterKD;
 import lc2mdl.xml.PreParser;
 import lc2mdl.xml.XMLParser;
@@ -18,6 +17,7 @@ import org.w3c.dom.Document;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.logging.*;
@@ -123,14 +123,12 @@ public class Converter{
 			
 			// GENERATE QUESTION DOM
 			QuestionGenerator qg=new QuestionGenerator();
-			QuestionCategory category = qg.generatingQuestionCategory(p);
-			QuestionStack question=qg.generatingQuestionStack(p);
+			ArrayList<QuizElement> qlist = qg.generatingQuestions(p);
 
 					
 			// WRITE QUIZ-XML FILE
 			Quiz quiz=new Quiz();
-			quiz.addQuizelement(category);
-			quiz.addQuizelement(question);
+			quiz.addAllQuizelements(qlist);
 			XMLWriter xw=new XMLWriter();
 			xw.writeQuiz2XML(quiz,outputfile);
 			

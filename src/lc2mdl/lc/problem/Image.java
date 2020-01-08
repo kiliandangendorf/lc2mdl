@@ -1,5 +1,6 @@
 package lc2mdl.lc.problem;
 
+import lc2mdl.mdl.quiz.Question;
 import lc2mdl.mdl.quiz.QuestionStack;
 import lc2mdl.util.FileFinder;
 import lc2mdl.xml.XMLParser;
@@ -62,10 +63,12 @@ public class Image extends ProblemElement {
         if (img.hasAttribute("width")){
             width=img.getAttribute("width");
             img.removeAttribute("width");
+            imgString = imgString.replaceFirst("width=\"[0-9]*px\"","width=\""+width+"px\"");
         }
         if (img.hasAttribute("height")){
             height=img.getAttribute("height");
             img.removeAttribute("height");
+            imgString = imgString.replaceFirst("height=\"[0-9]*px\"","height=\""+height+"px\"");
         }
         removeAttributeIfExist(img,"TeXwrap");
         removeAttributeIfExist(img,"TeXwidth");
@@ -85,5 +88,9 @@ public class Image extends ProblemElement {
         question.addToQuestionText(imgString);
     }
 
+    @Override
+    public void addToMdlQuestion(Question question) {
+        question.addToQuestionText(imgString);
+    }
     public String getImgString() { return imgString; }
 }

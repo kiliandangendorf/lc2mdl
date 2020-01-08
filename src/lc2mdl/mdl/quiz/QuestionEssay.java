@@ -12,6 +12,7 @@ public class QuestionEssay extends Question {
     private String attachments = "0";
     private String attachmentsrequired = "0";
     private String responseformat="editor"; // or noinline
+    private boolean file = false;
 
 
     @Override
@@ -35,5 +36,8 @@ public class QuestionEssay extends Question {
         attachments="-1";
         responseformat = "noinline";
         attachmentsrequired = "1";
+        file = true;
     }
+
+    public boolean isFile() { return file;   }
 }

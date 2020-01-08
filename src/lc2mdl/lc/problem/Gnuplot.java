@@ -14,6 +14,8 @@ public class Gnuplot extends ProblemElement {
 
     public Gnuplot(Problem problem, Node node){
         super(problem,node);
+        questionType = "stack";
+        problem.addQuestionType(questionType);
         gnu = (Element)node;
     }
 

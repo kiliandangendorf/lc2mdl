@@ -14,6 +14,7 @@ public class FormulaResponse extends Response{
 
 	public FormulaResponse(Problem problem,Node node){
 		super(problem,node);
+		questionType = "stack";
 		problem.addQuestionType(questionType);
 	}
 

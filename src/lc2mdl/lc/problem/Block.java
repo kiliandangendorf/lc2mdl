@@ -12,6 +12,8 @@ public class Block extends ProblemElement {
 
     public Block(Problem problem, Node node) {
         super(problem, node);
+        questionType = "stack";
+        problem.addQuestionType(questionType);
         index = problem.getIndexFromSameClassOnly(this)+1;
     }
 

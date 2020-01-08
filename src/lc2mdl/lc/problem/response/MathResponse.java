@@ -24,10 +24,9 @@ public class MathResponse extends Response{
 	protected String boolans="boolans";
 	
 	public MathResponse(Problem problem,Node node){
-
 		super(problem,node);
+		questionType = "stack";
 		problem.addQuestionType(questionType);
-
 	}
 
 	@Override

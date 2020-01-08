@@ -1,9 +1,9 @@
 package lc2mdl.xml;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.URL;
-import java.util.logging.Logger;
+import lc2mdl.Prefs;
+import lc2mdl.mdl.quiz.Quiz;
+import org.w3c.dom.Document;
+import org.xml.sax.SAXException;
 
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
@@ -17,12 +17,10 @@ import javax.xml.transform.stream.StreamResult;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
-
-import org.w3c.dom.Document;
-import org.xml.sax.SAXException;
-
-import lc2mdl.Prefs;
-import lc2mdl.mdl.quiz.Quiz;
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+import java.util.logging.Logger;
 
 public class XMLWriter {
 	private static final Logger log = Logger.getLogger(XMLWriter.class.getName());
@@ -43,12 +41,12 @@ public class XMLWriter {
 	
 			//get DOM from question-Object
 			dom.appendChild(quiz.exportToDom(dom));
-
-			try{
-				validateQuizDom(dom);
-			}catch(Exception e){
-				log.warning("error while validating. Message: \""+e.getMessage()+"\"");
-			}
+//
+//			try{
+//				validateQuizDom(dom);
+//			}catch(Exception e){
+//				log.warning("error while validating. Message: \""+e.getMessage()+"\"");
+//			}
 		
 			writeDom2XML(dom,outputfile);
 			

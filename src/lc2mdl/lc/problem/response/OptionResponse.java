@@ -1,5 +1,6 @@
 package lc2mdl.lc.problem.response;
 
+import lc2mdl.Prefs;
 import lc2mdl.lc.problem.Problem;
 import lc2mdl.lc.problem.response.hints.ConditionalHint;
 import lc2mdl.mdl.quiz.Input;
@@ -18,8 +19,10 @@ public class OptionResponse extends ChoiceResponse {
     protected ArrayList<String> options = new ArrayList<>();
     private int mincheck=0;
     private int maxcheck=0;
-    private String optionText = "Die vorhandenen Optionen sind: ";
-    private String checkboxText="Bitte kreuzen Sie alle Aussagen an, auf die die Option ";
+    private String optionText = Prefs.OPTION_TEXT;
+    private String checkboxText= Prefs.CHECKBOX_TEXT;
+    private String checkboxTextEnd= Prefs.CHECKBOX_TEXT_END;
+
     private String answerbox=responseprefix+"_box";
     protected ArrayList<NodeMdl> nodeMdls = new ArrayList<NodeMdl>();
 
@@ -75,7 +78,7 @@ public class OptionResponse extends ChoiceResponse {
                 }
 
                 if (isCheckBox){
-                     checkboxText = optionText+"<br/>"+checkboxText+checkBoxValue+" zutrifft!";
+                     checkboxText = optionText+"<br/>"+checkboxText+checkBoxValue+checkboxTextEnd;
                 }
 
                 if  (element.hasAttribute("maxcheck")){
@@ -92,7 +95,7 @@ public class OptionResponse extends ChoiceResponse {
                     }
                     element.removeAttribute("mincheck");
                 }
-                removeAttributeIfExist(e,"checkboxoptions");
+                removeAttributeIfExist(element,"checkboxoptions");
             }
         }
 

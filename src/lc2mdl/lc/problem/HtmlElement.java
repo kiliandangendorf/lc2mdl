@@ -1,9 +1,9 @@
 package lc2mdl.lc.problem;
 
+import lc2mdl.mdl.quiz.Question;
+import lc2mdl.mdl.quiz.QuestionStack;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
-
-import lc2mdl.mdl.quiz.QuestionStack;
 
 public class HtmlElement extends ProblemElement{
 
@@ -51,5 +51,11 @@ public class HtmlElement extends ProblemElement{
 		//Add HTML-tag to questiontext
 		question.addToQuestionText(htmlString);
 	}
+
+	public void addToMdlQuestion(Question question){
+		//Add HTML-tag to questiontext
+		question.addToQuestionText(htmlString);
+	}
+
 
 }

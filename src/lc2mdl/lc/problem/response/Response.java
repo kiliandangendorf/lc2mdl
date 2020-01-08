@@ -12,7 +12,6 @@ import java.util.ArrayList;
 
 public abstract class Response extends ProblemElement{
 
-	protected String questionType="stack";
 	protected String inputName;
 	protected String inputString;
 

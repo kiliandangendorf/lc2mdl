@@ -1,6 +1,7 @@
 package lc2mdl.lc.problem;
 
 import lc2mdl.Prefs;
+import lc2mdl.mdl.quiz.Question;
 import lc2mdl.mdl.quiz.QuestionStack;
 import lc2mdl.xml.XMLParser;
 import org.w3c.dom.Document;
@@ -20,6 +21,8 @@ public abstract class ProblemElement {
 
 	protected Problem problem;
 	protected Node node;
+	protected String questionType="all";
+
 
 	public ProblemElement(Problem problem, Node node){
 		this.problem=problem;
@@ -34,7 +37,8 @@ public abstract class ProblemElement {
 	 * Add converted values to given QuestionStack-object.
 	 */
 	public abstract void addToMdlQuestion(QuestionStack question);
-	
+	public  void addToMdlQuestion(Question question){}
+
 	
 	protected void removeNodesFromDOM(ArrayList<Node> nodesToRemove){
 		for(Node n:nodesToRemove){
@@ -452,4 +456,5 @@ public abstract class ProblemElement {
 		this.node = node;
 	}
 
+	public String getQuestionType() { return questionType; 	}
 }

@@ -142,7 +142,7 @@ public class ProblemReader{
 					readingRecursively(problem,element);
 					break;
 
-				case "table":case "tr": case "td": case "ol": case "ul": case "li" :case "center": case "br": case "hr" : case "div" : case "p":
+				case "table":case "tr": case "td": case "ol": case "ul": case "li" :case "center": case "br": case "hr" : case "div" : case "p": case "b":
 					log.finer("found HTML element: "+element.getTagName());
 					//put open-tag before and close-tag behind all child elements
 					problem.addElement(new HtmlElement(problem,element,HtmlElement.OPEN));					
@@ -176,10 +176,12 @@ public class ProblemReader{
 					log.finer("found postanswerdate");
 					problem.addElement(new PostAnswerDate(problem,element));
                 case "import":
+                	log.finer("found import");
                     String path= element.getTextContent();
                     Node libNode = readingLibDom(path);
                     if (libNode !=  null){
                        readingRecursively(problem,libNode);
+                       element.setTextContent(null);
                     }
                     problem.addElement(new IgnoredElement(problem,element));
                     break;

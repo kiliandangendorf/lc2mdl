@@ -1,5 +1,6 @@
 package lc2mdl.lc.problem.response;
 
+import lc2mdl.Prefs;
 import lc2mdl.lc.problem.Problem;
 import lc2mdl.mdl.quiz.QuestionEssay;
 import lc2mdl.mdl.quiz.QuestionStack;
@@ -24,8 +25,6 @@ public class EssayResponse extends Response {
     public void consumeNode() {
 
         log.finer("found essay response");
-        log.warning("essay response not supported yet!");
-
         Element e = (Element)node;
 
         // attributes
@@ -51,7 +50,10 @@ public class EssayResponse extends Response {
 
     @Override
     public void addToMdlQuestion(QuestionStack question) {
-        question.addToQuestionText("Warning: Essay response not supported yet");
+        String text="";
+        if (file) { text= Prefs.ESSAY_TEXT_FILE_ESSAY; }
+        else { text = Prefs.ESSAY_TEXT_FIELD_ESSAY; }
+        question.addToQuestionText(text);
 
     }
 

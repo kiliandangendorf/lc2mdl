@@ -48,6 +48,8 @@ public class PerlScript extends ProblemElement{
 
 	public PerlScript(Problem problem, Node node) {
 		super(problem, node);
+        questionType = "stack";
+        problem.addQuestionType(questionType);
 	}
 
 	
