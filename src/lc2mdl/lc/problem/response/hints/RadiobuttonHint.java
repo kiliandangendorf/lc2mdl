@@ -26,7 +26,7 @@ public class RadiobuttonHint extends RadiobuttonResponse implements ConditionalH
 	}
 
 	@Override
-	public void addToMdlQuestion(QuestionStack question){}
+	public void addToMdlQuestionStack(QuestionStack question){}
 
     @Override
     public void consumeNode(){

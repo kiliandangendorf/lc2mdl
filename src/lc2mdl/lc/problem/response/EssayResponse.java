@@ -2,6 +2,7 @@ package lc2mdl.lc.problem.response;
 
 import lc2mdl.Prefs;
 import lc2mdl.lc.problem.Problem;
+import lc2mdl.mdl.quiz.Question;
 import lc2mdl.mdl.quiz.QuestionEssay;
 import lc2mdl.mdl.quiz.QuestionStack;
 import org.w3c.dom.Element;
@@ -49,7 +50,19 @@ public class EssayResponse extends Response {
     }
 
     @Override
-    public void addToMdlQuestion(QuestionStack question) {
+    public void addToMdlQuestionStack(QuestionStack question) {
+       addToMdlQuestion(question);
+    }
+
+    public void addToMdlQuestionEssay(QuestionEssay questionEssay){
+
+        if (file) {
+            questionEssay.setParameterForFile();
+            questionEssay.addToQuestionText("<br/>"+Prefs.ESSAY_FILE_EXT+fileExt);
+        }
+    }
+
+    public void addToMdlQuestion(Question question){
         String text="";
         if (file) { text= Prefs.ESSAY_TEXT_FILE_ESSAY; }
         else { text = Prefs.ESSAY_TEXT_FIELD_ESSAY; }
@@ -57,12 +70,10 @@ public class EssayResponse extends Response {
 
     }
 
-    public void addToMdlQuestion(QuestionEssay questionEssay){
-        if (file) questionEssay.setParameterForFile();
-    }
 
     private void consumeEssayResponseParameter(Element e){
 		ArrayList<Node> nodesToRemove=new ArrayList<>();
+		log.finer("look for responseparams");
 
 		NodeList responseparams=e.getElementsByTagName("responseparam");
 		if(responseparams.getLength()>0)log.finer("-found responseparam");
@@ -78,4 +89,7 @@ public class EssayResponse extends Response {
 		removeNodesFromDOM(nodesToRemove);
 	}
 
+    public boolean isFile() {
+        return file;
+    }
 }

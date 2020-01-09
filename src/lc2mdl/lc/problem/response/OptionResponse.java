@@ -143,7 +143,7 @@ public class OptionResponse extends ChoiceResponse {
     }
 
     @Override
-    public void addToMdlQuestion(QuestionStack question) {
+    public void addToMdlQuestionStack(QuestionStack question) {
         //Add additional vars to questionvariables
 
         question.addToQuestionVariables(additionalCASVars);

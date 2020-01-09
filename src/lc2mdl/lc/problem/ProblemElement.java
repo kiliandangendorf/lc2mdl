@@ -36,7 +36,7 @@ public abstract class ProblemElement {
 	/**
 	 * Add converted values to given QuestionStack-object.
 	 */
-	public abstract void addToMdlQuestion(QuestionStack question);
+	public abstract void addToMdlQuestionStack(QuestionStack question);
 	public  void addToMdlQuestion(Question question){}
 
 	
@@ -249,12 +249,26 @@ public abstract class ProblemElement {
 		String addbackslashes ="";
 		if (isVariable) { addbackslashes ="\\\\"; }
 
-		//TEX all displaymath e.g.<m>$$ ... $$</m> into \[ ... \]
-		leftPat.add("<m {0,}(eval=\"on\"){0,1}(eval=\"off\"){0,1} {0,}> {0,}\\$\\$");
-		rightPat.add("\\$\\$ {0,}<\\/ {0,}m>");
+		// TEX all with begin / end
+		leftPat.add("<m {0,}(eval=\"on\"){0,1}(eval=\"off\"){0,1} {0,}>\\s{0,}\\\\begin");
+		rightPat.add("\\*\\}\\s{0,}<\\/\\s{0,}m>");
 
-		leftPat.add("<m {0,}(eval=\"on\"){0,1}(eval=\"off\"){0,1} {0,}> {0,}\\\\\\[");
-		rightPat.add("\\\\\\] {0,}<\\/ {0,}m>");
+		for (String s: leftPat){
+			text=replacePatternWithString(s,addbackslashes+"\\\\begin",text);
+		}
+		for (String s: rightPat) {
+			text = replacePatternWithString(s, addbackslashes+"\\*"+addbackslashes+"\\}", text);
+		}
+
+		leftPat.clear();
+		rightPat.clear();
+
+		//TEX all displaymath e.g.<m>$$ ... $$</m> into \[ ... \]
+		leftPat.add("<m\\s{0,}(eval=\"on\"){0,1}(eval=\"off\"){0,1}\\s{0,}>\\s{0,}\\$\\$");
+		rightPat.add("\\$\\$\\s{0,}<\\/\\s{0,}m>");
+
+		leftPat.add("<m\\s{0,}(eval=\"on\"){0,1}(eval=\"off\"){0,1}\\s{0,}>\\s{0,}\\\\\\[");
+		rightPat.add("\\\\\\]\\s{0,}<\\/\\s{0,}m>");
 
 		for (String s: leftPat){
 			text=replacePatternWithString(s,addbackslashes+"\\\\[",text);
@@ -263,18 +277,18 @@ public abstract class ProblemElement {
 			text = replacePatternWithString(s, addbackslashes+"\\\\]", text);
 		}
 
-		//LaTeX all other math into \( ... \)
 		leftPat.clear();
 		rightPat.clear();
 
-		leftPat.add("<m {0,}(eval=\"on\"){0,1}(eval=\"off\"){0,1} {0,}>\\${0,1}");
-		rightPat.add("\\${0,1}<\\/ {0,}m>");
+		//LaTeX all other math into \( ... \)
+		leftPat.add("<m\\s{0,}(eval=\"on\"){0,1}(eval=\"off\"){0,1}\\s{0,}>\\${0,1}");
+		rightPat.add("\\${0,1}\\s{0,}<\\/\\s{0,}m>");
 
-		leftPat.add("<algebra {0,}>\\${0,1}");
-		rightPat.add("\\${0,1}<\\/ {0,}algebra>");
+		leftPat.add("<algebra\\s{0,}>\\s{0,}\\${0,1}");
+		rightPat.add("\\${0,1}\\s{0,}<\\/ {0,}algebra>");
 
-		leftPat.add("<tex {0,}>\\${0,1}");
-		rightPat.add("\\${0,1}<\\/ {0,}tex>");
+		leftPat.add("<tex\\s{0,}{0,}>\\s{0,}\\${0,1}");
+		rightPat.add("\\${0,1}\\s{0,}<\\/\\s{0,}tex>");
 
 		for (String s: leftPat){
 			text=replacePatternWithString(s,addbackslashes+"\\\\(",text);

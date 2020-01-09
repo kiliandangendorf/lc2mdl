@@ -47,9 +47,8 @@ public class HtmlElement extends ProblemElement{
 	}
 
 	@Override
-	public void addToMdlQuestion(QuestionStack question){
-		//Add HTML-tag to questiontext
-		question.addToQuestionText(htmlString);
+	public void addToMdlQuestionStack(QuestionStack question){
+		addToMdlQuestion(question);
 	}
 
 	public void addToMdlQuestion(Question question){

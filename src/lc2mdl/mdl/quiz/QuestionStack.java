@@ -11,9 +11,6 @@ public class QuestionStack extends Question{
 //	private String attr_type="stack"; //stack
 //	only stack-only questions will be exported 
 	
-	//inherited from QuizElement private String name;
-	
-
 	// text
 	// to make sure, its "newer" Stack (not old Syntax)
 	private String stackversion="2018080600";
@@ -211,17 +208,6 @@ public class QuestionStack extends Question{
 		specificfeedback=specificfeedback+"[[feedback:"+p.getName()+"]]";
 	}
 
-	private Element setTagsAndCommentsInDom(Document dom, Element e){
-		tags.add("lc2mdl");
-		Element t = dom.createElement("tags");
-		e.appendChild(t);
-		for (String s: tags) {
-			addElementAndTextContent(dom, t, "tag", s);
-		}
-		e = setCommentsInDom(dom,e);
-
-		return e;
-	}
 
 
 

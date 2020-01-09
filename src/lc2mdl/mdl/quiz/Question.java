@@ -42,7 +42,19 @@ public abstract class Question extends QuizElement{
 		return e;
     }
 
- 	public void addComment(String s){
+    protected Element setTagsAndCommentsInDom(Document dom, Element e){
+        tags.add("lc2mdl");
+        Element t = dom.createElement("tags");
+        e.appendChild(t);
+        for (String s: tags) {
+            addElementAndTextContent(dom, t, "tag", s);
+        }
+        e = setCommentsInDom(dom,e);
+
+        return e;
+    }
+
+    public void addComment(String s){
 		comm.add(s);
 	}
 

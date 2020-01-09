@@ -4,6 +4,7 @@ import lc2mdl.lc.problem.Gnuplot;
 import lc2mdl.lc.problem.Image;
 import lc2mdl.lc.problem.Problem;
 import lc2mdl.lc.problem.ProblemElement;
+import lc2mdl.mdl.quiz.Question;
 import lc2mdl.mdl.quiz.QuestionStack;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -20,12 +21,17 @@ public abstract class DisplayFeedback extends ProblemElement {
     }
 
     @Override
-    public void addToMdlQuestion(QuestionStack question) {
+    public void addToMdlQuestionStack(QuestionStack question) {
+        addToMdlQuestion(question);
+    }
+
+     public void addToMdlQuestion(Question question) {
         question.addComment(comment);
         String oldFeedback = question.getGeneralfeedback();
         feedbackText = oldFeedback + System.lineSeparator() + feedbackText;
         question.setGeneralfeedback(feedbackText);
     }
+
 
     @Override
     public void consumeNode() {

@@ -21,7 +21,7 @@ public class Part extends ProblemElement{
 	}
 
 	@Override
-	public void addToMdlQuestion(QuestionStack question) {
+	public void addToMdlQuestionStack(QuestionStack question) {
 		//Only make new prt in question
 		question.addPrt(new Prt());
 	}

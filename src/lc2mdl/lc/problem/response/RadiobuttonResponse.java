@@ -50,7 +50,7 @@ public class RadiobuttonResponse extends ChoiceResponse {
     }
 
     @Override
-    public void addToMdlQuestion(QuestionStack question) {
+    public void addToMdlQuestionStack(QuestionStack question) {
 
         //Add input in questiontext
         question.addToQuestionText(inputString);

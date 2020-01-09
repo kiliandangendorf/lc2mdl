@@ -41,7 +41,7 @@ public class Block extends ProblemElement {
     }
 
     @Override
-    public void addToMdlQuestion(QuestionStack question) {
+    public void addToMdlQuestionStack(QuestionStack question) {
 
         question.addToQuestionText(addToText);
         question.addToQuestionVariables(additionalCASVariables);

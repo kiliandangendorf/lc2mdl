@@ -206,7 +206,7 @@ public class OptionHint extends OptionResponse implements ConditionalHint {
     }
 
     @Override
-    public void addToMdlQuestion(QuestionStack question) { }
+    public void addToMdlQuestionStack(QuestionStack question) { }
 
        @Override
 	public void addHintNodeToMdlQuestion(QuestionStack question, NodeMdl parentNode){

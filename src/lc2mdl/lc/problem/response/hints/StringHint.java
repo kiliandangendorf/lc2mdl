@@ -18,7 +18,7 @@ public class StringHint extends StringResponse implements ConditionalHint {
 		this.link=link;
 	}
     @Override
-    public void addToMdlQuestion(QuestionStack question){
+    public void addToMdlQuestionStack(QuestionStack question){
 	    if (preprocess) {
 		    question.addComment("Cannot do the required preprocessing.");
         }

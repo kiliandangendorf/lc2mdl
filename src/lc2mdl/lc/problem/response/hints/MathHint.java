@@ -20,7 +20,7 @@ public class MathHint extends MathResponse implements ConditionalHint {
 	}
 
     @Override
-    public void addToMdlQuestion(QuestionStack question){ }
+    public void addToMdlQuestionStack(QuestionStack question){ }
 
     @Override
     public void consumeNode() {

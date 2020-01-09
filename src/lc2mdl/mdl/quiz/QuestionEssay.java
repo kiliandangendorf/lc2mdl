@@ -18,6 +18,7 @@ public class QuestionEssay extends Question {
     @Override
     public Element exportToDom(Document dom) {
         Element e=super.exportToDom(dom);
+        graderinfo = generalfeedback;
         e.setAttribute("type", "essay");
         addElementAndContent(dom,e,"responseformat",responseformat);
         addElementAndContent(dom,e,"responserequired",responserequired);
@@ -27,7 +28,7 @@ public class QuestionEssay extends Question {
         addElementAndTextContent(dom,e,"graderinfo",graderinfo);
         addElementAndTextContent(dom,e,"responsetemplate",responsetemplate);
 
-        setCommentsInDom(dom,e);
+        setTagsAndCommentsInDom(dom,e);
 
         return e;
     }

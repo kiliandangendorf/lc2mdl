@@ -32,6 +32,7 @@ public class Prefs {
 	public static final String ESSAY_TEXT_FILE_STACK="Bitte beantworten Sie die Frage durch Hochladen der passenden Datei in der nachfolgenden Frage!";
 	public static final String ESSAY_TEXT_FIELD_ESSAY="Bitte beantworten Sie die vorhergehende Frage in diesem Textfeld!";
 	public static final String ESSAY_TEXT_FILE_ESSAY="Bitte beantworten Sie die vorhergehende Frage durch Hochladen der passenden Datei!";
+	public static final String ESSAY_FILE_EXT="Zum Hochladen bitte nur Dateien des folgenden Typs verwenden: ";
 
 
 }

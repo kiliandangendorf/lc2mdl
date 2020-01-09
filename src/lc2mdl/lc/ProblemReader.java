@@ -175,6 +175,7 @@ public class ProblemReader{
 				case "postanswerdate":
 					log.finer("found postanswerdate");
 					problem.addElement(new PostAnswerDate(problem,element));
+					break;
                 case "import":
                 	log.finer("found import");
                     String path= element.getTextContent();

@@ -20,7 +20,7 @@ public class NumericalHint extends NumericalResponse implements ConditionalHint{
 	}
 
 	@Override
-	public void addToMdlQuestion(QuestionStack question){}
+	public void addToMdlQuestionStack(QuestionStack question){}
 	
 	
 	@Override

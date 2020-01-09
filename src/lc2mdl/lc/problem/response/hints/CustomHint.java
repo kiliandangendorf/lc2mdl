@@ -66,7 +66,7 @@ public class CustomHint extends CustomResponse implements ConditionalHint {
     }
 
     @Override
-    public void addToMdlQuestion(QuestionStack question) {
+    public void addToMdlQuestionStack(QuestionStack question) {
     }
 
     @Override

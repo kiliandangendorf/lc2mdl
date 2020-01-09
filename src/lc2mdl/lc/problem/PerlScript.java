@@ -41,7 +41,7 @@ public class PerlScript extends ProblemElement{
 	}
 
 	@Override
-	public void addToMdlQuestion(QuestionStack question) {
+	public void addToMdlQuestionStack(QuestionStack question) {
 		question.addComment(scriptComment);
 		question.addToQuestionVariables(script);
 	}

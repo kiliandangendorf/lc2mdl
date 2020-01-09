@@ -19,7 +19,7 @@ public class UnknownElement extends ProblemElement{
 	}
 
 	@Override
-	public void addToMdlQuestion(QuestionStack question){
+	public void addToMdlQuestionStack(QuestionStack question){
 	}
 
 }

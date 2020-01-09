@@ -80,7 +80,7 @@ public class CustomResponse extends Response {
     }
 
     @Override
-    public void addToMdlQuestion(QuestionStack question) {
+    public void addToMdlQuestionStack(QuestionStack question) {
 		//Add input in questiontext
 		question.addToQuestionText(inputString);
 		question.addToQuestionText(additionalText);

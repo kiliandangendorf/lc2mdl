@@ -23,9 +23,8 @@ public class Outtext extends ProblemElement{
 	}
 
 	@Override
-	public void addToMdlQuestion(QuestionStack question) {
-		//Add content to questiontext
-		question.addToQuestionText(text);
+	public void addToMdlQuestionStack(QuestionStack question) {
+		addToMdlQuestion(question);
 	}
 
 	public void addToMdlQuestion(Question question) {

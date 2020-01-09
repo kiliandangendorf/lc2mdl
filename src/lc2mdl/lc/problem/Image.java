@@ -84,8 +84,8 @@ public class Image extends ProblemElement {
     }
 
     @Override
-    public void addToMdlQuestion(QuestionStack question) {
-        question.addToQuestionText(imgString);
+    public void addToMdlQuestionStack(QuestionStack question) {
+        addToMdlQuestion(question);
     }
 
     @Override

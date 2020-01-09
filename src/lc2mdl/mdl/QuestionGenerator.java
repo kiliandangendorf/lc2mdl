@@ -25,6 +25,7 @@ public class QuestionGenerator{
 		Boolean isList = (types.size()>1);
 
 		if (isList) {
+			// split question
 			for (String t : types) {
 				switch (t) {
 					case "stack":
@@ -33,7 +34,7 @@ public class QuestionGenerator{
 						qlist.add(qs);
 						break;
 					case "essay":
-						QuestionEssay qe = generatingQuestionEssay(p);
+						QuestionEssay qe = generatingAdditionalQuestionEssay(p);
 						qe.setName(qe.getName() + t);
 						qlist.add(qe);
 						break;
@@ -45,13 +46,14 @@ public class QuestionGenerator{
 		}else{
 			if (!types.isEmpty()) {
 				String t = types.get(0);
+				// only one type
 				switch (t) {
 					case "stack":
 						QuestionStack qs = generatingQuestionStack(p);
 						qlist.add(qs);
 						break;
 					case "essay":
-						QuestionEssay qe = generatingAdditionalQuestionEssay(p);
+						QuestionEssay qe = generatingQuestionEssay(p);
 						qlist.add(qe);
 						break;
 					default:
@@ -77,7 +79,7 @@ public class QuestionGenerator{
 		question.setTags(p.getTags());
 		log.finer("add converted elements to question");
 		for(ProblemElement e:p.getElements()){
-			e.addToMdlQuestion(question);	
+			e.addToMdlQuestionStack(question);
 		}
 		
 		log.finer("correct node-values");
@@ -100,7 +102,12 @@ public class QuestionGenerator{
 		question.setTags(p.getTags());
 		log.finer("add converted elements to question");
 		for(ProblemElement e:p.getElements()){
-			e.addToMdlQuestion(question);
+			if (e.getQuestionType().equals("essay")){
+				EssayResponse er = (EssayResponse)e;
+				er.addToMdlQuestionEssay(question);
+			}else {
+				e.addToMdlQuestion(question);
+			}
 		}
 
 		log.fine("Done generating Essay Question.");
@@ -118,18 +125,18 @@ public class QuestionGenerator{
 		for(ProblemElement e:p.getElements()){
 			if (e.getQuestionType().equals("essay")){
 				EssayResponse er = (EssayResponse)e;
-				er.addToMdlQuestion(question);
-				if (question.isFile()){
+				if (er.isFile()){
 					question.addToQuestionText(Prefs.ESSAY_TEXT_FILE_ESSAY);
 				}else{
 					question.addToQuestionText(Prefs.ESSAY_TEXT_FIELD_ESSAY);
 				}
+				er.addToMdlQuestionEssay(question);
 
 			}
 
 		}
 
-		log.fine("Done generating addtional Question.");
+		log.fine("Done generating additional Essay Question.");
 		return question;
 	}
 
