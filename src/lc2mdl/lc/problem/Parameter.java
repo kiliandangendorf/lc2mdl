@@ -7,6 +7,8 @@ import org.w3c.dom.Node;
 public class Parameter extends ProblemElement {
 
     private String comment;
+    private String variable = "lcparam";
+    private String type = "string";
 
     public Parameter(Problem problem, Node node){
         super(problem,node);
@@ -18,6 +20,15 @@ public class Parameter extends ProblemElement {
 
         Element e= (Element)node;
 
+        if (e.hasAttribute("name")){
+            variable = System.lineSeparator()+variable+"_"+e.getAttribute("name") + ": ";
+            e.removeAttribute("name");
+        }
+        if(e.hasAttribute("type")){
+            type = e.getAttribute("type");
+            e.removeAttribute("type");
+        }
+
         comment = "The parameter ";
         if (e.hasAttribute("description")){
             comment += e.getAttribute("description");
@@ -25,7 +36,11 @@ public class Parameter extends ProblemElement {
         }
         comment += " is set to ";
         if (e.hasAttribute("default")){
-            comment += e.getAttribute("default");
+            String text = e.getAttribute("default");
+            comment += text;
+            if (type.equals("string")) {
+                text = "\""+text+"\"";}
+            variable += text;
             e.removeAttribute("default");
         }
 
@@ -43,6 +58,7 @@ public class Parameter extends ProblemElement {
 
     @Override
     public void addToMdlQuestionStack(QuestionStack question) {
+        question.addToQuestionVariables(variable);
         question.addComment(comment);
     }
 }

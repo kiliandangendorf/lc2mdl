@@ -249,7 +249,7 @@ public abstract class ProblemElement {
 		String addbackslashes ="";
 		if (isVariable) { addbackslashes ="\\\\"; }
 
-		// TEX all with begin / end
+		// TEX all with begin / end e.g. eqnarray*,equation*
 		leftPat.add("<m {0,}(eval=\"on\"){0,1}(eval=\"off\"){0,1} {0,}>\\s{0,}\\\\begin");
 		rightPat.add("\\*\\}\\s{0,}<\\/\\s{0,}m>");
 

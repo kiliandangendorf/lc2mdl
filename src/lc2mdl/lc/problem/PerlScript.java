@@ -137,11 +137,19 @@ public class PerlScript extends ProblemElement{
 				int csEnd = matcher.end()-1;
 				int parenStart = csEnd;
 				int parenEnd = parenStart;
-				while (parenStart < script.length()){
+				int searchEnd = csEnd+20;
+				if (searchEnd>script.length()) searchEnd = script.length();
+				while (parenStart < searchEnd){
 						if(script.charAt(parenStart)=='(') {  break; }
 						  parenStart++;
 						}
-				if (parenStart < script.length())	parenEnd = ConvertAndFormatMethods.findMatchingParentheses(script, parenStart);
+				if (parenStart<searchEnd)	{
+					parenEnd = ConvertAndFormatMethods.findMatchingParentheses(script, parenStart);
+				}
+				else {
+					parenStart = csEnd;
+					addConvertWarning("--found "+cs+" without parentheses ");
+				}
 
 				if (parenEnd>0){
 					switch (cs) {
@@ -173,10 +181,18 @@ public class PerlScript extends ProblemElement{
 							break;
 
 						case "unless":
-							String condSub = script.substring(parenStart, parenEnd);
-							condSub = " if (!" + condSub + ") ";
-							String cond = script.substring(csStart, parenEnd);
-							script = script.replace(cond, condSub);
+							{
+								//log.warning("script.length= "+script.length()+" csstart= "+csStart+" csend= "+csEnd+" parenStart= "+parenStart+" parenend= "+parenEnd);
+								String condSub = " ";
+								String cond = "unless";
+								if (parenStart < parenEnd) {
+									condSub = script.substring(parenStart, parenEnd);
+								}
+								condSub = " if (not " + condSub + ") ";
+								cond = script.substring(csStart, parenEnd);
+								script = script.replaceFirst(cond, condSub);
+								startFind = parenEnd;
+							}
 							break;
 
 						case "else":
@@ -193,10 +209,18 @@ public class PerlScript extends ProblemElement{
 							// nobreak, continue with the if case
 
 						case "if":
-							String oldIf = script.substring(csStart, parenEnd);
-							String newIf = oldIf + " then ";
-							script = script.replace(oldIf, newIf);
-							startFind = csEnd;
+
+							if (parenStart<parenEnd)
+							{
+								String oldIf = script.substring(csStart, parenEnd);
+								String newIf = oldIf + " then ";
+								script = script.replace(oldIf, newIf);
+								startFind = csEnd;
+							}else
+							{
+								startFind =csEnd;
+								addConvertWarning("-- found if without parentheses !");
+							}
 							break;
 
 						case "until":
@@ -220,21 +244,25 @@ public class PerlScript extends ProblemElement{
 								if (parenSplit.length > 2) {
 									String start = parenSplit[0];
 									start = start.replaceFirst("=", ":");
-									cond = parenSplit[1];
+									String cond = parenSplit[1];
 									String next = parenSplit[2];
 									String newForString = "for " + start + " next " + next + " while( " + cond + " ) do";
 									script = script.replace(forString, newForString);
-									startFind = csEnd;
+
 								}
+
 							}
+							startFind = csEnd;
 							break;
 
 						case "foreach":
 							String forString = script.substring(csStart, parenEnd);
 							String parenString = script.substring(parenStart, parenEnd);
-							String varString = script.substring(csEnd + 1, parenStart);
+							String varString = "lcvariable";
+							if (csEnd<parenStart) varString = script.substring(csEnd + 1, parenStart);
 							String newForString = "for " + varString + " in " + parenString + " do ";
 							script = script.replace(forString, newForString);
+							startFind = csEnd;
 							break;
 						default:
 							break;
@@ -306,7 +334,7 @@ public class PerlScript extends ProblemElement{
 
 
 	private void searchForControlStructures(){
-		ArrayList<String> controlStructures=new ArrayList<>(Arrays.asList("next","last","redo","goto","sub"));
+		ArrayList<String> controlStructures=new ArrayList<>(Arrays.asList("next","last","redo","goto","sub","unless"));
 		for(String cs:controlStructures){
 			String csPat="\\W"+cs+"\\W";
 			Matcher matcher=Pattern.compile(csPat).matcher(script);
@@ -392,17 +420,16 @@ public class PerlScript extends ProblemElement{
 		functionReplacements.put("&to_string\\(", "sconcat(");
 		functionReplacements.put("&sub_string\\(", "substring("); //both with 2 or three parameters		
 		functionReplacements.put("&random_permutation\\(", "random_permutation("); //both with 2 parameters
-		
-				
+
 		replaceKeysByValues(functionReplacements);
 		
 		
 		//DIFFERENT SYNTAX CONVERSION (different parameters)
-		//regex was not possible for balanced parenthesis
+		//regex was not possible for balanced parentheses
 		
-		String scriptOroginal=script;		
+		String scriptOriginal=script;
 		String functionBeginPat="&\\w+\\(";
-		Matcher functionMatcher=Pattern.compile(functionBeginPat).matcher(scriptOroginal);
+		Matcher functionMatcher=Pattern.compile(functionBeginPat).matcher(scriptOriginal);
 		while(functionMatcher.find()){
 			String functionName=functionMatcher.group();
 			int start=functionMatcher.start();
@@ -414,29 +441,29 @@ public class PerlScript extends ProblemElement{
 			int lastSep=end;
 			int bracketCount=1;
 			while(bracketCount>0){
-				if(scriptOroginal.charAt(end)=='(')bracketCount++;
-				if(scriptOroginal.charAt(end)==')'){
+				if(scriptOriginal.charAt(end)=='(')bracketCount++;
+				if(scriptOriginal.charAt(end)==')'){
 					bracketCount--;
 					if(bracketCount==0){
-						String param=scriptOroginal.substring(lastSep,end);
+						String param=scriptOriginal.substring(lastSep,end);
 						params.add(param);
 					}
 				}
-				if(scriptOroginal.charAt(end)==','){
+				if(scriptOriginal.charAt(end)==','){
 					if(bracketCount==1){
-						String param=scriptOroginal.substring(lastSep,end);
+						String param=scriptOriginal.substring(lastSep,end);
 						params.add(param);
 						lastSep=end+1;
 					}
 				}
-				if(scriptOroginal.charAt(end)==';')break;
+				if(scriptOriginal.charAt(end)==';')break;
 				end++;
 			}
 			if(bracketCount!=0){
 				log.warning("--function with unbalanced parenthesis");
 				continue;
 			}
-			String completeFunction=scriptOroginal.substring(start,end);//end exclusive
+			String completeFunction=scriptOriginal.substring(start,end);//end exclusive
 			
 			
 			switch(functionName){
@@ -509,6 +536,12 @@ public class PerlScript extends ProblemElement{
 					log.warning("--unknown function: "+functionName);
 			}
 		}
+
+		HashMap<String,String> paramReplacement = new HashMap<>();
+		paramReplacement.put("parameter_setting(\"([a-zA-Z][a-zA-Z0-9_]*?)\")","lcparam_$1");
+		replaceKeysByValues(paramReplacement);
+
+		//script = script.replaceAll("parameter_setting(\"([a-zA-Z][a-zA-Z0-9_]*?)\")","lcparam_$1");
 	}
 	
 	private void findAndReplaceVariables(){

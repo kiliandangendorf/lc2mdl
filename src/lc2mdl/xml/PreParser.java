@@ -93,6 +93,7 @@ public class PreParser {
         xmlReplacements.put("options=\"([^>\"]*)>([^>\"]*)\"", "options=\"$1 \\\\(\\\\gt\\\\) $2\"");
         xmlReplacements.put("value=\"([^<\"]*)<([^<\"]*)\"", "options=\"$1 \\\\(\\\\lt\\\\) $2\"");
         xmlReplacements.put("value=\"([^>\"]*)>([^>\"]*)\"", "options=\"$1 \\\\(\\\\gt\\\\) $2\"");
+        xmlReplacements.put("clear=\"all\"","");
 
 //		occurs error
 //	    <foilgroup options="('singul&auml;r','regul&auml;r')" texoptions="">
