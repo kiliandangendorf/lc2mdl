@@ -26,6 +26,8 @@ public class Prefs {
 	public static final String OPTION_TEXT="Die vorhandenen Optionen sind: ";
 	public static final String CHECKBOX_TEXT="Bitte kreuzen Sie alle Aussagen an, auf die die Option ";
 	public static final String CHECKBOX_TEXT_END=" zutrifft!";
+	// Prefer checkbox, if only two options
+	public static final Boolean PREFER_CHECKBOX = true;
 
 	// text for essay response within a stack question
 	public static final String ESSAY_TEXT_FIELD_STACK="Bitte beantworten Sie die Frage im Textfeld der nachfolgenden Frage!";

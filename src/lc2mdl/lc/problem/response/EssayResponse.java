@@ -64,8 +64,8 @@ public class EssayResponse extends Response {
 
     public void addToMdlQuestion(Question question){
         String text="";
-        if (file) { text= Prefs.ESSAY_TEXT_FILE_ESSAY; }
-        else { text = Prefs.ESSAY_TEXT_FIELD_ESSAY; }
+        if (file) { text= Prefs.ESSAY_TEXT_FILE_STACK; }
+        else { text = Prefs.ESSAY_TEXT_FIELD_STACK; }
         question.addToQuestionText(text);
 
     }

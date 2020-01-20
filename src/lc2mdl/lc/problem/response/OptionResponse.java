@@ -22,6 +22,7 @@ public class OptionResponse extends ChoiceResponse {
     private String optionText = Prefs.OPTION_TEXT;
     private String checkboxText= Prefs.CHECKBOX_TEXT;
     private String checkboxTextEnd= Prefs.CHECKBOX_TEXT_END;
+    protected Boolean prefCheckBox = Prefs.PREFER_CHECKBOX;
 
     private String answerbox=responseprefix+"_box";
     protected ArrayList<NodeMdl> nodeMdls = new ArrayList<NodeMdl>();
@@ -53,10 +54,16 @@ public class OptionResponse extends ChoiceResponse {
 
                     if (splitOptions.length==2) {
                         if ((options.contains("wahr") && options.contains("falsch")) ||
-                                (options.contains("true") && options.contains("false"))) {
+                                (options.contains("Wahr") && options.contains("Falsch")) ||
+                                (options.contains("true") && options.contains("false")) ||
+                                prefCheckBox )
+
+                        {
                                isCheckBox = true;
                         }
                     }
+
+
 
                     element.removeAttribute("options");
                     optionText += optionString;
