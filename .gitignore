@@ -23,3 +23,7 @@
 hs_err_pid*
 /.idea/
 /META-INF/MANIFEST.MF
+
+
+/bin/
+.classpath
