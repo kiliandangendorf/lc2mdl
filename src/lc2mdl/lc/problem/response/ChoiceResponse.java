@@ -189,7 +189,7 @@ public abstract class ChoiceResponse extends Response {
                     log.warning("found foil content of type "+el.getTagName());
                 }
             }
-            description = transformTextVariable(description);
+            description = transformFoil(description);
 
         }
 
@@ -201,6 +201,11 @@ public abstract class ChoiceResponse extends Response {
             additionalCASVars += System.lineSeparator()+prefix+" : endcons("+prefix+"_foil,"+prefix+")";
         }
 
+        private String transformFoil(String foilString){
+            foilString = foilString.replaceAll("\\\\([a-zA-Z:; {}])","\\\\\\\\$1");
+            foilString = transformTextVariable(foilString);
+            return foilString;
+        }
      }
 
     protected class InputFoil{

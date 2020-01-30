@@ -74,7 +74,10 @@ public abstract class ProblemElement {
 
 		//VARS in {@ ... @}
 		text=replaceVariables(text);
-				
+
+		//LATEX / MATH-EXPRESSION: <m>...</m> into \( ... \)  (<m eval="on">)
+		text=replaceMathTags(text);
+
 		//HTML-ELEMENTSs
 		text=replaceHTMLTags(text);
 		
@@ -83,9 +86,6 @@ public abstract class ProblemElement {
 
 		//TRANSLATED
 		text=chooseOneTranslated(text,Prefs.DEFAULT_LANG);
-
-		//LATEX / MATH-EXPRESSION: <m>...</m> into \( ... \)  (<m eval="on">)
-		text=replaceMathTags(text);
 
 		//ESCAPE LEFT DOLLAR SIGNS
 		if(text.contains("$")){
@@ -112,14 +112,14 @@ public abstract class ProblemElement {
 		//HTML-ELEMENTSs
 		text=replaceHTMLTags(text);
 
+		//LATEX / MATH-EXPRESSION: <m>...</m> into \( ... \)  (<m eval="on">)
+		text=replaceMathTags(text,true);
+
 		//LANGUAGEBLOCKS
 		text=chooseOneLanguageBlock(text,Prefs.DEFAULT_LANG);
 
 		//TRANSLATED
 		text=chooseOneTranslated(text,Prefs.DEFAULT_LANG);
-
-		//LATEX / MATH-EXPRESSION: <m>...</m> into \( ... \)  (<m eval="on">)
-		text=replaceMathTags(text,true);
 
 		text = replacePatternWithString("\\{@","",text);
 		text = replacePatternWithString("@\\}","",text);
@@ -391,15 +391,17 @@ public abstract class ProblemElement {
 						//text in defaultLang
 						textInDefaultLang=langElement.getTextContent();
 						log.finer("--found \""+defaultLang+"\"-languageblock");
+						log.finer(textInDefaultLang);
 					}else{
 						//text in different language
 						textInDefaultLang="<!-- lc2mdl: languageblock for different language found: "+langBlock+" -->";
 						log.finer("--found languageblock different to \""+defaultLang+"\". Put in comments.");						
 					}
 				}
-				text=text.replaceFirst(langBlockPat,textInDefaultLang);
+				text=text.replace(langBlock,textInDefaultLang);
 			}catch(Exception e){
 				log.warning("--unable to read languageblock.");
+				log.warning(e.getLocalizedMessage());
 			}
 		}
 		return text;
