@@ -25,6 +25,7 @@ It cannot handle:
 
 # requirements
 Java 8 or higher
+ImageMagick www.imagemagick.org
 
 # usage
 ```
