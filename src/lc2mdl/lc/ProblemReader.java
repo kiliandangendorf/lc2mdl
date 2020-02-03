@@ -149,9 +149,13 @@ public class ProblemReader{
 					readingRecursively(problem,element);
 					problem.addElement(new HtmlElement(problem,element,HtmlElement.CLOSE));
 					break;
-				case "allow": case "meta":
+				case "allow":
 					log.finer("found "+element.getTagName()+" tag - ignoring it.");
 					problem.addElement(new IgnoredElement(problem,element));
+					break;
+				case "meta":
+					log.finer("found meta.");
+					problem.addElement(new Meta(problem,element));
 					break;
 				case "parameter":
 					log.finer("found parameter");

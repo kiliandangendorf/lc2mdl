@@ -86,6 +86,7 @@ public class NumericalResponse extends Response{
 		if(!isTextline)input.setType("textarea"); //if it was a textfield
 		input.setTans(answer);
 		input.setBoxsize(textlineSize);
+		input.setForbidfloat(false);
 		question.addInput(input);
 		
 		//NODE-TAG
