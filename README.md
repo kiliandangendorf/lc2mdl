@@ -1,5 +1,5 @@
 # lc2mdl
-This program assists you to convert LON-CAPA problem-files into Moodle-STACK xml-files. It comes with no guarentee, that the Moodle Stack problems will work. Usually, you will have to do additional work by hand.
+This program assists you to convert LON-CAPA problem-files into Moodle-STACK xml-files. It comes with no guarantee, that the Moodle-Stack problems will work. Usually, you will have to do additional work by hand.
 
 It handles quite well:
 * Formularesponse
