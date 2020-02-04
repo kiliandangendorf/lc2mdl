@@ -77,6 +77,14 @@ public class QuestionGenerator{
 		
 		question.setName(p.getProblemName());
 		question.setTags(p.getTags());
+
+		String basedOn = p.getCategory();
+		if (basedOn.startsWith("/HsH/FS")){
+			basedOn = basedOn.replace("/HsH/FS","/res/fh-hannover/sprengel");
+			basedOn = "based on LON-CAPA problem "+basedOn+"/"+p.getProblemName()+".problem";
+			basedOn = question.getQuestionnote()+System.lineSeparator()+basedOn;
+			question.setQuestionnote(basedOn);
+		}
 		log.finer("add converted elements to question");
 		for(ProblemElement e:p.getElements()){
 			e.addToMdlQuestionStack(question);

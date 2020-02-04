@@ -27,7 +27,6 @@ public class Meta extends ProblemElement {
                     basedOn = basedOn.replaceAll("\\\\%2f","/");
                     basedOn = basedOn.replaceAll("\\\\%2d"," ");
                     basedOn = basedOn.replaceAll("\\\\%2e",".");
-                    log.finer("meta: "+basedOn);
                 }
             else {
                 log.finer("--found meta information: "+name+" and ignore it.");
