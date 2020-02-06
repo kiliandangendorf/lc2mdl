@@ -522,7 +522,7 @@ public class PerlScript extends ProblemElement{
 					break;
 					
 					
-				case "&random(":case "random":
+				case "&random(":case "random(":
 					String lower=params.get(0);
 					String upper=params.get(1);
 					String step=(params.size()<3)?"1":params.get(2);
