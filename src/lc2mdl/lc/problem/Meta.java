@@ -8,6 +8,7 @@ import org.w3c.dom.Node;
 public class Meta extends ProblemElement {
 
     String basedOn = "";
+    Boolean isBasedOn = false;
 
     public Meta(Problem problem, Node node) {
         super(problem, node);
@@ -27,6 +28,7 @@ public class Meta extends ProblemElement {
                     basedOn = basedOn.replaceAll("\\\\%2f","/");
                     basedOn = basedOn.replaceAll("\\\\%2d"," ");
                     basedOn = basedOn.replaceAll("\\\\%2e",".");
+                    isBasedOn = true;
                 }
             else {
                 log.finer("--found meta information: "+name+" and ignore it.");
@@ -43,9 +45,11 @@ public class Meta extends ProblemElement {
 
     @Override
     public void addToMdlQuestionStack(QuestionStack question) {
-        String quNote = question.getQuestionnote();
-        quNote += System.lineSeparator()+"This question is based on the LON-CAPA problem "+basedOn;
-        question.setName(quNote);
+        if (isBasedOn) {
+            String quNote = question.getQuestionnote();
+            quNote = quNote + ", " + System.lineSeparator() + "This question is based on the LON-CAPA problem " + basedOn;
+            question.setQuestionnote(quNote);
+        }
     }
 
     @Override

@@ -81,8 +81,8 @@ public class QuestionGenerator{
 		String basedOn = p.getCategory();
 		if (basedOn.startsWith("/HsH/FS")){
 			basedOn = basedOn.replace("/HsH/FS","/res/fh-hannover/sprengel");
-			basedOn = "based on LON-CAPA problem "+basedOn+"/"+p.getProblemName()+".problem";
-			basedOn = question.getQuestionnote()+System.lineSeparator()+basedOn;
+			basedOn = "This question is based on LON-CAPA problem "+basedOn+"/"+p.getProblemName()+".problem";
+			basedOn = question.getQuestionnote()+", "+System.lineSeparator()+basedOn;
 			question.setQuestionnote(basedOn);
 		}
 		log.finer("add converted elements to question");
