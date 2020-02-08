@@ -88,7 +88,10 @@ public class QuestionStack extends Question{
 		correctPrtStopLinks();
 	}
 	private void correctNodeAndPrtValues(){
-		double valuePerPrt=(double)defaultgrade/(double)prt.size();
+		//setting each PRT on value 1 and set defaultgrade as sum of PRTs
+		double valuePerPrt=1.0;
+		int numberOfPrts=prt.size();
+		defaultgrade=numberOfPrts;
 		for(Prt p:prt){
 			p.setValue(valuePerPrt);
 			ArrayList<NodeMdl> nodes=p.getNode();
