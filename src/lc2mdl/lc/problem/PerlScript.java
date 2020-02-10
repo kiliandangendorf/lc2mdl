@@ -124,7 +124,7 @@ public class PerlScript extends ProblemElement{
 	}
 
 	private void replaceControlStructures(){
-		ArrayList<String> controlStructures=new ArrayList<>(Arrays.asList("do","unless","else","elseif","if","until","while","for","foreach"));
+		ArrayList<String> controlStructures=new ArrayList<>(Arrays.asList("do","unless","else","elsif","if","until","while","for","foreach"));
 		for(String cs:controlStructures) {
 			String csPat = "\\W" + cs + "\\W";
 			Matcher matcher = Pattern.compile(csPat).matcher(script);
@@ -202,11 +202,15 @@ public class PerlScript extends ProblemElement{
 							startFind = csStart+csNewString.length()+1;
 							break;
 
-						case "elseif":
+						case "elsif":
 							csString = matcher.group();
 							csNewString = "  " + ConvertAndFormatMethods.removeCR(csString) + " ";
+							csNewString = csNewString.replace("elsif","elseif");
 							script = script.replace(csString, csNewString);
+							parenEnd += csNewString.length()-csString.length();
+							//parenEnd += 4;
 							// nobreak, continue with the if case
+							matcher = Pattern.compile(csPat).matcher(script);
 
 						case "if":
 
@@ -268,7 +272,7 @@ public class PerlScript extends ProblemElement{
 							break;
 					}
 				}
-                //matcher = Pattern.compile(csPat).matcher(script);
+
 			}
 
 		}

@@ -110,7 +110,7 @@ public class OptionResponse extends ChoiceResponse {
         consumeFoils(e);
 
         if (isCheckBox){
-            additionalCASVars += System.lineSeparator()+responseprefix+"_truechoice : mcq_correct("+answerdisplay+")";
+            additionalCASVars += System.lineSeparator()+responseprefix+"_truechoice : mcq_correct("+answerdisplay+");";
             answer = responseprefix+"_truechoice";
         }else{
             additionalCASVars += System.lineSeparator()+responseprefix+"_options : [";
@@ -124,11 +124,11 @@ public class OptionResponse extends ChoiceResponse {
             additionalCASVars += System.lineSeparator()+answerbox+" : []";
             additionalCASVars += System.lineSeparator()+"for i:1 thru "+numberOfFoils+" do ( ";
             additionalCASVars += "box : makelist([k,is("+answerdisplay+"[i][2]="+responseprefix+"_options[k]), "+responseprefix+"_options[k]],k,1,length("+responseprefix+"_options))";
-            additionalCASVars += ", "+answerbox+" : endcons(box,+"+answerbox+") )";
-            additionalCASVars += System.lineSeparator()+responseprefix+"_tans : []";
+            additionalCASVars += ", "+answerbox+" : endcons(box,+"+answerbox+") );";
+            additionalCASVars += System.lineSeparator()+responseprefix+"_tans : [];";
             additionalCASVars += System.lineSeparator()+"for i:1 thru "+numberOfFoils+" do ( ";
             additionalCASVars += "k : 1, while not is("+answerdisplay+"[i][2]="+responseprefix+"_options[k]) do (k : k+1),";
-            additionalCASVars += responseprefix+"_tans : endcons (k,"+responseprefix+"_tans) )";
+            additionalCASVars += responseprefix+"_tans : endcons (k,"+responseprefix+"_tans) );";
 
         }
 

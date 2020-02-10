@@ -100,7 +100,7 @@ public class Gnuplot extends ProblemElement {
         if (gnu.hasAttribute("alttag")){
             String a = gnu.getAttribute("alttag");
             if (!a.equals("")){
-                    alt = ",[alt,"+a+"]";
+                    alt = ",[alt,\""+a+"\"]";
             }
             gnu.removeAttribute("alttag");
         }
@@ -373,7 +373,7 @@ public class Gnuplot extends ProblemElement {
                     if (dataString.charAt(0)=='@'){
                         dataString = dataString.substring(1);
                     }else{
-                        dataString = dataString.replaceAll("$","");
+                        dataString = dataString.replaceAll("\\$","");
                         dataString = "["+dataString+"]";
                     }
                     if (j==0){
@@ -399,7 +399,7 @@ public class Gnuplot extends ProblemElement {
                 if (!c.equals("")){
                     if (c.equals("x000000")) c = "black";
                    if (i==0){
-                        color = "[color,"+c;
+                        color = ",[color,"+c;
                         existColor = true;
                     }else
                     {
