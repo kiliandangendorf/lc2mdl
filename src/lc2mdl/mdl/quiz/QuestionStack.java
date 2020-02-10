@@ -6,6 +6,8 @@ import org.w3c.dom.Element;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class QuestionStack extends Question{
 //	private String attr_type="stack"; //stack
@@ -82,7 +84,28 @@ public class QuestionStack extends Question{
 
 		return e;
 	}
-	
+
+	//to make questionnote unique for generated values
+	public void appendVarsToQuestionnote(){
+		String vars="";
+		//search questiontext for vars {@...@}
+		String varPat="\\{@([a-zA-Z]+[a-zA-Z0-9]*)@\\}";
+		Pattern pattern=Pattern.compile(varPat);
+		Matcher matcher=pattern.matcher(questiontext);	
+		while(matcher.find()){
+			String s=matcher.group();
+			//remove {@ and @}
+			String name=s.substring(2, s.length()-2);
+			//put them into String as "d: {@d@}"
+			vars+=name+": "+s+", ";
+		}
+		//append to questionnote 
+		if(!vars.equals("")){
+			if(vars.endsWith(", "))vars=vars.substring(0,vars.length()-2);
+			questionnote+=" ("+vars+")";
+		}
+	}
+
 	public void correctPrtValuesAndLinks(){
 		correctNodeAndPrtValues();
 		correctPrtStopLinks();
@@ -114,7 +137,6 @@ public class QuestionStack extends Question{
 			}
 		}
 	}
-
 	
 	public void addToQuestionVariables(String s){
 		if(s==null)return;
