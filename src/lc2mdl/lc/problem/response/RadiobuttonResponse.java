@@ -28,7 +28,7 @@ public class RadiobuttonResponse extends ChoiceResponse {
 
         // Foils
         consumeFoils(e);
-        addToFeedbackVariables += System.lineSeparator()+"bool"+inputName+" : member("+inputName+",mcq_correct("+answerdisplay+"))";
+        addToFeedbackVariables += System.lineSeparator()+"bool"+inputName+" : member("+inputName+",mcq_correct("+answerdisplay+"));";
         answer = "true";
 
 		consumeIdAndName(e);

@@ -63,9 +63,9 @@ public abstract class ChoiceResponse extends Response {
                 removeAttributeIfExist(element,"texoptions");
                 removeAttributeIfExist(element,"noprompt");
                 NodeList fgList = element.getChildNodes();
-                additionalCASVars += System.lineSeparator()+responseprefix+": []";
-                additionalCASVars += System.lineSeparator()+responseprefix+"_concepts : []";
-                additionalCASVars += System.lineSeparator()+responseprefix+"_conceptfoils : []";
+                additionalCASVars += System.lineSeparator()+responseprefix+": [];";
+                additionalCASVars += System.lineSeparator()+responseprefix+"_concepts : [];";
+                additionalCASVars += System.lineSeparator()+responseprefix+"_conceptfoils : [];";
                 for (int j=0; j<fgList.getLength(); j++){
                     additionalCASVars += System.lineSeparator();
                     Element elementfg = (Element)fgList.item(j);
@@ -88,7 +88,7 @@ public abstract class ChoiceResponse extends Response {
                                 // note concept
                                 additionalCASVars += System.lineSeparator()+"/* conceptgroup "+conceptString+" */";
                                 additionalCASVars += System.lineSeparator()+responseprefix+"_concepts : endcons(";
-                                additionalCASVars += "\""+conceptString+"\","+responseprefix+"_concepts)";
+                                additionalCASVars += "\""+conceptString+"\","+responseprefix+"_concepts);";
                                 elementfg.removeAttribute("concept");
                             }
                             NodeList cgList = elementfg.getChildNodes();
@@ -113,10 +113,10 @@ public abstract class ChoiceResponse extends Response {
                                     nodesToRemove.add(elementcg);
                                 }
                              }
-                            conceptfoils += "],"+responseprefix+"_conceptfoils) ";
+                            conceptfoils += "],"+responseprefix+"_conceptfoils); ";
                             additionalCASVars += conceptfoils;
                             if (currentcgfoil>1) {
-                                additionalCASVars += System.lineSeparator()+responseprefix+" : endcons( rand("+conceptArray+"),"+responseprefix+")";
+                                additionalCASVars += System.lineSeparator()+responseprefix+" : endcons( rand("+conceptArray+"),"+responseprefix+");";
 
                                 foilsList.add(new InputFoil(currentfoil,"",conceptString));
                                 currentfoil++;
@@ -134,10 +134,13 @@ public abstract class ChoiceResponse extends Response {
         numberOfFoils = currentfoil-1;
 
         if (random && isCheckBox){
-            additionalCASVars += System.lineSeparator()+answerdisplay+" : random_permutation("+answerdisplay+")";
+            additionalCASVars += System.lineSeparator()+answerdisplay+" : random_permutation("+answerdisplay+");";
             if (max<numberOfFoils){
                 numberOfFoils = max;
-                additionalCASVars += System.lineSeparator()+answerdisplay+" : rand_selection("+answerdisplay+","+max+")";
+                additionalCASVars += System.lineSeparator()+"choice : rand_selection("+answerdisplay+","+max+");";
+                additionalCASVars += System.lineSeparator()+answerdisplay+"_truechoice : mcq_correct(choice);";
+                additionalCASVars += System.lineSeparator()+"while emptyp("+answerdisplay+"_truechoice) do (choice : rand_selection("+answerdisplay+","+max+"), "+answerdisplay+"_truechoice : mcq_correct(choice) );";
+                additionalCASVars += System.lineSeparator()+answerdisplay+" : choice;";
             }
         }
 
@@ -202,7 +205,7 @@ public abstract class ChoiceResponse extends Response {
         }
 
         private String transformFoil(String foilString){
-            foilString = foilString.replaceAll("\\\\([a-zA-Z:; {}])","\\\\\\\\$1");
+            foilString = foilString.replaceAll("\\\\([a-zA-Z:;, {}])","\\\\\\\\$1");
             foilString = transformTextVariable(foilString);
             return foilString;
         }
