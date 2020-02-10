@@ -211,6 +211,7 @@ public class OptionResponse extends ChoiceResponse {
                 nodeMdl.setAnswertest("AlgEquiv");
                 nodeMdl.setSans(inputfoilname);
                 nodeMdl.setQuiet(true);
+                if (i>1) {nodeMdl.setTruescoremode("+"); }
                 nodeMdl.setTans(responseprefix+"_tans["+i+"]"); // has to be nr. with the true
                 nodeMdls.add(nodeMdl);
 
