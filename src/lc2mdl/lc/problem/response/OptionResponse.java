@@ -245,6 +245,9 @@ public class OptionResponse extends ChoiceResponse {
         mathStuff.put("\\\\( \\\\infty \\\\)","&infin;");
         mathStuff.put("\\\\( \\\\varepsion \\\\)","&epsilon;");
         mathStuff.put("\\\\(\\neq\\\\)","&ne;");
+       mathStuff.put("\\\\(\\not\\\\)","&not;");
+       mathStuff.put("\\\\(\\forall\\\\)","&forall;");
+       mathStuff.put("\\\\(\\exists\\\\)","&exist;");
 
         String buf;
 		for(HashMap.Entry<String, String> item : mathStuff.entrySet()) {

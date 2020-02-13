@@ -66,6 +66,9 @@ public class PreParser {
        	xmlReplacements.put("<sub>","\\\\(_");
        	xmlReplacements.put("</sub>","\\\\)");
        	xmlReplacements.put("&ne;","\\\\(\\neq\\\\)");
+       	xmlReplacements.put("&not;","\\\\(\\not\\\\)");
+       	xmlReplacements.put("&forall;","\\\\(\\forall\\\\)");
+       	xmlReplacements.put("&exist;","\\\\(\\exists\\\\)");
 
 		// LON-CAPA inbuilt functions
 		xmlReplacements.put("&check_status","check_status");
