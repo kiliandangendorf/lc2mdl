@@ -98,8 +98,13 @@ public class PreParser {
         xmlReplacements.put("value=\"([^>\"]*)>([^>\"]*)\"", "options=\"$1 \\\\(\\\\gt\\\\) $2\"");
         xmlReplacements.put("clear=\"all\"","");
         xmlReplacements.put("display=\"tth\"","");
-        xmlReplacements.put("eval=\"OFF\"","");
+         xmlReplacements.put("display=\"mathjax\"","");
+       xmlReplacements.put("eval=\"OFF\"","");
         xmlReplacements.put("eval=\"off\"","");
+        xmlReplacements.put("<web>","");
+         xmlReplacements.put("</web>","");
+         xmlReplacements.put("<tex>(.*?)</tex>","");
+
 
 //		occurs error
 //	    <foilgroup options="('singul&auml;r','regul&auml;r')" texoptions="">

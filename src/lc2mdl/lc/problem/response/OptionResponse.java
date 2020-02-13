@@ -81,6 +81,11 @@ public class OptionResponse extends ChoiceResponse {
                 }else{
                     if (isCheckBox){
                         checkBoxValue = options.get(0);
+                        if (prefCheckBox) {
+                            String pname = problem.getProblemName();
+                            pname +="-checkbox-";
+                            problem.setProblemName(pname);
+                        }
                     }
                 }
 

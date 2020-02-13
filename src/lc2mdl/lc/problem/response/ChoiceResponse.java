@@ -163,10 +163,14 @@ public abstract class ChoiceResponse extends Response {
                     value = "\""+value+"\"";
                 }else {
                     if (!checkBoxValue.equals("")){
-                        if (value.equals(checkBoxValue)){
-                            value = "true";
-                        }else{
-                            value = "false";
+                        if (value.startsWith("$")){
+                            value = value.substring(1);
+                        }else {
+                            if (value.equals(checkBoxValue)) {
+                                value = "true";
+                            } else {
+                                value = "false";
+                            }
                         }
                     }
 

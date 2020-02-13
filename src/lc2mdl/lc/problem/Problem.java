@@ -193,6 +193,10 @@ public class Problem {
 		return problemName;
 	}
 
+	public void setProblemName(String problemName) {
+		this.problemName = problemName;
+	}
+
 	public ArrayList<String> getTags() {
 		return tags;
 	}
