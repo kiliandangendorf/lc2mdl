@@ -71,20 +71,13 @@ public class QuestionGenerator{
 	 */
 	public QuestionStack generatingQuestionStack(Problem p){
 		log.fine(Prefs.CLI_LINE_SEP);
-		log.fine("Starting generating Question.");
+		log.fine("Starting generating Stack Question.");
 		
 		QuestionStack question=new QuestionStack();
 		
 		question.setName(p.getProblemName());
 		question.setTags(p.getTags());
 
-		String basedOn = p.getCategory();
-		if (basedOn.startsWith("/HsH/FS")){
-			basedOn = basedOn.replace("/HsH/FS","/res/fh-hannover/sprengel");
-			basedOn = "This question is based on LON-CAPA problem "+basedOn+"/"+p.getProblemName()+".problem";
-			basedOn = question.getQuestionnote()+", "+System.lineSeparator()+basedOn;
-			question.setQuestionnote(basedOn);
-		}
 		log.finer("add converted elements to question");
 		for(ProblemElement e:p.getElements()){
 			e.addToMdlQuestionStack(question);
@@ -92,6 +85,15 @@ public class QuestionGenerator{
 		
 		log.finer("correct node-values");
 		question.correctPrtValuesAndLinks();
+
+		// for problems directly from the author - no meta basedon tag
+		String qnote = question.getQuestionnote();
+		if (!qnote.contains("LON-CAPA")) {
+			String basedOn = "/res" + p.getCategory() + "/" + p.getProblemName() + ".problem";
+			basedOn = "This question is based on LON-CAPA problem " + basedOn;
+			qnote = basedOn + ", " + System.lineSeparator() + qnote;
+			question.setQuestionnote(qnote);
+		}
 
 		log.fine("Done generating Question.");
 		return question;
