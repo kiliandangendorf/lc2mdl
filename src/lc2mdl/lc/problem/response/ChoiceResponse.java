@@ -6,6 +6,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public abstract class ChoiceResponse extends Response {
 
@@ -17,6 +18,9 @@ public abstract class ChoiceResponse extends Response {
     protected String checkBoxValue ="";
     protected String addToFeedbackVariables="";
     protected ArrayList<InputFoil> foilsList = new ArrayList<InputFoil>();
+    protected boolean random = true;
+    protected boolean isMatch = false;
+    protected HashMap<String,String> matchOptions = new HashMap<String,String>();
 
     public ChoiceResponse(Problem problem, Node node) {
 
@@ -32,7 +36,7 @@ public abstract class ChoiceResponse extends Response {
 
     protected void consumeFoils(Element e){
 
-        boolean random = true;
+
         int currentfoil=1;
         int currentconcept=0;
         int max=20;
@@ -160,11 +164,20 @@ public abstract class ChoiceResponse extends Response {
             if(e.hasAttribute("value")){
                 value = e.getAttribute("value");
                 if (!isCheckBox) {
-                    value = "\""+value+"\"";
+                    if (isMatch){
+                        value = "\"" + matchOptions.get(value) + "\"";
+                    }else {
+                        if (value.startsWith("$")) {
+                            value = value.replaceAll("\\$", "");
+                        } else {
+                            value = "\"" + value + "\"";
+                        }
+                    }
                 }else {
                     if (!checkBoxValue.equals("")){
                         if (value.startsWith("$")){
-                            value = value.substring(1);
+                            value = value.replaceAll("\\$", "");
+                            value = "is("+value+" = "+"\""+checkBoxValue+"\")";
                         }else {
                             if (value.equals(checkBoxValue)) {
                                 value = "true";
@@ -201,11 +214,11 @@ public abstract class ChoiceResponse extends Response {
         }
 
         public void addFoilVars(String prefix, int i){
-            additionalCASVars += System.lineSeparator()+prefix+"_foilvalue : "+value;
-            additionalCASVars += System.lineSeparator()+prefix+"_foilname : "+name;
-            additionalCASVars += System.lineSeparator()+prefix+"_foildescription : "+ description;
-            additionalCASVars += System.lineSeparator()+prefix+"_foil : "+"["+prefix+"_foilname,"+prefix+"_foilvalue,"+prefix+"_foildescription]";
-            additionalCASVars += System.lineSeparator()+prefix+" : endcons("+prefix+"_foil,"+prefix+")";
+            additionalCASVars += System.lineSeparator()+prefix+"_foilvalue : "+value+";";
+            additionalCASVars += System.lineSeparator()+prefix+"_foilname : "+name+";";
+            additionalCASVars += System.lineSeparator()+prefix+"_foildescription : "+ description+";";
+            additionalCASVars += System.lineSeparator()+prefix+"_foil : "+"["+prefix+"_foilname,"+prefix+"_foilvalue,"+prefix+"_foildescription]"+";";
+            additionalCASVars += System.lineSeparator()+prefix+" : endcons("+prefix+"_foil,"+prefix+")"+";";
         }
 
         private String transformFoil(String foilString){

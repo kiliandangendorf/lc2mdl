@@ -116,11 +116,15 @@ public class ProblemReader{
 					log.finer("found optionresponse");
 					problem.addElement(new OptionResponse(problem,element));
 					break;
+				case "matchresponse":
+					log.finer("found matchresponse");
+					problem.addElement(new MatchResponse(problem,element));
+					break;
 				case "customresponse":
 					log.finer("found customresponse");
 					problem.addElement(new CustomResponse(problem,element));
 					break;
-					// TODO essay response as other moodle question
+					//  essay response as other moodle question
 				case "essayresponse":
 					log.finer("found essayresponse");
 					problem.addElement(new EssayResponse(problem,element));

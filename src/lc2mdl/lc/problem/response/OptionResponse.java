@@ -10,9 +10,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
+import java.util.*;
 
 public class OptionResponse extends ChoiceResponse {
 
@@ -42,72 +40,7 @@ public class OptionResponse extends ChoiceResponse {
         for (int i=0; i<nodeList.getLength(); i++) {
             Element element = (Element) nodeList.item(i);
             if (element.getTagName().equals("foilgroup")) {
-
-                if (element.hasAttribute("options")){
-                    String optionString = element.getAttribute("options");
-                    optionString = optionString.substring(1,optionString.length()-1);
-                    // quick and dirty, may be be bit dangerous
-                    optionString = optionString.replaceAll("'","");
-                    optionString = replaceMathSymbols(optionString);
-                    String[] splitOptions = optionString.split(",");
-                    options = new ArrayList<String>(Arrays.asList(splitOptions));
-
-                    if (splitOptions.length==2) {
-                        if ((options.contains("wahr") && options.contains("falsch")) ||
-                                (options.contains("Wahr") && options.contains("Falsch")) ||
-                                (options.contains("true") && options.contains("false")) ||
-                                prefCheckBox )
-
-                        {
-                               isCheckBox = true;
-                        }
-                    }
-
-
-
-                    element.removeAttribute("options");
-                    optionText += optionString;
-                }else{
-                    log.warning("option response without options! ");
-                }
-
-                if (element.hasAttribute("checkboxvalue")){
-                    checkBoxValue = element.getAttribute("checkboxvalue");
-                    if(!checkBoxValue.equals("")){
-                        log.finer("found checkbox with value "+checkBoxValue);
-                        isCheckBox = true;
-                    }
-                    element.removeAttribute("checkboxvalue");
-                }else{
-                    if (isCheckBox){
-                        checkBoxValue = options.get(0);
-                        if (prefCheckBox) {
-                            String pname = problem.getProblemName();
-                            pname +="-checkbox-";
-                            problem.setProblemName(pname);
-                        }
-                    }
-                }
-
-                if (isCheckBox){
-                     checkboxText = optionText+"<br/>"+checkboxText+checkBoxValue+checkboxTextEnd;
-                }
-
-                if  (element.hasAttribute("maxcheck")){
-                    String check = element.getAttribute("maxcheck");
-                    if(!check.equals("")){
-                        maxcheck = Integer.parseInt(check);
-                    }
-                    element.removeAttribute("maxcheck");
-                }
-                if  (element.hasAttribute("mincheck")){
-                    String check = element.getAttribute("mincheck");
-                    if(!check.equals("")){
-                        mincheck = Integer.parseInt(check);
-                    }
-                    element.removeAttribute("mincheck");
-                }
-                removeAttributeIfExist(element,"checkboxoptions");
+                consumeOptionsAndCheckbox(element);
             }
         }
 
@@ -118,23 +51,7 @@ public class OptionResponse extends ChoiceResponse {
             additionalCASVars += System.lineSeparator()+responseprefix+"_truechoice : mcq_correct("+answerdisplay+");";
             answer = responseprefix+"_truechoice";
         }else{
-            additionalCASVars += System.lineSeparator()+responseprefix+"_options : [";
-            boolean start=true;
-            for (String o : options){
-                if (!start){ additionalCASVars +=","; }
-                additionalCASVars += "\""+o+"\"";
-                start = false;
-            }
-            additionalCASVars += "] ";
-            additionalCASVars += System.lineSeparator()+answerbox+" : []";
-            additionalCASVars += System.lineSeparator()+"for i:1 thru "+numberOfFoils+" do ( ";
-            additionalCASVars += "box : makelist([k,is("+answerdisplay+"[i][2]="+responseprefix+"_options[k]), "+responseprefix+"_options[k]],k,1,length("+responseprefix+"_options))";
-            additionalCASVars += ", "+answerbox+" : endcons(box,+"+answerbox+") );";
-            additionalCASVars += System.lineSeparator()+responseprefix+"_tans : [];";
-            additionalCASVars += System.lineSeparator()+"for i:1 thru "+numberOfFoils+" do ( ";
-            additionalCASVars += "k : 1, while not is("+answerdisplay+"[i][2]="+responseprefix+"_options[k]) do (k : k+1),";
-            additionalCASVars += responseprefix+"_tans : endcons (k,"+responseprefix+"_tans) );";
-
+            setAddCASVarsForDropDown();
         }
 
 		consumeIdAndName(e);
@@ -157,7 +74,7 @@ public class OptionResponse extends ChoiceResponse {
     @Override
     public void addToMdlQuestionStack(QuestionStack question) {
         //Add additional vars to questionvariables
-
+        question.addToQuestionText(additionalText);
         question.addToQuestionVariables(additionalCASVars);
 
         if (isCheckBox) {
@@ -191,15 +108,16 @@ public class OptionResponse extends ChoiceResponse {
                 hint.addHintNodeToMdlQuestion(question,nodeMdl);
             }
         }else{
-            int i=0;
-            for (InputFoil ifoil : foilsList){
-                i++;
+
+            ArrayList<String> textItems = new ArrayList<String>();
+
+            for (int i=1; i<=foilsList.size(); i++){
+                InputFoil ifoil = foilsList.get(i-1);
                 //Add input in questiontext
                 String inputfoilname = ifoil.getInName();
                 inputString=" [[input:"+inputfoilname+"]] [[validation:"+inputfoilname+"]] ";
-                question.addToQuestionText(inputString);
-                question.addToQuestionText("{@ "+answerdisplay+"["+i+"][3] @}");
-                question.addToQuestionText("<br/>");
+                String text = inputString+"{@ "+answerdisplay+"["+i+"][3] @} <br/>";
+                textItems.add(text);
                 //INPUT-TAG
                 Input input = new Input();
                 input.setName(inputfoilname);
@@ -220,9 +138,6 @@ public class OptionResponse extends ChoiceResponse {
                 nodeMdl.setTans(responseprefix+"_tans["+i+"]"); // has to be nr. with the true
                 nodeMdls.add(nodeMdl);
 
-                //nodeMdl.setTruefeedback(correcthinttext);
-                //nodeMdl.setFalsefeedback(incorrecthinttext);
-
                 question.addNodeToCurrentPrtAndSetNodeLink(nodeMdl);
 
                 //HINTNODES
@@ -234,13 +149,106 @@ public class OptionResponse extends ChoiceResponse {
                     }
                 }
            }
+            if (random) {
+                // well, its the same shuffling for all students, but better than no shuffling
+                Collections.shuffle(textItems);
+            }
+            for (String text : textItems){
+                question.addToQuestionText(text);
+            }
 
 
         }
 
     }
 
-    private String replaceMathSymbols(String text){
+    private void consumeOptionsAndCheckbox(Element element){
+        if (element.hasAttribute("options")){
+            String optionString = element.getAttribute("options");
+            optionString = optionString.substring(1,optionString.length()-1);
+            // quick and dirty, may be be bit dangerous
+            optionString = optionString.replaceAll("'","");
+            optionString = replaceMathSymbols(optionString);
+            String[] splitOptions = optionString.split(",");
+            options = new ArrayList<String>(Arrays.asList(splitOptions));
+
+            if (splitOptions.length==2) {
+                if ((options.contains("wahr") && options.contains("falsch")) ||
+                        (options.contains("Wahr") && options.contains("Falsch")) ||
+                        (options.contains("true") && options.contains("false")) ||
+                        prefCheckBox )
+
+                {
+                    isCheckBox = true;
+                }
+            }
+            element.removeAttribute("options");
+            optionText += optionString;
+        }else{
+            log.warning("option response without options! ");
+        }
+
+        if (element.hasAttribute("checkboxvalue")){
+            checkBoxValue = element.getAttribute("checkboxvalue");
+            if(!checkBoxValue.equals("")){
+                log.finer("found checkbox with value "+checkBoxValue);
+                isCheckBox = true;
+            }
+            element.removeAttribute("checkboxvalue");
+        }else{
+            if (isCheckBox){
+                checkBoxValue = options.get(0);
+                if (prefCheckBox) {
+                    String pname = problem.getProblemName();
+                    pname +="-checkbox-";
+                    problem.setProblemName(pname);
+                }
+            }
+        }
+
+        if (isCheckBox){
+            checkboxText = optionText+"<br/>"+checkboxText+checkBoxValue+checkboxTextEnd;
+        }
+
+        if  (element.hasAttribute("maxcheck")){
+            String check = element.getAttribute("maxcheck");
+            if(!check.equals("")){
+                maxcheck = Integer.parseInt(check);
+            }
+            element.removeAttribute("maxcheck");
+        }
+        if  (element.hasAttribute("mincheck")){
+            String check = element.getAttribute("mincheck");
+            if(!check.equals("")){
+                mincheck = Integer.parseInt(check);
+            }
+            element.removeAttribute("mincheck");
+        }
+        removeAttributeIfExist(element,"checkboxoptions");
+
+    }
+
+    protected void setAddCASVarsForDropDown(){
+        additionalCASVars += System.lineSeparator()+responseprefix+"_options : [";
+        boolean start=true;
+        for (String o : options){
+            if (!start){ additionalCASVars +=","; }
+            additionalCASVars += "\""+o+"\"";
+            start = false;
+        }
+        additionalCASVars += "] ";
+        additionalCASVars += System.lineSeparator()+answerbox+" : []";
+        additionalCASVars += System.lineSeparator()+"for i:1 thru "+numberOfFoils+" do ( ";
+        additionalCASVars += "box : makelist([k,is("+answerdisplay+"[i][2]="+responseprefix+"_options[k]), "+responseprefix+"_options[k]],k,1,length("+responseprefix+"_options))";
+        additionalCASVars += ", "+answerbox+" : endcons(box,+"+answerbox+") );";
+        additionalCASVars += System.lineSeparator()+responseprefix+"_tans : [];";
+        additionalCASVars += System.lineSeparator()+"for i:1 thru "+numberOfFoils+" do ( ";
+        additionalCASVars += "k : 1, while not is("+answerdisplay+"[i][2]="+responseprefix+"_options[k]) do (k : k+1),";
+        additionalCASVars += responseprefix+"_tans : endcons (k,"+responseprefix+"_tans) );";
+
+    }
+
+    protected String replaceMathSymbols(String text){
         HashMap<String, String> mathStuff=new HashMap<>();
 
 		mathStuff.put("\\\\(\\\\le\\\\)","&le;");
@@ -250,9 +258,9 @@ public class OptionResponse extends ChoiceResponse {
         mathStuff.put("\\\\( \\\\infty \\\\)","&infin;");
         mathStuff.put("\\\\( \\\\varepsion \\\\)","&epsilon;");
         mathStuff.put("\\\\(\\neq\\\\)","&ne;");
-       mathStuff.put("\\\\(\\not\\\\)","&not;");
-       mathStuff.put("\\\\(\\forall\\\\)","&forall;");
-       mathStuff.put("\\\\(\\exists\\\\)","&exist;");
+        mathStuff.put("\\\\(\\neg\\\\)","&not;");
+        mathStuff.put("\\\\(\\forall\\\\)","&forall;");
+        mathStuff.put("\\\\(\\exists\\\\)","&exist;");
 
         String buf;
 		for(HashMap.Entry<String, String> item : mathStuff.entrySet()) {

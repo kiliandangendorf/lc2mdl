@@ -36,7 +36,9 @@ public class StringResponse extends Response {
                 answer=answer.substring(1);
             }else{
                 //if not $ the first symbol, then create a var in questionvariables and reference here
-                answer=addAdditionalCASVar(answer);
+                    //String
+                    //put in quotes, cause it's used as a string.
+               answer=addAdditionalCASVar("\""+answer+"\"");
             }
             e.removeAttribute("answer");
         }else{

@@ -55,6 +55,9 @@ public class PreParser {
 		xmlReplacements.put("&uuml;","ü");
 		xmlReplacements.put("&auml;","ä");
 		xmlReplacements.put("&ouml;","ö");
+		xmlReplacements.put("&Uuml;","Ü");
+		xmlReplacements.put("&Äuml;","Ä");
+		xmlReplacements.put("&Ouml;","Ö");
 		xmlReplacements.put("&szlig;","ß");
 		xmlReplacements.put("&euro;","€");
 		xmlReplacements.put("&le;","\\\\(\\\\le\\\\)");
@@ -66,7 +69,7 @@ public class PreParser {
        	xmlReplacements.put("<sub>","\\\\(_");
        	xmlReplacements.put("</sub>","\\\\)");
        	xmlReplacements.put("&ne;","\\\\(\\neq\\\\)");
-       	xmlReplacements.put("&not;","\\\\(\\not\\\\)");
+       	xmlReplacements.put("&not;","\\\\(\\neg\\\\)");
        	xmlReplacements.put("&forall;","\\\\(\\forall\\\\)");
        	xmlReplacements.put("&exist;","\\\\(\\exists\\\\)");
 
