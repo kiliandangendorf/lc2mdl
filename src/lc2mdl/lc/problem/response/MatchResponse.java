@@ -68,6 +68,7 @@ public class MatchResponse extends OptionResponse {
 
                 NodeList nodeList1 = element.getChildNodes();
                 char currentChar = 'A';
+                additionalText += System.lineSeparator()+"<br/>";
                 for (int j=0; j<nodeList1.getLength(); j++){
                     Element itemElement = (Element) nodeList1.item(j);
                     if (itemElement.getTagName().equals("item")){
@@ -76,6 +77,7 @@ public class MatchResponse extends OptionResponse {
                             itemElement.removeAttribute("name");
                             removeAttributeIfExist(itemElement,"location");
                             matchOptions.put(name,""+currentChar);
+                            options.add(""+currentChar);
                             Element out = (Element)itemElement.getFirstChild();
                             if (out.getTagName().equals("outtext")){
                                 String contString = out.getTextContent();

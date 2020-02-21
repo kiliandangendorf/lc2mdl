@@ -241,8 +241,8 @@ public class OptionResponse extends ChoiceResponse {
             additionalCASVars += "\""+o+"\"";
             start = false;
         }
-        additionalCASVars += "] ";
-        additionalCASVars += System.lineSeparator()+answerbox+" : []";
+        additionalCASVars += "]; ";
+        additionalCASVars += System.lineSeparator()+answerbox+" : [];";
         additionalCASVars += System.lineSeparator()+"for i:1 thru "+numberOfFoils+" do ( ";
         additionalCASVars += "box : makelist([k,is("+answerdisplay+"[i][2]="+responseprefix+"_options[k]), "+responseprefix+"_options[k]],k,1,length("+responseprefix+"_options))";
         additionalCASVars += ", "+answerbox+" : endcons(box,+"+answerbox+") );";
