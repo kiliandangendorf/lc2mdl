@@ -81,6 +81,10 @@ public class OptionResponse extends ChoiceResponse {
             //Add input in questiontext
             question.addToQuestionText(checkboxText);
             question.addToQuestionText(inputString);
+            // the variable does not appear in the questiontext but usually it is randomized
+            String qnote = question.getQuestionnote();
+            qnote += answerdisplay;
+            question.setQuestionnote(qnote);
 
             //INPUT-TAG
             Input input = new Input();
@@ -170,6 +174,7 @@ public class OptionResponse extends ChoiceResponse {
             optionString = optionString.replaceAll("'","");
             optionString = replaceMathSymbols(optionString);
             String[] splitOptions = optionString.split(",");
+            optionString = "\""+optionString.replaceAll(",",", ")+"\"";
             options = new ArrayList<String>(Arrays.asList(splitOptions));
 
             if (splitOptions.length==2) {
@@ -207,7 +212,7 @@ public class OptionResponse extends ChoiceResponse {
         }
 
         if (isCheckBox){
-            checkboxText = optionText+"<br/>"+checkboxText+checkBoxValue+checkboxTextEnd;
+            checkboxText = optionText+"<br/>"+checkboxText+"\""+checkBoxValue+"\""+checkboxTextEnd;
         }
 
         if  (element.hasAttribute("maxcheck")){
