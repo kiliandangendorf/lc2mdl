@@ -27,3 +27,6 @@ hs_err_pid*
 
 /bin/
 /.classpath
+
+#kd-test folder
+/kd-test/
