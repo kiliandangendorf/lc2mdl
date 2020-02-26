@@ -26,7 +26,8 @@ public class CmdReader{
 	private ArrayList<CmdOption> options=new ArrayList<>(Arrays.asList(
 			new CmdOption("-h","--help",false,"shows usage"),
 			new CmdOption("-v","--verbose",false,"verbose output"),
-			new CmdOption("-r","--recursive",false,"find files recursively in folder"),			
+			new CmdOption("-r","--recursive",false,"find files recursively in folder (lists and ask for confirmation before converting)"),			
+			new CmdOption("-R","--recnocon",false,"find files recursively in folder (starts converting without confirmation)"),			
 			new CmdOption("-t","--rmtmp",false,"remove tmp-files (automatically done if empty)"),			
 			new CmdOption("-T","--rmlog",false,"remove log-files (NOT RECOMMENDED)")
 			));
