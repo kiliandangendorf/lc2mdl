@@ -89,7 +89,9 @@ public class QuestionStack extends Question{
 	public void appendVarsToQuestionnote(){
 		String vars="";
 		//search questiontext for vars {@...@}
-		String varPat="\\{@([a-zA-Z]+[a-zA-Z0-9]*)@\\}";
+//		String varPat="\\{@([a-zA-Z]+[a-zA-Z0-9]*)@\\}";
+		//matching everything between {@...@}
+		String varPat="\\{@[^@\\}]+@\\}";
 		Pattern pattern=Pattern.compile(varPat);
 		Matcher matcher=pattern.matcher(questiontext);	
 		while(matcher.find()){
@@ -103,6 +105,7 @@ public class QuestionStack extends Question{
 		if(!vars.equals("")){
 			if(vars.endsWith(", "))vars=vars.substring(0,vars.length()-2);
 			questionnote+=", ("+vars+")";
+			log.finer("added variables to questionnote: "+vars);
 		}
 	}
 
