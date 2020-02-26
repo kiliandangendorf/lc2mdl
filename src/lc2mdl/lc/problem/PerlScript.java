@@ -464,7 +464,7 @@ public class PerlScript extends ProblemElement{
 				end++;
 			}
 			if(bracketCount!=0){
-				log.warning("--function with unbalanced parenthesis");
+				log.warning("--function with unbalanced parentheses");
 				continue;
 			}
 			String completeFunction=scriptOriginal.substring(start,end);//end exclusive
