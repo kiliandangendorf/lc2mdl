@@ -112,18 +112,6 @@ public class PerlScript extends ProblemElement{
 			log.warning("--found special chars. $:"+count[0]+", @: "+count[1]+", &: "+count[2]+", {: "+count[3]+", }: "
 					+count[4]);
 		}
-
-		// FUNCTIONS
-		Pattern pattern;
-		Matcher matcher;
-		//any words (alphanumeric) not beginning with number, followed by (\b(?![0-9]+)\w+\b {0,}\([\s\S]*?\) optional with closing bracket
-		String allFunctions="&\\b(?![0-9]+)\\w+\\b {0,}\\(";
-		pattern=Pattern.compile(allFunctions);
-		matcher=pattern.matcher(script);
-		while(matcher.find()){
-			String func=matcher.group();
-			addConvertWarning("--unknown function: \""+func+"\"");
-		}
 	}
 
 	private void replaceControlStructures(){
@@ -455,37 +443,63 @@ public class PerlScript extends ProblemElement{
 		while(functionMatcher.find()){
 			String functionName=functionMatcher.group();
 			int start=functionMatcher.start();
-			int end=functionMatcher.end();
+			//char-position in script AFTER opening bracket
+			int pos=functionMatcher.end();
 
 			ArrayList<String> params=new ArrayList<>();
 
 			// Look for balanced parenthesis and get function-params
-			int lastSep=end;
+			int lastPos=pos;
 			int bracketCount=1;
+			int curlyBracketCount=0;
+			int squareBracketCount=0;
 			while(bracketCount>0){
-				if(scriptOriginal.charAt(end)=='(') bracketCount++;
-				if(scriptOriginal.charAt(end)==')'){
-					bracketCount--;
-					if(bracketCount==0){
-						String param=scriptOriginal.substring(lastSep,end);
-						params.add(param);
-					}
+				switch(scriptOriginal.charAt(pos)){
+					case '(':
+						bracketCount++;
+						break;
+					case ')':
+						bracketCount--;
+						if(bracketCount==0){
+							String param=scriptOriginal.substring(lastPos,pos);
+							params.add(param);
+						}
+						break;
+					case '{':
+						curlyBracketCount++;
+						break;
+					case '[':
+						squareBracketCount++;
+						break;
+					case '}':
+						curlyBracketCount--;
+						break;
+					case ']':
+						squareBracketCount--;
+						break;
+
+					case ',':
+						//if param of THIS function
+						if(bracketCount==1){
+							//in case param is an array
+							if(curlyBracketCount==0&&squareBracketCount==0){
+								String param=scriptOriginal.substring(lastPos,pos);
+								params.add(param);
+								lastPos=pos+1;
+							}
+						}
+						break;
+
 				}
-				if(scriptOriginal.charAt(end)==','){
-					if(bracketCount==1){
-						String param=scriptOriginal.substring(lastSep,end);
-						params.add(param);
-						lastSep=end+1;
-					}
-				}
-				if(scriptOriginal.charAt(end)==';') break;
-				end++;
+
+				if(scriptOriginal.charAt(pos)==';') break;
+				pos++;
 			}
 			if(bracketCount!=0){
 				log.warning("--function with unbalanced parentheses");
 				continue;
 			}
-			String completeFunction=scriptOriginal.substring(start,end);// end exclusive
+			String completeFunction=scriptOriginal.substring(start,pos);// end exclusive
 
 			switch(functionName){
 				case "&choose(":
@@ -541,10 +555,10 @@ public class PerlScript extends ProblemElement{
 				case "random_permutation(":
 					String permutation="random_permutation(";
 					//only second parameter is list, seed will be ignored
-					if(params.size()==2) permutation+=params.get(1)+")";
+					if(params.size()>1) permutation+=params.get(1)+")";
 					else permutation+=params.get(0)+")";
 					log.finer("--replace \""+completeFunction+"\" with \""+permutation+"\"");
-					if(params.size()==2) log.finer("---seed "+params.get(0)+" was ignored");
+					if(params.size()>1) log.finer("---seed "+params.get(0)+" was ignored");
 					script=script.replace(completeFunction,permutation);
 					break;
 
