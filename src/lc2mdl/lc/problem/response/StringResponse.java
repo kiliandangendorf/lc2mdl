@@ -12,7 +12,7 @@ public class StringResponse extends Response {
     protected String type;
 	protected String answer;// must fit perl params if there is a $-sign
 	private String answerDisplay;
-	protected boolean preprocess;
+	protected String comment="";
 
     public StringResponse(Problem problem, Node node){
 
@@ -51,6 +51,7 @@ public class StringResponse extends Response {
             log.finer("-found type "+type);
             if (!(type.equals("cs")||type.equals("ci"))){
                 log.warning("cannot handle type "+type+" Set type to \"cs\"");
+                comment += "cannot handle type "+type+" Set type to \"cs\"";
                 type="cs";
             }
             e.removeAttribute("type");
@@ -83,9 +84,9 @@ public class StringResponse extends Response {
             answerDisplay=answer;
         }
 
-        preprocess=e.hasAttribute("preprocess");
-        if (preprocess){
+        if (e.hasAttribute("preprocess")){
             log.warning("String response needs preprocessing, cannot to this.");
+            comment += "String response needs preprocessing, cannot to this.";
             e.removeAttribute("preprocess");
         }
 
@@ -148,8 +149,8 @@ public class StringResponse extends Response {
         }
 
 
-		if (preprocess) {
-		    question.addComment("Cannot do the required preprocessing.");
-        }
+
+        question.addComment(comment);
+
     }
 }
