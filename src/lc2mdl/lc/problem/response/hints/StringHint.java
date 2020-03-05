@@ -19,9 +19,6 @@ public class StringHint extends StringResponse implements ConditionalHint {
 	}
     @Override
     public void addToMdlQuestionStack(QuestionStack question){
-	    if (preprocess) {
-		    question.addComment("Cannot do the required preprocessing.");
-        }
     }
 
 
@@ -53,14 +50,15 @@ public class StringHint extends StringResponse implements ConditionalHint {
             log.finer("-found type "+type);
             if (!(type.equals("cs")||type.equals("ci"))){
                 log.warning("cannot handle type "+type+" Set type to \"cs\"");
+                comment += "cannot handle type "+type+" Set type to \"cs\"";
                 type="cs";
             }
-            e.removeAttribute(type);
+            e.removeAttribute("type");
         }
 
-        preprocess=e.hasAttribute("preprocess");
-        if (preprocess){
+        if (e.hasAttribute("preprocess")){
             log.warning("String response needs preprocessing, cannot to this.");
+            comment += "String response needs preprocessing, cannot to this.";
             e.removeAttribute("preprocess");
         }
 
@@ -103,6 +101,7 @@ public class StringHint extends StringResponse implements ConditionalHint {
 
         //Add additional vars to questionvariables
         question.addToQuestionVariables(additionalCASVars);
+        question.addComment(comment);
 
         //NODE-TAG
         NodeMdl hintnode=new NodeMdl();
