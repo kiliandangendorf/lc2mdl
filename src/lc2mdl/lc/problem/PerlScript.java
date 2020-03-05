@@ -187,9 +187,9 @@ public class PerlScript extends ProblemElement{
 							}
 							condSub=" if (not "+condSub+") ";
 							cond=script.substring(csStart,parenEnd);
-							
+
 							//TODO correct?
-//							script=script.replaceFirst(cond,condSub);
+							//							script=script.replaceFirst(cond,condSub);
 							script=script.replace(cond,condSub);
 							startFind=parenEnd;
 						}
@@ -374,7 +374,7 @@ public class PerlScript extends ProblemElement{
 
 		// newline or return at the end of line
 		syntaxReplacements.put(";[\\r\\n]*",";"+System.lineSeparator());
-//		syntaxReplacements.put(";[\\r\\n]*",System.lineSeparator());
+		//		syntaxReplacements.put(";[\\r\\n]*",System.lineSeparator());
 		log.finer("--remove multiple empty lines");
 		replaceKeysByValues(syntaxReplacements,true);
 	}
@@ -486,17 +486,17 @@ public class PerlScript extends ProblemElement{
 						//if param of THIS function
 						if(bracketCount==1){
 							//in case param is an array
-							if(curlyBracketCount==0 && squareBracketCount==0){
+							if(curlyBracketCount==0&&squareBracketCount==0){
 								String param=scriptOriginal.substring(lastPos,pos);
 								params.add(param);
 								lastPos=pos+1;
 							}
 						}
 						break;
-
+					case ';':
+						log.warning("found unexpected ';' in function parameters in "+functionName);
+						break;
 				}
-
-				if(scriptOriginal.charAt(pos)==';') break;
 				pos++;
 			}
 			if(bracketCount!=0){
@@ -675,7 +675,7 @@ public class PerlScript extends ProblemElement{
 		//Strings in "..."
 		// TODO there are still problems with this regex
 		String patString="(\"\")|((?<!\\\\)\"(((\\\")|[^\"])*?)[^\\\\]\")";
-//		String patString="(\"\")|([\"'])(?:(?=(\\\\?))\\2.)*?\\1";
+		//		String patString="(\"\")|([\"'])(?:(?=(\\\\?))\\2.)*?\\1";
 		Pattern pat=Pattern.compile(patString);
 		Matcher matcher=pat.matcher(buf);
 		while(matcher.find()){
@@ -686,7 +686,7 @@ public class PerlScript extends ProblemElement{
 			stringsInScript.add(stringText);
 			buf=buf.replaceFirst(patString,replacement);
 		}
-		
+
 		//Strings in '...'
 		patString="'(([^'])*?)'";
 		pat=Pattern.compile(patString);
