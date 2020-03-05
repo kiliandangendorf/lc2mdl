@@ -14,12 +14,12 @@ public class ProblemConsumer{
 	 */
 	public void consumingDom(Problem p){
 		log.fine(Prefs.CLI_LINE_SEP);
-		log.fine("Starting comsuning DOM.");
+		log.fine("Starting consuming DOM.");
 		
 		for(ProblemElement e:p.getElements()){
 			e.consumeNode();
 		}
 
-		log.fine("Done comsuning DOM.");
+		log.fine("Done consuming DOM.");
 	}
 }
