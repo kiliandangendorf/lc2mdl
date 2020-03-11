@@ -189,7 +189,7 @@ public class PerlScript extends ProblemElement{
 							cond=script.substring(csStart,parenEnd);
 
 							//TODO correct?
-							//							script=script.replaceFirst(cond,condSub);
+							//script=script.replaceFirst(cond,condSub);
 							script=script.replace(cond,condSub);
 							startFind=parenEnd;
 						}
@@ -376,7 +376,7 @@ public class PerlScript extends ProblemElement{
 		syntaxReplacements.put(";[\\r\\n]*",";"+System.lineSeparator());
 		//		syntaxReplacements.put(";[\\r\\n]*",System.lineSeparator());
 		log.finer("--remove multiple empty lines");
-		replaceKeysByValues(syntaxReplacements,true);
+		replaceRegExKeysByValues(syntaxReplacements,true);
 	}
 
 	private void replaceFunctions(){
@@ -427,27 +427,29 @@ public class PerlScript extends ProblemElement{
 				if(key.charAt(0)=='&'){
 					String val=functionReplacements.get(key);
 					// make ampersand (&) optional
-					String newKey="&?"+key.substring(1);// ,key.length());
+					String newKey="\\&?"+key.substring(1);// ,key.length());
 					additionalFunctionsWithoutAmpersand.put(newKey,val);
 				}
 			}
 			functionReplacements.putAll(additionalFunctionsWithoutAmpersand);
 		}
-		replaceKeysByValues(functionReplacements);
+		replaceRegExKeysByValues(functionReplacements);
 
 		// DIFFERENT SYNTAX CONVERSION (different parameters)
 		// regex was not possible for balanced parentheses
 
-		String scriptOriginal=script;
+//		String scriptOriginal=script;
+		HashMap<String,String> functionStringReplacements=new HashMap<>();
 		String functionBeginPat;
 		// optional &-sign (ampersand)
-		if(SUPPORT_OLD_CAPA_FUNCTIONS_WITHOUT_AMPERSAND) functionBeginPat="&?\\w+\\(";
-		else functionBeginPat="&\\w+\\(";
-		Matcher functionMatcher=Pattern.compile(functionBeginPat).matcher(scriptOriginal);
+		if(SUPPORT_OLD_CAPA_FUNCTIONS_WITHOUT_AMPERSAND) functionBeginPat="\\&?\\w+\\(";
+		else functionBeginPat="\\&\\w+\\(";
+//		Matcher functionMatcher=Pattern.compile(functionBeginPat).matcher(scriptOriginal);
+		Matcher functionMatcher=Pattern.compile(functionBeginPat).matcher(script);
 		while(functionMatcher.find()){
 			String functionName=functionMatcher.group();
 			int start=functionMatcher.start();
-			//char-position in script AFTER opening bracket
+			//char-position in script BEHIND opening bracket
 			int pos=functionMatcher.end();
 
 			ArrayList<String> params=new ArrayList<>();
@@ -458,14 +460,16 @@ public class PerlScript extends ProblemElement{
 			int curlyBracketCount=0;
 			int squareBracketCount=0;
 			while(bracketCount>0){
-				switch(scriptOriginal.charAt(pos)){
+				switch(script.charAt(pos)){
+//					switch(scriptOriginal.charAt(pos)){
 					case '(':
 						bracketCount++;
 						break;
 					case ')':
 						bracketCount--;
 						if(bracketCount==0){
-							String param=scriptOriginal.substring(lastPos,pos);
+							String param=script.substring(lastPos,pos);
+//							String param=scriptOriginal.substring(lastPos,pos);
 							params.add(param);
 						}
 						break;
@@ -487,7 +491,8 @@ public class PerlScript extends ProblemElement{
 						if(bracketCount==1){
 							//in case param is an array
 							if(curlyBracketCount==0&&squareBracketCount==0){
-								String param=scriptOriginal.substring(lastPos,pos);
+								String param=script.substring(lastPos,pos);
+//								String param=scriptOriginal.substring(lastPos,pos);
 								params.add(param);
 								lastPos=pos+1;
 							}
@@ -503,7 +508,8 @@ public class PerlScript extends ProblemElement{
 				log.warning("--function with unbalanced parentheses");
 				continue;
 			}
-			String completeFunction=scriptOriginal.substring(start,pos);// end exclusive
+			String completeFunction=script.substring(start,pos);// end exclusive
+//			String completeFunction=scriptOriginal.substring(start,pos);// end exclusive
 
 			switch(functionName){
 				case "&choose(":
@@ -523,17 +529,23 @@ public class PerlScript extends ProblemElement{
 					arrayDefinition.append("];");
 
 					// make assignment on array[i]
-					String assignArrayValue=arrayName+"["+params.get(0)+"];";
+					String assignArrayValue=arrayName+"["+params.get(0)+"]";//;";
 
-					// whole statement
-					String leftStatement=getFirstMatchAsString(script,"[^;\\n\\r]*(?=("+functionBeginPat+"))");
+					//get left side of statement followed by EXACTLY that match
+					String leftStatement=getFirstMatchAsString(script,"[^;\\n\\r]*(?=("+Pattern.quote(completeFunction)+"))");
+					
 					String wholeStatement=leftStatement+completeFunction;
+					if(leftStatement==null || leftStatement.equals("")){
+						wholeStatement=completeFunction;
+						log.info("--found not assigned choose-function: \""+wholeStatement+"\"");
+					}					
 
 					// define array before statement
 					String newStatement=arrayDefinition.toString()+leftStatement+assignArrayValue;
 
 					log.finer("--replace \""+wholeStatement+"\" with \""+newStatement+"\"");
-					script=script.replace(wholeStatement,newStatement);
+					functionStringReplacements.put(wholeStatement,newStatement);
+//					script=script.replace(wholeStatement,newStatement);
 					break;
 
 				case "&cas(":
@@ -542,7 +554,8 @@ public class PerlScript extends ProblemElement{
 					String maxima=params.get(1);
 					if(cas.equals("\"maxima\"")||cas.equals("'maxima'")){
 						log.finer("--replaced \""+completeFunction+"\" with \""+maxima+"\"");
-						script=script.replace(completeFunction,params.get(1));
+						functionStringReplacements.put(completeFunction,params.get(1));
+//						script=script.replace(completeFunction,params.get(1));
 					}else{
 						log.warning("--found &cas for unknown cas: "+cas);
 					}
@@ -552,7 +565,8 @@ public class PerlScript extends ProblemElement{
 				case "pow(":
 					String pow=params.get(0)+"^"+params.get(1);
 					log.finer("--replace \""+completeFunction+"\" with \""+pow+"\"");
-					script=script.replace(completeFunction,pow);
+					functionStringReplacements.put(completeFunction,pow);
+//					script=script.replace(completeFunction,pow);
 					break;
 
 				case "&random_permutation(":
@@ -563,7 +577,8 @@ public class PerlScript extends ProblemElement{
 					else permutation+=params.get(0)+")";
 					log.finer("--replace \""+completeFunction+"\" with \""+permutation+"\"");
 					if(params.size()>1) log.finer("---seed "+params.get(0)+" was ignored");
-					script=script.replace(completeFunction,permutation);
+					functionStringReplacements.put(completeFunction,permutation);
+//					script=script.replace(completeFunction,permutation);
 					break;
 
 				case "&random(":
@@ -573,7 +588,8 @@ public class PerlScript extends ProblemElement{
 					String step=(params.size()<3)?"1":params.get(2);
 					String random="rand_with_step("+lower+", "+upper+", "+step+")";
 					log.finer("--replace \""+completeFunction+"\" with \""+random+"\"");
-					script=script.replace(completeFunction,random);
+					functionStringReplacements.put(completeFunction,random);
+//					script=script.replace(completeFunction,random);					
 					break;
 
 				default:
@@ -581,10 +597,13 @@ public class PerlScript extends ProblemElement{
 						log.warning("--unknown function: "+functionName);
 			}
 		}
+		
+		//now replace all collected function-Strings in script
+		replaceStringKeysByValues(functionStringReplacements);
 
 		HashMap<String,String> paramReplacement=new HashMap<>();
 		paramReplacement.put("parameter_setting(\"([a-zA-Z][a-zA-Z0-9_]*?)\")","lcparam_$1");
-		replaceKeysByValues(paramReplacement);
+		replaceRegExKeysByValues(paramReplacement);
 
 		// script =
 		// script.replaceAll("parameter_setting(\"([a-zA-Z][a-zA-Z0-9_]*?)\")","lcparam_$1");
@@ -735,11 +754,22 @@ public class PerlScript extends ProblemElement{
 		return svgString;
 	}
 
-	private void replaceKeysByValues(HashMap<String,String> replacements){
-		replaceKeysByValues(replacements,false);
+	private void replaceStringKeysByValues(HashMap<String,String> replacements){
+		replaceStringKeysByValues(replacements,false);
 	}
 
-	private void replaceKeysByValues(HashMap<String,String> replacements,boolean silent){
+	private void replaceStringKeysByValues(HashMap<String,String> replacements,boolean silent){
+		for(String key:replacements.keySet()){
+			//no log here; it was done before
+			script=script.replace(key,replacements.get(key));
+		}
+	}
+
+	private void replaceRegExKeysByValues(HashMap<String,String> replacements){
+		replaceRegExKeysByValues(replacements,false);
+	}
+
+	private void replaceRegExKeysByValues(HashMap<String,String> replacements,boolean silent){
 		Pattern pattern;
 		Matcher matcher;
 		for(String key:replacements.keySet()){
