@@ -75,7 +75,7 @@ public class PerlScript extends ProblemElement{
 		replaceComments();
 
 		// UNKNOWN CONTROL-STRUCTURES
-		searchForControlStructures();
+		searchForUnknownControlStructures();
 
 		// CONTROL-STRUCTURES THAT CAN BE REPLACED
 		replaceControlStructures();
@@ -333,8 +333,8 @@ public class PerlScript extends ProblemElement{
 		return(newBlock);
 	}
 
-	private void searchForControlStructures(){
-		ArrayList<String> controlStructures=new ArrayList<>(Arrays.asList("next","last","redo","goto","sub","unless"));
+	private void searchForUnknownControlStructures(){
+		ArrayList<String> controlStructures=new ArrayList<>(Arrays.asList("next","last","redo","goto","sub"));
 		for(String cs:controlStructures){
 			String csPat="\\W"+cs+"\\W";
 			Matcher matcher=Pattern.compile(csPat).matcher(script);
