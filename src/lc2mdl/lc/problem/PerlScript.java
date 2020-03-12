@@ -365,18 +365,15 @@ public class PerlScript extends ProblemElement{
 	}
 
 	private void replaceSyntax(){
-		HashMap<String,String> syntaxReplacements=new HashMap<>();
 
+		log.finer("--replace all \"=\" with \": \"");
 		// single equal sign (left no AND right no equal sign, left no !,<,>)
 		// and not equal signs in quotes: (?<!=)=(?!=)(?=([^"]*"[^"]*")*[^"]*;)
-		syntaxReplacements.put("(?<![!=<>])=(?!=)(?=([^\"]*\"[^\"]*\")*[^\"]*;)",": ");
-		log.finer("--replace all \"=\" with \": \"");
+		script=script.replaceAll("(?<![!=<>]) {0,}=(?!=) {0,}(?=([^\"]*\"[^\"]*\")*[^\"]*;)",": ");
 
-		// newline or return at the end of line
-		syntaxReplacements.put(";[\\r\\n]*",";"+System.lineSeparator());
-		//		syntaxReplacements.put(";[\\r\\n]*",System.lineSeparator());
 		log.finer("--remove multiple empty lines");
-		replaceRegExKeysByValues(syntaxReplacements,true);
+		// newline or return at the end of line
+		script=script.replaceAll(";[\\r\\n]*",";"+System.lineSeparator());		
 	}
 
 	private void replaceFunctions(){
