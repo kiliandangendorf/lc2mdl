@@ -366,6 +366,7 @@ public class PerlScript extends ProblemElement{
 
 	private void replaceSyntax(){
 
+		// = -> :
 		log.finer("--replace all \"=\" with \": \"");
 		// single equal sign (left no AND right no equal sign, left no !,<,>)
 		// and not equal signs in quotes: (?<!=)=(?!=)(?=([^"]*"[^"]*")*[^"]*;)
@@ -373,7 +374,27 @@ public class PerlScript extends ProblemElement{
 
 		log.finer("--remove multiple empty lines");
 		// newline or return at the end of line
-		script=script.replaceAll(";[\\r\\n]*",";"+System.lineSeparator());		
+		script=script.replaceAll(";[\\r\\n]*",";"+System.lineSeparator());	
+		
+		// -- -> -1		
+		log.finer("--replace all \"--\" with \"-1\"");
+		// replace double -- (only if double occurs, not more or less)
+		// look ahead (?<![-])
+		// look behind (?!-)
+		script=script.replaceAll("(?<![-])--(?!-)","-1");	
+
+		// ++ -> +1
+		log.finer("--replace all \"++\" with \"+1\"");
+		script=script.replaceAll("(?<![\\+])\\+\\+(?!\\+)","+1");	
+
+		// ** -> ^
+		log.finer("--replace all \"**\" with \"^\"");
+		script=script.replaceAll("(?<![\\*])\\*\\*(?!\\*)","^");	
+		
+		//== -> =
+		log.finer("--replace all \"==\" with \"=\"");
+		script=script.replaceAll("(?<![=])==(?!=)","=");	
+		
 	}
 
 	private void replaceFunctions(){
