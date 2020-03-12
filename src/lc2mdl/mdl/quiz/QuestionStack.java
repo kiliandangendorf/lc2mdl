@@ -110,7 +110,9 @@ public class QuestionStack extends Question{
 	}
 
 	public void correctPrtValuesAndLinks(){
+		log.finer("-correct node-values and modes");
 		correctNodeAndPrtValues();
+		log.finer("-correct prt end-links");
 		correctPrtStopLinks();
 	}
 	private void correctNodeAndPrtValues(){
@@ -121,14 +123,28 @@ public class QuestionStack extends Question{
 		for(Prt p:prt){
 			p.setValue(valuePerPrt);
 			ArrayList<NodeMdl> nodes=p.getNode();
-			//find all NOT hint-nodes
-			int nodesWithValue=0;
+			
+			ArrayList<NodeMdl> valueNodes=new ArrayList<>();
+			
 			for(NodeMdl n:nodes){
-				if(!(n.getTruescore()==0.0 && n.getFalsescore()==0.0))nodesWithValue++;
+				//first node in prt initial mode "=", later "+" or "-"  
+				if(nodes.indexOf(n)==0){
+					n.setTruescoremode("=");
+					n.setFalsescoremode("=");
+				}else{
+					n.setTruescoremode("+");
+					n.setFalsescoremode("-");
+				}
+				
+				//find value-nodes (find all NOT hint-nodes)
+				if(!(n.getTruescore()==0.0 && n.getFalsescore()==0.0)){
+					valueNodes.add(n);
+				}
 			}
+			int nodesWithValue=valueNodes.size();
 			double valuePerNode=valuePerPrt/nodesWithValue;
-			for(NodeMdl n:nodes){
-				if(!(n.getTruescore()==0.0 && n.getFalsescore()==0.0))n.setTruescore(valuePerNode);
+			for(NodeMdl n:valueNodes){
+				n.setTruescore(valuePerNode);
 			}
 		}
 	}

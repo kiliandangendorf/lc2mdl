@@ -115,7 +115,7 @@ public class PerlScript extends ProblemElement{
 		}
 	}
 
-	private void replaceControlStructures(){		
+	private void replaceControlStructures(){
 		HashMap<String,String> controlStructureStringReplacements=new HashMap<>();
 
 		ArrayList<String> controlStructures=new ArrayList<>(

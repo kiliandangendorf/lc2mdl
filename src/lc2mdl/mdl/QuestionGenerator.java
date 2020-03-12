@@ -83,7 +83,7 @@ public class QuestionGenerator{
 			e.addToMdlQuestionStack(question);
 		}
 		
-		log.finer("correct node-values");
+		log.finer("correct prt- and node-values");
 		question.correctPrtValuesAndLinks();
 
 		// for problems directly from the author - no meta basedon tag
