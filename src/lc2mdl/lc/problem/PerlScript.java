@@ -84,6 +84,7 @@ public class PerlScript extends ProblemElement{
 		// need to be placed after arrays, functions and control structures !
 		replaceBlocks();
 
+		// = -> :, etc. (needs to be placed BEFORE replaceStrings() )
 		replaceSyntax();
 
 		// replace Strings
@@ -114,7 +115,9 @@ public class PerlScript extends ProblemElement{
 		}
 	}
 
-	private void replaceControlStructures(){
+	private void replaceControlStructures(){		
+		HashMap<String,String> controlStructureStringReplacements=new HashMap<>();
+
 		ArrayList<String> controlStructures=new ArrayList<>(
 				Arrays.asList("do","unless","else","elsif","if","until","while","for","foreach"));
 		for(String cs:controlStructures){
@@ -168,7 +171,8 @@ public class PerlScript extends ProblemElement{
 								String whileString=script.substring(blockEnd).substring(whileStart,whileEnd);
 								String doString=script.substring(doStart,doEnd);
 								String newString=" "+whileString+blockString;
-								script=script.replace(doString,newString);
+								controlStructureStringReplacements.put(doString,newString);
+//								script=script.replace(doString,newString);
 
 							}else{
 								addConvertWarning(
@@ -190,7 +194,8 @@ public class PerlScript extends ProblemElement{
 
 							//TODO correct?
 							//script=script.replaceFirst(cond,condSub);
-							script=script.replace(cond,condSub);
+							controlStructureStringReplacements.put(cond,condSub);
+//							script=script.replace(cond,condSub);
 							startFind=parenEnd;
 						}
 							break;
@@ -198,7 +203,8 @@ public class PerlScript extends ProblemElement{
 						case "else":
 							String csString=matcher.group();
 							String csNewString="  "+ConvertAndFormatMethods.removeCR(csString)+" ";
-							script=script.replace(csString,csNewString);
+							controlStructureStringReplacements.put(csString,csNewString);
+//							script=script.replace(csString,csNewString);
 							startFind=csStart+csNewString.length()+1;
 							break;
 
@@ -206,7 +212,8 @@ public class PerlScript extends ProblemElement{
 							csString=matcher.group();
 							csNewString="  "+ConvertAndFormatMethods.removeCR(csString)+" ";
 							csNewString=csNewString.replace("elsif","elseif");
-							script=script.replace(csString,csNewString);
+							controlStructureStringReplacements.put(csString,csNewString);
+//							script=script.replace(csString,csNewString);
 							parenEnd+=csNewString.length()-csString.length();
 							// parenEnd += 4;
 							// nobreak, continue with the if case
@@ -217,7 +224,8 @@ public class PerlScript extends ProblemElement{
 							if(parenStart<parenEnd){
 								String oldIf=script.substring(csStart,parenEnd);
 								String newIf=oldIf+" then ";
-								script=script.replace(oldIf,newIf);
+								controlStructureStringReplacements.put(oldIf,newIf);
+//								script=script.replace(oldIf,newIf);
 								startFind=csEnd;
 							}else{
 								startFind=csEnd;
@@ -226,14 +234,16 @@ public class PerlScript extends ProblemElement{
 							break;
 
 						case "until":
-							script.replace(cs,"unless");
+							controlStructureStringReplacements.put(cs,"unless");
+//							script.replace(cs,"unless");
 							parenEnd++;
 							// nobreak, continue with the while case
 
 						case "while":
 							String oldWhile=script.substring(csStart,parenEnd);
 							String newWhile=oldWhile+" do ";
-							script=script.replace(oldWhile,newWhile);
+							controlStructureStringReplacements.put(oldWhile,newWhile);
+//							script=script.replace(oldWhile,newWhile);
 							startFind=csEnd;
 							break;
 
@@ -250,7 +260,8 @@ public class PerlScript extends ProblemElement{
 									String cond=parenSplit[1];
 									String next=parenSplit[2];
 									String newForString="for "+start+" next "+next+" while( "+cond+" ) do";
-									script=script.replace(forString,newForString);
+									controlStructureStringReplacements.put(forString,newForString);
+//									script=script.replace(forString,newForString);
 
 								}
 
@@ -264,7 +275,8 @@ public class PerlScript extends ProblemElement{
 							String varString="lcvariable";
 							if(csEnd<parenStart) varString=script.substring(csEnd+1,parenStart);
 							String newForString="for "+varString+" in "+parenString+" do ";
-							script=script.replace(forString,newForString);
+							controlStructureStringReplacements.put(forString,newForString);
+//							script=script.replace(forString,newForString);
 							startFind=csEnd;
 							break;
 						default:
@@ -275,6 +287,7 @@ public class PerlScript extends ProblemElement{
 			}
 
 		}
+		replaceStringKeysByValues(controlStructureStringReplacements);
 
 		for(String cs:controlStructures){
 			String csPat=cs+"[^\\{]*\\{";
@@ -283,7 +296,8 @@ public class PerlScript extends ProblemElement{
 				String csString=matcher.group();
 				// System.out.println(matcher.group());
 				String csNewString=ConvertAndFormatMethods.removeCR(csString);
-				script=script.replace(csString,csNewString);
+				controlStructureStringReplacements.put(csString,csNewString);
+//				script=script.replace(csString,csNewString);
 			}
 		}
 
