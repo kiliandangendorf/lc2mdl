@@ -374,27 +374,27 @@ public class PerlScript extends ProblemElement{
 
 		log.finer("--remove multiple empty lines");
 		// newline or return at the end of line
-		script=script.replaceAll(";[\\r\\n]*",";"+System.lineSeparator());	
-		
+		script=script.replaceAll(";[\\r\\n]*",";"+System.lineSeparator());
+
 		// -- -> -1		
 		log.finer("--replace all \"--\" with \"-1\"");
 		// replace double -- (only if double occurs, not more or less)
 		// look ahead (?<![-])
 		// look behind (?!-)
-		script=script.replaceAll("(?<![-])--(?!-)","-1");	
+		script=script.replaceAll("(?<![-])--(?!-)","-1");
 
 		// ++ -> +1
 		log.finer("--replace all \"++\" with \"+1\"");
-		script=script.replaceAll("(?<![\\+])\\+\\+(?!\\+)","+1");	
+		script=script.replaceAll("(?<![\\+])\\+\\+(?!\\+)","+1");
 
 		// ** -> ^
 		log.finer("--replace all \"**\" with \"^\"");
-		script=script.replaceAll("(?<![\\*])\\*\\*(?!\\*)","^");	
-		
+		script=script.replaceAll("(?<![\\*])\\*\\*(?!\\*)","^");
+
 		//== -> =
 		log.finer("--replace all \"==\" with \"=\"");
-		script=script.replaceAll("(?<![=])==(?!=)","=");	
-		
+		script=script.replaceAll("(?<![=])==(?!=)","=");
+
 	}
 
 	private void replaceFunctions(){
@@ -456,13 +456,13 @@ public class PerlScript extends ProblemElement{
 		// DIFFERENT SYNTAX CONVERSION (different parameters)
 		// regex was not possible for balanced parentheses
 
-//		String scriptOriginal=script;
+		//		String scriptOriginal=script;
 		HashMap<String,String> functionStringReplacements=new HashMap<>();
 		String functionBeginPat;
 		// optional &-sign (ampersand)
 		if(SUPPORT_OLD_CAPA_FUNCTIONS_WITHOUT_AMPERSAND) functionBeginPat="\\&?\\w+\\(";
 		else functionBeginPat="\\&\\w+\\(";
-//		Matcher functionMatcher=Pattern.compile(functionBeginPat).matcher(scriptOriginal);
+		//		Matcher functionMatcher=Pattern.compile(functionBeginPat).matcher(scriptOriginal);
 		Matcher functionMatcher=Pattern.compile(functionBeginPat).matcher(script);
 		while(functionMatcher.find()){
 			String functionName=functionMatcher.group();
@@ -479,7 +479,7 @@ public class PerlScript extends ProblemElement{
 			int squareBracketCount=0;
 			while(bracketCount>0){
 				switch(script.charAt(pos)){
-//					switch(scriptOriginal.charAt(pos)){
+					//					switch(scriptOriginal.charAt(pos)){
 					case '(':
 						bracketCount++;
 						break;
@@ -487,7 +487,7 @@ public class PerlScript extends ProblemElement{
 						bracketCount--;
 						if(bracketCount==0){
 							String param=script.substring(lastPos,pos);
-//							String param=scriptOriginal.substring(lastPos,pos);
+							//							String param=scriptOriginal.substring(lastPos,pos);
 							params.add(param);
 						}
 						break;
@@ -510,7 +510,7 @@ public class PerlScript extends ProblemElement{
 							//in case param is an array
 							if(curlyBracketCount==0&&squareBracketCount==0){
 								String param=script.substring(lastPos,pos);
-//								String param=scriptOriginal.substring(lastPos,pos);
+								//								String param=scriptOriginal.substring(lastPos,pos);
 								params.add(param);
 								lastPos=pos+1;
 							}
@@ -527,7 +527,7 @@ public class PerlScript extends ProblemElement{
 				continue;
 			}
 			String completeFunction=script.substring(start,pos);// end exclusive
-//			String completeFunction=scriptOriginal.substring(start,pos);// end exclusive
+			//			String completeFunction=scriptOriginal.substring(start,pos);// end exclusive
 
 			switch(functionName){
 				case "&choose(":
@@ -550,20 +550,21 @@ public class PerlScript extends ProblemElement{
 					String assignArrayValue=arrayName+"["+params.get(0)+"]";//;";
 
 					//get left side of statement followed by EXACTLY that match
-					String leftStatement=getFirstMatchAsString(script,"[^;\\n\\r]*(?=("+Pattern.quote(completeFunction)+"))");
-					
+					String leftStatement=getFirstMatchAsString(script,
+							"[^;\\n\\r]*(?=("+Pattern.quote(completeFunction)+"))");
+
 					String wholeStatement=leftStatement+completeFunction;
-					if(leftStatement==null || leftStatement.equals("")){
+					if(leftStatement==null||leftStatement.equals("")){
 						wholeStatement=completeFunction;
 						log.info("--found not assigned choose-function: \""+wholeStatement+"\"");
-					}					
+					}
 
 					// define array before statement
 					String newStatement=arrayDefinition.toString()+leftStatement+assignArrayValue;
 
 					log.finer("--replace \""+wholeStatement+"\" with \""+newStatement+"\"");
 					functionStringReplacements.put(wholeStatement,newStatement);
-//					script=script.replace(wholeStatement,newStatement);
+					//					script=script.replace(wholeStatement,newStatement);
 					break;
 
 				case "&cas(":
@@ -573,7 +574,7 @@ public class PerlScript extends ProblemElement{
 					if(cas.equals("\"maxima\"")||cas.equals("'maxima'")){
 						log.finer("--replaced \""+completeFunction+"\" with \""+maxima+"\"");
 						functionStringReplacements.put(completeFunction,params.get(1));
-//						script=script.replace(completeFunction,params.get(1));
+						//						script=script.replace(completeFunction,params.get(1));
 					}else{
 						log.warning("--found &cas for unknown cas: "+cas);
 					}
@@ -584,7 +585,7 @@ public class PerlScript extends ProblemElement{
 					String pow=params.get(0)+"^"+params.get(1);
 					log.finer("--replace \""+completeFunction+"\" with \""+pow+"\"");
 					functionStringReplacements.put(completeFunction,pow);
-//					script=script.replace(completeFunction,pow);
+					//					script=script.replace(completeFunction,pow);
 					break;
 
 				case "&random_permutation(":
@@ -596,7 +597,7 @@ public class PerlScript extends ProblemElement{
 					log.finer("--replace \""+completeFunction+"\" with \""+permutation+"\"");
 					if(params.size()>1) log.finer("---seed "+params.get(0)+" was ignored");
 					functionStringReplacements.put(completeFunction,permutation);
-//					script=script.replace(completeFunction,permutation);
+					//					script=script.replace(completeFunction,permutation);
 					break;
 
 				case "&random(":
@@ -607,7 +608,7 @@ public class PerlScript extends ProblemElement{
 					String random="rand_with_step("+lower+", "+upper+", "+step+")";
 					log.finer("--replace \""+completeFunction+"\" with \""+random+"\"");
 					functionStringReplacements.put(completeFunction,random);
-//					script=script.replace(completeFunction,random);					
+					//					script=script.replace(completeFunction,random);					
 					break;
 
 				default:
@@ -615,7 +616,7 @@ public class PerlScript extends ProblemElement{
 						log.warning("--unknown function: "+functionName);
 			}
 		}
-		
+
 		//now replace all collected function-Strings in script
 		replaceStringKeysByValues(functionStringReplacements);
 
