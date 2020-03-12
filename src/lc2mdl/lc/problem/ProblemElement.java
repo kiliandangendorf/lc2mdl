@@ -191,16 +191,35 @@ public abstract class ProblemElement {
 	private String replaceVariables(String text){
 		//VARS in {@ ... @}
 		for(String var:problem.getPerlVars()){
-			//only if it's exactly same name
-			String varPat="\\$"+var+"\\[(([\\$a-zA-Z0-9])*?)\\]";
-			Matcher matcher=Pattern.compile(varPat).matcher(text);
+			//make sure it's exactly same name
+			
+			//arrays $a[...] -->{@ a[...] @}
+			String arrayVarPat="\\$"+var+"\\[ {0,}(([\\$a-zA-Z0-9])*?) {0,}\\]";
+			Matcher matcher=Pattern.compile(arrayVarPat).matcher(text);
 			while(matcher.find()){
 				String varString=matcher.group();
 				String replacement = varString.substring(1);
+				
+				//replace vars within array-index
+				//$a[$i] -->{@ a[i] @}
+				if(replacement.contains("$")){
+					for(String innerVar:problem.getPerlVars()){
+						String innerVarPat="\\$"+innerVar+"(?![a-zA-Z0-9])";
+						Matcher innerMatcher=Pattern.compile(innerVarPat).matcher(replacement);
+						while(innerMatcher.find()){
+							String innerString=innerMatcher.group();
+							String innerReplacement = innerString.substring(1);
+							replacement=replacement.replace(innerString,innerReplacement);
+						}
+					}
+				}
 				log.finer("--replace "+varString+" with {@"+replacement+"@}");
 				text=text.replace(varString,"{@"+replacement+"@}");
 			}
-			varPat="\\$"+var+"(?![a-zA-Z0-9])";
+			
+			//vars $a --> {@ a @} (but no arrays)
+			String varPat="\\$"+var+"(?![a-zA-Z0-9])";
+//			String varPat="\\$"+var+"(?![(\\[ {0,})( {0,}\\])a-zA-Z0-9])";
 			matcher=Pattern.compile(varPat).matcher(text);
 			while(matcher.find()){
 				String varString=matcher.group();
