@@ -409,6 +409,14 @@ public class PerlScript extends ProblemElement{
 		log.finer("--replace all \"==\" with \"=\"");
 		script=script.replaceAll("(?<![=])==(?!=)","=");
 
+		//&& -> and
+		log.finer("--replace all \"&&\" with \" and \"");
+		script=script.replaceAll("(?<![&]) {0,}&& {0,}(?!&)"," and ");
+
+		//|| -> or
+		log.finer("--replace all \"||\" with \" or \"");
+		script=script.replaceAll("(?<![\\|]) {0,}\\|\\| {0,}(?!\\|)"," or ");
+
 	}
 
 	private void replaceFunctions(){
