@@ -1,16 +1,18 @@
 package lc2mdl.lc.problem;
 
-import lc2mdl.mdl.quiz.QuestionStack;
-import lc2mdl.util.ConvertAndFormatMethods;
-import lc2mdl.util.FileFinder;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+
+import lc2mdl.mdl.quiz.QuestionStack;
+import lc2mdl.util.ConvertAndFormatMethods;
+import lc2mdl.util.FileFinder;
 
 public class PerlScript extends ProblemElement{
 
@@ -116,12 +118,18 @@ public class PerlScript extends ProblemElement{
 	}
 
 	private void replaceControlStructures(){
-		HashMap<String,String> controlStructureStringReplacements=new HashMap<>();
+		//Linked HashMap to keep order of insertion
+		LinkedHashMap<String,String> controlStructureStringReplacements=new LinkedHashMap<>();
 
+		//Keep order in this List: for has do be done BEFORE foreach
 		ArrayList<String> controlStructures=new ArrayList<>(
 				Arrays.asList("do","unless","else","elsif","if","until","while","for","foreach"));
 		for(String cs:controlStructures){
 			String csPat="\\W"+cs+"\\W";
+			
+			//TODO: Look ahead and behind
+//			String csPat="(?<=[\\W])"+cs+"(?=\\W)";
+
 			Matcher matcher=Pattern.compile(csPat).matcher(script);
 			int startFind=0;
 			while(matcher.find(startFind)){
@@ -132,6 +140,7 @@ public class PerlScript extends ProblemElement{
 				int csEnd=matcher.end()-1;
 				int parenStart=csEnd;
 				int parenEnd=parenStart;
+				//searchEnd only for open parenthesis
 				int searchEnd=csEnd+20;
 				if(searchEnd>script.length()) searchEnd=script.length();
 				while(parenStart<searchEnd){
@@ -144,7 +153,8 @@ public class PerlScript extends ProblemElement{
 					parenEnd=ConvertAndFormatMethods.findMatchingParentheses(script,parenStart);
 				}else{
 					parenStart=csEnd;
-					addConvertWarning("--found "+cs+" without parentheses ");
+					//else doesn't need parentheses
+					if(!cs.equals("else"))addConvertWarning("--found "+cs+" without parentheses ");
 				}
 
 				if(parenEnd>0){
@@ -192,10 +202,7 @@ public class PerlScript extends ProblemElement{
 							condSub=" if (not "+condSub+") ";
 							cond=script.substring(csStart,parenEnd);
 
-							//TODO correct?
-							//script=script.replaceFirst(cond,condSub);
 							controlStructureStringReplacements.put(cond,condSub);
-//							script=script.replace(cond,condSub);
 							startFind=parenEnd;
 						}
 							break;
@@ -204,32 +211,34 @@ public class PerlScript extends ProblemElement{
 							String csString=matcher.group();
 							String csNewString="  "+ConvertAndFormatMethods.removeCR(csString)+" ";
 							controlStructureStringReplacements.put(csString,csNewString);
-//							script=script.replace(csString,csNewString);
 							startFind=csStart+csNewString.length()+1;
 							break;
-
+							
 						case "elsif":
-							csString=matcher.group();
-							csNewString="  "+ConvertAndFormatMethods.removeCR(csString)+" ";
-							csNewString=csNewString.replace("elsif","elseif");
-							controlStructureStringReplacements.put(csString,csNewString);
-//							script=script.replace(csString,csNewString);
-							parenEnd+=csNewString.length()-csString.length();
-							// parenEnd += 4;
-							// nobreak, continue with the if case
-							matcher=Pattern.compile(csPat).matcher(script);
-
 						case "if":
 
 							if(parenStart<parenEnd){
-								String oldIf=script.substring(csStart,parenEnd);
+								//use first \W, too for making sure "if ..." doesn't match "eslif ..."
+								String oldIf=script.substring(csStart-1,parenEnd);
 								String newIf=oldIf+" then ";
+
+								//handle elsif as special case of if
+								if(cs.equals("elsif")){
+									csString=matcher.group();
+									newIf=newIf.replaceFirst(Pattern.quote("elsif"),"elseif");
+									//there are no changes in script, so parenEnd doesn't need to change
+									//parenEnd+=csNewString.length()-csString.length();
+									// parenEnd += 4;
+									//matcher=Pattern.compile(csPat).matcher(script);
+								}
+								
 								controlStructureStringReplacements.put(oldIf,newIf);
-//								script=script.replace(oldIf,newIf);
 								startFind=csEnd;
 							}else{
 								startFind=csEnd;
-								addConvertWarning("-- found if without parentheses !");
+								addConvertWarning("-- found "+cs+" without parentheses !");
+								//TODO: Warning already at the beginning 
+
 							}
 							break;
 
@@ -289,18 +298,31 @@ public class PerlScript extends ProblemElement{
 		}
 		replaceStringKeysByValues(controlStructureStringReplacements);
 
+		
+		//Cleanup CS
+		controlStructures.add("elseif");
 		for(String cs:controlStructures){
+			//remove CR
+			StringBuffer replacement=new StringBuffer();
 			String csPat=cs+"[^\\{]*\\{";
 			Matcher matcher=Pattern.compile(csPat).matcher(script);
 			while(matcher.find()){
-				String csString=matcher.group();
-				// System.out.println(matcher.group());
-				String csNewString=ConvertAndFormatMethods.removeCR(csString);
-				controlStructureStringReplacements.put(csString,csNewString);
-//				script=script.replace(csString,csNewString);
+				String csString=ConvertAndFormatMethods.removeCR(matcher.group());
+				matcher.appendReplacement(replacement,Matcher.quoteReplacement(csString));
 			}
-		}
+			matcher.appendTail(replacement);
+			script=replacement.toString();
 
+			//remove Whitespace-char
+			replacement=new StringBuffer();
+			csPat="(?<=\\W)\\s*"+cs+"\\s*(?=\\W)";
+			matcher=Pattern.compile(csPat).matcher(script);
+			while(matcher.find()){				
+				matcher.appendReplacement(replacement,Matcher.quoteReplacement(" "+cs+" "));
+			}
+			matcher.appendTail(replacement);
+			script=replacement.toString();
+		}
 	}
 
 	private void replaceBlocks(){
