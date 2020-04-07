@@ -476,7 +476,6 @@ public class PerlScript extends ProblemElement{
 		// optional &-sign (ampersand)
 		if(SUPPORT_OLD_CAPA_FUNCTIONS_WITHOUT_AMPERSAND) functionBeginPat="\\&?\\w+\\(";
 		else functionBeginPat="\\&\\w+\\(";
-		//		Matcher functionMatcher=Pattern.compile(functionBeginPat).matcher(scriptOriginal);
 		Matcher functionMatcher=Pattern.compile(functionBeginPat).matcher(script);
 		while(functionMatcher.find()){
 			String functionName=functionMatcher.group();
@@ -493,7 +492,6 @@ public class PerlScript extends ProblemElement{
 			int squareBracketCount=0;
 			while(bracketCount>0){
 				switch(script.charAt(pos)){
-					//					switch(scriptOriginal.charAt(pos)){
 					case '(':
 						bracketCount++;
 						break;
@@ -501,7 +499,6 @@ public class PerlScript extends ProblemElement{
 						bracketCount--;
 						if(bracketCount==0){
 							String param=script.substring(lastPos,pos);
-							//							String param=scriptOriginal.substring(lastPos,pos);
 							params.add(param);
 						}
 						break;
@@ -524,24 +521,28 @@ public class PerlScript extends ProblemElement{
 							//in case param is an array
 							if(curlyBracketCount==0&&squareBracketCount==0){
 								String param=script.substring(lastPos,pos);
-								//								String param=scriptOriginal.substring(lastPos,pos);
 								params.add(param);
 								lastPos=pos+1;
 							}
 						}
 						break;
 					case ';':
-						log.warning("found unexpected ';' in function parameters in "+functionName);
+						log.warning("--found unexpected ';' in function parameters in "+functionName);
 						break;
 				}
 				pos++;
+				//if pos out of String bound
+				//TODO: (maybe look back if char before was an escape-symbol?)
+				if(pos>=script.length()){
+					log.warning("--can't find end of function within script-String (most likely because of escape-symbols) in function "+functionName);
+					break;
+				}
 			}
 			if(bracketCount!=0){
 				log.warning("--function with unbalanced parentheses");
 				continue;
 			}
 			String completeFunction=script.substring(start,pos);// end exclusive
-			//			String completeFunction=scriptOriginal.substring(start,pos);// end exclusive
 
 			switch(functionName){
 				case "&choose(":
