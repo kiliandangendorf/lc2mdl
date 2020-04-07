@@ -381,7 +381,7 @@ public class PerlScript extends ProblemElement{
 	}
 
 	private void replaceComments(){
-		String commentPat="#[^\n\r]*";
+		String commentPat="#[^\\n\\r]*";
 		Matcher matcher=Pattern.compile(commentPat).matcher(script);
 		while(matcher.find()){
 			String comment=matcher.group();
@@ -771,7 +771,9 @@ public class PerlScript extends ProblemElement{
 		}
 
 		//Strings in '...'
-		patString="'(([^'])*?)'";
+		//no word-char right before or after
+		patString="(?<=\\W)'(([^'])*?)'(?=\\W)";
+//		patString="'(([^'])*?)'";
 		pat=Pattern.compile(patString);
 		matcher=pat.matcher(buf);
 		while(matcher.find()){
