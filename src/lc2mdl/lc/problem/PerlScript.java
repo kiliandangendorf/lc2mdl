@@ -118,6 +118,13 @@ public class PerlScript extends ProblemElement{
 	}
 
 	private void replaceControlStructures(){
+		/* HINT:
+		 * Best way to use Matcher seems to be using "matcher.appendReplacement(...)" and "matcher.appendTail(...)" on a StringBuffer.
+		 * This makes sure, to replace exactly this match (not all matching Strings).
+		 * Problem here is, we need not only the match, but also some charSequences before and after.
+		 * TODO: Maybe we need an separate Matcher for each CS and use appendReplacement(...) in most possible cases...  
+		 * */
+		
 		//Linked HashMap to keep order of insertion
 		LinkedHashMap<String,String> controlStructureStringReplacements=new LinkedHashMap<>();
 
