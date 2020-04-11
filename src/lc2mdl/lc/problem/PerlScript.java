@@ -388,7 +388,8 @@ public class PerlScript extends ProblemElement{
 	}
 
 	private void replaceComments(){
-		String commentPat="#[^\\n\\r]*";
+		String commentPat="(?<!\\$)#.*(?=[\\n\\r]+)";
+		StringBuffer sb=new StringBuffer();
 		Matcher matcher=Pattern.compile(commentPat).matcher(script);
 		while(matcher.find()){
 			String comment=matcher.group();
@@ -396,6 +397,8 @@ public class PerlScript extends ProblemElement{
 			while(comment.charAt(0)=='#'&&comment.length()>1){
 				comment=comment.substring(1);
 			}
+			//to prevent generating "**"
+			if(comment.charAt(0)=='#'&&comment.length()==1)comment=" ";
 			// remove # within
 			comment=comment.replaceAll("#","[HASH-SIGN]");
 			comment=comment.replaceAll("\\$","[DOLLAR-SIGN]");
@@ -403,8 +406,11 @@ public class PerlScript extends ProblemElement{
 			comment=comment.replaceAll("\\*/","[CLOSING-COMMAND]");
 			// put into c-style comments /* ... */
 			comment="/*"+comment+"*/";
-			script=script.replaceFirst(commentPat,comment);
+			matcher.appendReplacement(sb,comment);
+//			script=script.replaceFirst(commentPat,comment);
 		}
+		matcher.appendTail(sb);
+		script=sb.toString();
 	}
 
 	private void replaceSyntax(){
@@ -417,7 +423,7 @@ public class PerlScript extends ProblemElement{
 
 		log.finer("--remove multiple empty lines");
 		// newline or return at the end of line
-		script=script.replaceAll(";[\\r\\n]*",";"+System.lineSeparator());
+		script=script.replaceAll(";[\\r\\n]+",";"+System.lineSeparator());
 
 		// -- -> -1		
 		log.finer("--replace all \"--\" with \"-1\"");
