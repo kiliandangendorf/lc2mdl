@@ -75,7 +75,7 @@ public class PerlScript extends ProblemElement{
 
 		// COMMENTS
 		replaceComments();
-
+		
 		// UNKNOWN CONTROL-STRUCTURES
 		searchForUnknownControlStructures();
 
@@ -161,7 +161,7 @@ public class PerlScript extends ProblemElement{
 				}else{
 					parenStart=csEnd;
 					//else doesn't need parentheses
-					if(!cs.equals("else"))addConvertWarning("--found "+cs+" without parentheses ");
+					if(!cs.equals("else"))addConvertWarning("--found "+cs+" without parentheses (will not work on)");
 				}
 
 				if(parenEnd>0){
@@ -211,7 +211,8 @@ public class PerlScript extends ProblemElement{
 
 							controlStructureStringReplacements.put(cond,condSub);
 							startFind=parenEnd;
-						}
+							addConvertWarning("--replaced \"unless\" partially. Please correct order of replaced \"unless\"-statement in context \""+condSub+"\"");
+							}
 							break;
 
 						case "else":
@@ -243,9 +244,6 @@ public class PerlScript extends ProblemElement{
 								startFind=csEnd;
 							}else{
 								startFind=csEnd;
-								addConvertWarning("-- found "+cs+" without parentheses !");
-								//TODO: Warning already at the beginning 
-
 							}
 							break;
 
@@ -382,13 +380,13 @@ public class PerlScript extends ProblemElement{
 			String csPat="\\W"+cs+"\\W";
 			Matcher matcher=Pattern.compile(csPat).matcher(script);
 			while(matcher.find()){
-				addConvertWarning("--found unknown control structure: "+cs);
+				addConvertWarning("--found unknown control structure: "+cs+" (will not work on)");
 			}
 		}
 	}
 
 	private void replaceComments(){
-		String commentPat="(?<!\\$)#.*(?=[\\n\\r]+)";
+		String commentPat="(?<!\\$)#.*(?=[\\n\\r])";
 		StringBuffer sb=new StringBuffer();
 		Matcher matcher=Pattern.compile(commentPat).matcher(script);
 		while(matcher.find()){
