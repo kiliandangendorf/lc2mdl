@@ -809,7 +809,9 @@ public class PerlScript extends ProblemElement{
 			stringText=transformTextVariable(stringText);
 			stringText=replaceImagePathBySVG(stringText);
 			// log.finer("replace text" + stringText);
-			buf=buf.replaceFirst("lc2mdltext"+i,stringText);
+			
+			//prevent to match lc2mdltext10 with lc2mdltext1
+			buf=buf.replaceFirst("(?<=\\W)lc2mdltext"+i+"(?=\\W)",stringText);
 		}
 
 		script=buf;
