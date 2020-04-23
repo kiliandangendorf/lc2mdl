@@ -167,7 +167,8 @@ public class PerlScript extends ProblemElement{
 				if(parenEnd>0){
 					switch(cs){
 						case "do":
-							int doStart=matcher.start();
+							//TODO: Start at csStart. Otherwise first char will be removed. Correct?
+							int doStart=csStart;//matcher.start();
 							int blockStart=matcher.end()-1;
 							int blockEnd=ConvertAndFormatMethods.findMatchingParentheses(script,blockStart,false);
 							if(blockEnd<0){
@@ -316,7 +317,6 @@ public class PerlScript extends ProblemElement{
 			Matcher matcher=Pattern.compile(csPat).matcher(script);
 			while(matcher.find()){
 				String csString=ConvertAndFormatMethods.removeCR(matcher.group());
-				addConvertWarning(matcher.group());
 				matcher.appendReplacement(replacement,Matcher.quoteReplacement(csString));
 			}
 			matcher.appendTail(replacement);
@@ -324,7 +324,7 @@ public class PerlScript extends ProblemElement{
 
 			//remove Whitespace-char
 			replacement=new StringBuffer();
-			csPat="(?<=\\W)\\s*"+cs+"\\s*(?=\\W)";
+			csPat="(?<=\\W) {0,}"+cs+" {0,}(?=\\W)";
 			matcher=Pattern.compile(csPat).matcher(script);
 			while(matcher.find()){				
 				matcher.appendReplacement(replacement,Matcher.quoteReplacement(" "+cs+" "));
