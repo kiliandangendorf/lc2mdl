@@ -366,6 +366,7 @@ public class PerlScript extends ProblemElement{
 		replacements.put(";[\\r\\n]*",", ");
 		replacements.put(";(?=([^\"]*\"[^\"]*\")*[^\"]*;)",", ");
 		replacements.put(",\\s+\\)"," )");
+//		replacements.put("\\s+"," ");		
 		Pattern pattern;
 		Matcher matcher;
 		for(String key:replacements.keySet()){
@@ -373,6 +374,7 @@ public class PerlScript extends ProblemElement{
 			matcher=pattern.matcher(newBlock);
 			while(matcher.find()){
 				newBlock=newBlock.replaceFirst(key,replacements.get(key));
+//				newBlock=newBlock.replaceAll(key,replacements.get(key));
 			}
 		}
 		return(newBlock);
@@ -420,8 +422,10 @@ public class PerlScript extends ProblemElement{
 		// = -> :
 		log.finer("--replace all \"=\" with \": \"");
 		// single equal sign (left no AND right no equal sign, left no !,<,>)
+		// since savestrings() not needed anymore to look for " (2020-04-23)
 		// and not equal signs in quotes: (?<!=)=(?!=)(?=([^"]*"[^"]*")*[^"]*;)
-		script=script.replaceAll("(?<![!=<>]) {0,}=(?!=) {0,}(?=([^\"]*\"[^\"]*\")*[^\"]*;)",": ");
+		// script=script.replaceAll("(?<![!=<>]) {0,}=(?!=) {0,}(?=([^\"]*\"[^\"]*\")*[^\"]*;)",": ");
+		script=script.replaceAll("(?<![=<>])=(?![=<>])",": ");
 
 		log.finer("--remove multiple empty lines");
 		// newline or return at the end of line
@@ -770,10 +774,12 @@ public class PerlScript extends ProblemElement{
 		log.finer("--save strings before transforming");
 		String buf=script;
 		stringNo=0;
+		
 		//Strings in "..."
 		// TODO there are still problems with this regex
 		String patString="(\"\")|((?<!\\\\)\"(((\\\")|[^\"])*?)[^\\\\]\")";
 		//		String patString="(\"\")|([\"'])(?:(?=(\\\\?))\\2.)*?\\1";
+		StringBuffer scriptReplacement=new StringBuffer();
 		Pattern pat=Pattern.compile(patString);
 		Matcher matcher=pat.matcher(buf);
 		while(matcher.find()){
@@ -781,14 +787,16 @@ public class PerlScript extends ProblemElement{
 			// log.finer("--- found "+stringText);
 			String replacement="lc2mdltext"+stringNo;
 			stringNo++;
-			stringsInScript.add(stringText);
-			buf=buf.replaceFirst(patString,replacement);
+			//preserve backslashes
+			stringsInScript.add(stringText.replace("\\","\\\\"));
+			matcher.appendReplacement(scriptReplacement,replacement);
 		}
+		matcher.appendTail(scriptReplacement);
+		buf=scriptReplacement.toString();
 
 		//Strings in '...'
 		//no word-char right before or after
 		patString="(?<=\\W)'(([^'])*?)'(?=\\W)";
-//		patString="'(([^'])*?)'";
 		pat=Pattern.compile(patString);
 		matcher=pat.matcher(buf);
 		while(matcher.find()){
@@ -797,8 +805,12 @@ public class PerlScript extends ProblemElement{
 			String replacement="lc2mdltext"+stringNo;
 			stringNo++;
 			stringsInScript.add(stringText);
-			buf=buf.replaceFirst(patString,replacement);
+			//preserve backslashes
+			stringsInScript.add(stringText.replace("\\","\\\\"));
+			matcher.appendReplacement(scriptReplacement,replacement);
 		}
+		matcher.appendTail(scriptReplacement);
+		buf=scriptReplacement.toString();
 
 		script=buf;
 	}
@@ -806,7 +818,8 @@ public class PerlScript extends ProblemElement{
 	private void replaceStrings(){
 		log.finer("--replace variables in strings ");
 		String buf=script;
-		for(int i=0;i<stringNo;i++){
+		//going inverse direction to replace nested string-replacements
+		for(int i=stringNo-1;i>=0;i--){
 			String stringText=stringsInScript.get(i);
 			// remove " or '
 			stringText=stringText.substring(1,stringText.length()-1);
@@ -817,7 +830,7 @@ public class PerlScript extends ProblemElement{
 			//prevent to match lc2mdltext10 with lc2mdltext1
 			buf=buf.replaceFirst("(?<=\\W)lc2mdltext"+i+"(?=\\W)",stringText);
 		}
-
+		
 		script=buf;
 	}
 
