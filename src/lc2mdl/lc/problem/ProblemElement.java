@@ -485,7 +485,7 @@ public abstract class ProblemElement {
 					}
 				}
 				outtext="<!-- lc2mdl: chose best match in translated-block: "+translatedBlock+" -->"+outtext;
-				text=text.replaceFirst(translatedBlockPat,outtext);
+				text=text.replace(translatedBlock,outtext);
 			}catch(Exception e){
 				log.warning("--unable to read translated-block.");
 				e.printStackTrace();
