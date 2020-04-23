@@ -152,8 +152,13 @@ public abstract class ProblemElement {
 	private String replacesVariablesInTextVariables(String text){
 
 		String buf = text;
-		if (!buf.startsWith("\"")) { buf = "\""+buf; }
-		if (!buf.endsWith("\"")||(buf.length()==1)) { buf += "\""; }
+		//make sure this string starts and ends with "
+		if (!buf.startsWith("\"")){ 
+			buf = "\""+buf; 
+		}
+		if (!buf.endsWith("\"")||(buf.length()==1)) {
+			buf += "\"";
+		}
 		text = buf;
 		for(String var:problem.getPerlVars()){
 
@@ -176,15 +181,32 @@ public abstract class ProblemElement {
 			}
 		}
 
+		//add sconcat(...) if there are multiple vars after another (if "," was added above)
 		if (!buf.equals(text)) {
+			//remove beginning ",
 			if (buf.startsWith("\", ")) {
 				buf = buf.substring(3);
 			}
+			//remove trailing ,"
 			if (buf.endsWith(" ,\"")) {
 				buf = buf.substring(0, buf.length() - 3);
 			}
+
+			//remove empty Strings in buf ,"",
+			buf=buf.replaceAll(",\"\",",",");		
+			//remove beginning "",
+			if (buf.startsWith("\"\", ")) {
+				buf = buf.substring(4);
+			}
+			//remove trailing ,""
+			if (buf.endsWith(" ,\"\"")) {
+				buf = buf.substring(0, buf.length() - 4);
+			}
+			
 			buf = "sconcat(" +buf+ ")";
 		}
+		
+		
 		return buf;
 	}
 
