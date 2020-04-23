@@ -122,7 +122,7 @@ public class PerlScript extends ProblemElement{
 		 * Best way to use Matcher seems to be using "matcher.appendReplacement(...)" and "matcher.appendTail(...)" on a StringBuffer.
 		 * This makes sure, to replace exactly this match (not all matching Strings).
 		 * Problem here is, we need not only the match, but also some charSequences before and after.
-		 * TODO: Maybe we need an separate Matcher for each CS and use appendReplacement(...) in most possible cases...  
+		 * TODO: Maybe we need a separate Matcher for each CS and use appendReplacement(...) in most possible cases...  
 		 * */
 		
 		//Linked HashMap to keep order of insertion
@@ -309,7 +309,10 @@ public class PerlScript extends ProblemElement{
 		for(String cs:controlStructures){
 			//remove CR
 			StringBuffer replacement=new StringBuffer();
-			String csPat=cs+"[^\\{]*\\{";
+			//added "badwords": so no CS within comments (comments are in c-style already ;))
+			String csPat="^(?!\\/\\*.*[^"+cs+"].*\\*\\/)"+cs+"[^\\{]*\\{";
+			//earlier regex
+			//String csPat=cs+"[^\\{]*\\{";
 			Matcher matcher=Pattern.compile(csPat).matcher(script);
 			while(matcher.find()){
 				String csString=ConvertAndFormatMethods.removeCR(matcher.group());
