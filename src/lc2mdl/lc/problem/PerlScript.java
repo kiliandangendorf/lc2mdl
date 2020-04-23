@@ -309,13 +309,14 @@ public class PerlScript extends ProblemElement{
 		for(String cs:controlStructures){
 			//remove CR
 			StringBuffer replacement=new StringBuffer();
-			//added "badwords": so no CS within comments (comments are in c-style already ;))
-			String csPat="^(?!\\/\\*.*[^"+cs+"].*\\*\\/)"+cs+"[^\\{]*\\{";
+			//if comment is closing or opening before "{" there will be no match
+			String csPat="(?<=\\W)"+cs+"\\W"+"([^\\{](?!\\*\\/|\\/\\*))*\\{";			
 			//earlier regex
 			//String csPat=cs+"[^\\{]*\\{";
 			Matcher matcher=Pattern.compile(csPat).matcher(script);
 			while(matcher.find()){
 				String csString=ConvertAndFormatMethods.removeCR(matcher.group());
+				addConvertWarning(matcher.group());
 				matcher.appendReplacement(replacement,Matcher.quoteReplacement(csString));
 			}
 			matcher.appendTail(replacement);
