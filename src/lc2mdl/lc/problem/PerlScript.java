@@ -122,21 +122,20 @@ public class PerlScript extends ProblemElement{
 		 * Best way to use Matcher seems to be using "matcher.appendReplacement(...)" and "matcher.appendTail(...)" on a StringBuffer.
 		 * This makes sure, to replace exactly this match (not all matching Strings).
 		 * Problem here is, we need not only the match, but also some charSequences before and after.
-		 * TODO: Maybe we need a separate Matcher for each CS and use appendReplacement(...) in most possible cases...  
+		 * TODO: Maybe we need a separate Matcher for each CS and use appendReplacement(...) in most possible cases...
+		 * TODO: in this case, we should use regex look ahead and behind, eg. String csPat="(?<=[\\W])"+cs+"(?=\\W)";
 		 * */
 		
 		//Linked HashMap to keep order of insertion
-		LinkedHashMap<String,String> controlStructureStringReplacements=new LinkedHashMap<>();
+		LinkedHashMap<String,String> controlStructureStringReplacements;
 
 		//Keep order in this List: for has do be done BEFORE foreach
 		ArrayList<String> controlStructures=new ArrayList<>(
 				Arrays.asList("do","unless","else","elsif","if","until","while","for","foreach"));
 		for(String cs:controlStructures){
-			String csPat="\\W"+cs+"\\W";
+			controlStructureStringReplacements=new LinkedHashMap<>();
 			
-			//TODO: Look ahead and behind
-//			String csPat="(?<=[\\W])"+cs+"(?=\\W)";
-
+			String csPat="\\W"+cs+"\\W";
 			Matcher matcher=Pattern.compile(csPat).matcher(script);
 			int startFind=0;
 			while(matcher.find(startFind)){
@@ -167,8 +166,7 @@ public class PerlScript extends ProblemElement{
 				if(parenEnd>0){
 					switch(cs){
 						case "do":
-							//TODO: Start at csStart. Otherwise first char will be removed. Correct?
-							int doStart=csStart;//matcher.start();
+							int doStart=csStart;
 							int blockStart=matcher.end()-1;
 							int blockEnd=ConvertAndFormatMethods.findMatchingParentheses(script,blockStart,false);
 							if(blockEnd<0){
@@ -249,14 +247,13 @@ public class PerlScript extends ProblemElement{
 							break;
 
 						case "until":
-							controlStructureStringReplacements.put(cs,"unless");
-//							script.replace(cs,"unless");
 							parenEnd++;
 							// nobreak, continue with the while case
-
 						case "while":
 							String oldWhile=script.substring(csStart,parenEnd);
 							String newWhile=oldWhile+" do ";
+							//replace "until" in string in case of "until"
+							if(cs.equals("until"))newWhile=newWhile.replace("until","unless");
 							controlStructureStringReplacements.put(oldWhile,newWhile);
 //							script=script.replace(oldWhile,newWhile);
 							startFind=csEnd;
@@ -300,9 +297,8 @@ public class PerlScript extends ProblemElement{
 				}
 
 			}
-
+			replaceStringKeysByValues(controlStructureStringReplacements);
 		}
-		replaceStringKeysByValues(controlStructureStringReplacements);
 
 		
 		//Cleanup CS
@@ -338,13 +334,6 @@ public class PerlScript extends ProblemElement{
 		// Find innermost block { ... }
 		String blockPat="([\\r\\n]*\\{(?:\\{??[^\\{]*?\\}))+";
 		Matcher matcher=Pattern.compile(blockPat).matcher(script);
-		if(matcher.find()){
-			String parenPat="\"[^\"]*\\{[^\"]*\"";
-			Matcher pMatcher=Pattern.compile(parenPat).matcher(script);
-			if(pMatcher.find()){
-				addConvertWarning("--replace parentheses { .. } to ( .. ) -- please check text variables ");
-			}
-		}
 		while(matcher.find()){
 			log.finer("--replace block.");
 			String block=matcher.group();
@@ -779,7 +768,8 @@ public class PerlScript extends ProblemElement{
 		// TODO there are still problems with this regex
 		String patString="(\"\")|((?<!\\\\)\"(((\\\")|[^\"])*?)[^\\\\]\")";
 		//		String patString="(\"\")|([\"'])(?:(?=(\\\\?))\\2.)*?\\1";
-		StringBuffer scriptReplacement=new StringBuffer();
+		StringBuffer scriptReplacement;
+		scriptReplacement=new StringBuffer();
 		Pattern pat=Pattern.compile(patString);
 		Matcher matcher=pat.matcher(buf);
 		while(matcher.find()){
@@ -799,6 +789,7 @@ public class PerlScript extends ProblemElement{
 		patString="(?<=\\W)'(([^'])*?)'(?=\\W)";
 		pat=Pattern.compile(patString);
 		matcher=pat.matcher(buf);
+		scriptReplacement=new StringBuffer();
 		while(matcher.find()){
 			String stringText=matcher.group();
 			// log.finer("--- found "+stringText);
