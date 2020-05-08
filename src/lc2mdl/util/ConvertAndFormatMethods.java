@@ -35,44 +35,38 @@ public class ConvertAndFormatMethods{
 	 *
 	 * @return       int end position (or -1 if nothing found)
 	 */
-	public static int findMatchingParentheses(String text, int start, boolean round){
+	public static int findMatchingParentheses(String text,int start,boolean round){
 
-			int end=start;
-			char charOpen;
-			if (round) {
-				charOpen='(';
-			} else {
-				charOpen='{';
-			}
-			char charClose;
-			if (round) {
-				charClose=')';
-			} else {
-				charClose='}';
-			}
+		int end=start;
+		char charOpen,charClose;
+		if(round){
+			charOpen='(';
+			charClose=')';
+		}else{
+			charOpen='{';
+			charClose='}';
+		}
 
-			int bracketCount=1;
-			while (end < text.length()){
-				if(text.charAt(end)==charOpen) {
-					end++;
-					break;
-				}
+		int bracketCount=1;
+		while(end<text.length()){
+			if(text.charAt(end)==charOpen){
 				end++;
+				break;
 			}
+			end++;
+		}
 
+		while((bracketCount>0)&&(end<text.length())){
+			if(text.charAt(end)==charOpen) bracketCount++;
+			if(text.charAt(end)==charClose) bracketCount--;
+			end++;
+		}
 
-				while ((bracketCount > 0) && (end<text.length())) {
-					if (text.charAt(end) == charOpen) bracketCount++;
-					if (text.charAt(end) == charClose) bracketCount--;
-					end++;
-
-				}
-
-			if(bracketCount!=0){
-				return (-1);
-			} else {
-				return (end);
-			}
+		if(bracketCount!=0){
+			return(-1);
+		}else{
+			return(end);
+		}
 	}
 
 	/**
