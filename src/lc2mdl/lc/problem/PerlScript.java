@@ -4,11 +4,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import javax.xml.stream.events.StartDocument;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -83,7 +80,7 @@ public class PerlScript extends ProblemElement{
 		searchForUnknownControlStructures();
 
 		// CONTROL-STRUCTURES THAT CAN BE REPLACED
-//		replaceControlStructures();
+		replaceControlStructures();
 
 		// SYNTAX (equal sign, semicolon)
 		// need to be placed after arrays, functions and control structures !
