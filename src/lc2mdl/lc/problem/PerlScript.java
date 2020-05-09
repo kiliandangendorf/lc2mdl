@@ -4,8 +4,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import javax.xml.stream.events.StartDocument;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -80,7 +83,7 @@ public class PerlScript extends ProblemElement{
 		searchForUnknownControlStructures();
 
 		// CONTROL-STRUCTURES THAT CAN BE REPLACED
-		replaceControlStructures();
+//		replaceControlStructures();
 
 		// SYNTAX (equal sign, semicolon)
 		// need to be placed after arrays, functions and control structures !
@@ -761,49 +764,66 @@ public class PerlScript extends ProblemElement{
 
 	private void saveStrings(){
 		log.finer("--save strings before transforming");
-		String buf=script;
 		stringNo=0;
+
+		// Loop for double and single quotation marks
+		for(char quote:Arrays.asList('\"','\'')){
+			char escape='\\';
+
+			int stringStart,stringEnd;
+			int lastStart=0;
+
+			findString:
+			do{
+				stringStart=script.indexOf(quote,lastStart);
+
+				// Break if there aren't any quotes
+				if(stringStart==-1) break;
+				
+				// Continue if escaped quotation mark  
+				if(stringStart>0){
+					if(script.charAt(stringStart-1)==escape){
+						// start over again with next quotes
+						lastStart=stringStart+1;
+						continue;
+					}
+				}
+
+				stringEnd=stringStart;
+				while(true){
+					stringEnd++;
+					if(stringEnd>=script.length()){
+						log.warning("---found no end for string beginning with: "+ script.substring(stringStart,(stringStart+10<script.length()?stringStart+10:script.length()-1))+" ...\"");
+						// start over again with next quotes
+						lastStart=stringStart+1;
+						continue findString;
+					}
+
+					// Find end if quotation mark is not escaped
+					if(script.charAt(stringEnd)==quote){
+						if(script.charAt(stringEnd-1)!=escape){
+							//end found
+							break; 
+						}
+					}
+				}
+
+				String stringText=script.substring(stringStart,stringEnd+1);
+				String replacement="lc2mdltext"+stringNo;
+				stringNo++;
+				//preserve backslashes (cause we need it later for replaceAll)
+				stringsInScript.add(stringText.replace("\\","\\\\"));
+				
+				script=script.replace(stringText,replacement);
+				
+				log.finest("---replaced "+stringText+" by "+replacement);
+
+				// start over again from last quote (prevent loop on escaped marks)
+				lastStart=stringStart+1;
+			}while(stringStart!=-1);
+		}
 		
-		//Strings in "..."
-		// TODO there are still problems with this regex
-		String patString="(\"\")|((?<!\\\\)\"(((\\\")|[^\"])*?)[^\\\\]\")";
-		//		String patString="(\"\")|([\"'])(?:(?=(\\\\?))\\2.)*?\\1";
-		StringBuffer scriptReplacement;
-		scriptReplacement=new StringBuffer();
-		Pattern pat=Pattern.compile(patString);
-		Matcher matcher=pat.matcher(buf);
-		while(matcher.find()){
-			String stringText=matcher.group();
-			// log.finer("--- found "+stringText);
-			String replacement="lc2mdltext"+stringNo;
-			stringNo++;
-			//preserve backslashes
-			stringsInScript.add(stringText.replace("\\","\\\\"));
-			matcher.appendReplacement(scriptReplacement,replacement);
-		}
-		matcher.appendTail(scriptReplacement);
-		buf=scriptReplacement.toString();
-
-		//Strings in '...'
-		//no word-char right before or after
-		patString="(?<=\\W)'(([^'])*?)'(?=\\W)";
-		pat=Pattern.compile(patString);
-		matcher=pat.matcher(buf);
-		scriptReplacement=new StringBuffer();
-		while(matcher.find()){
-			String stringText=matcher.group();
-			// log.finer("--- found "+stringText);
-			String replacement="lc2mdltext"+stringNo;
-			stringNo++;
-			stringsInScript.add(stringText);
-			//preserve backslashes
-			stringsInScript.add(stringText.replace("\\","\\\\"));
-			matcher.appendReplacement(scriptReplacement,replacement);
-		}
-		matcher.appendTail(scriptReplacement);
-		buf=scriptReplacement.toString();
-
-		script=buf;
+		//TODO: Cannot handle nested strings of type: 'text "in" quotes' yet
 	}
 
 	private void replaceStrings(){
