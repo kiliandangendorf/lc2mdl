@@ -56,7 +56,7 @@ public abstract class Response extends ProblemElement{
 			uniqueVar=var0+(i++);
 		}
 		log.finer("--defined unique var: "+uniqueVar+" with: "+value);
-		String definition=uniqueVar+": "+value;
+		String definition=uniqueVar+": "+value+";";
 		additionalCASVars+=System.lineSeparator()+definition+System.lineSeparator();
 		return uniqueVar;
 	}
