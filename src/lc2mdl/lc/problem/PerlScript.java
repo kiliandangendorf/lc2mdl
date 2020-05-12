@@ -24,8 +24,7 @@ public class PerlScript extends ProblemElement{
 	private int arrayNo=0;
 	private int stringNo=0;
 
-	// determines if e.g. random(...) will be converted, too, not only
-	// &random(...)
+	// determines if e.g. random(...) will be converted, too, not only &random(...)
 	private final boolean SUPPORT_OLD_CAPA_FUNCTIONS_WITHOUT_AMPERSAND=true;
 
 	@Override
@@ -146,7 +145,7 @@ public class PerlScript extends ProblemElement{
 				int csEnd=matcher.end()-1;
 				int parenStart=csEnd;
 				int parenEnd=parenStart;
-				//searchEnd only for open parenthesis
+				//searchEnd only to find opening parenthesis
 				int searchEnd=csEnd+20;
 				if(searchEnd>script.length()) searchEnd=script.length();
 				while(parenStart<searchEnd){
@@ -418,7 +417,11 @@ public class PerlScript extends ProblemElement{
 
 		log.finer("--remove multiple empty lines");
 		// newline or return at the end of line
-		script=script.replaceAll(";[\\r\\n]+",";"+System.lineSeparator());
+		script=script.replaceAll(";[\\r\\n]{2,}",";"+System.lineSeparator()+System.lineSeparator());
+
+		log.finer("--remove multiple spaces");
+		// newline or return at the end of line
+		script=script.replaceAll("\\s+"," ");
 
 		// -- -> -1		
 		log.finer("--replace all \"--\" with \"-1\"");
