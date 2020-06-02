@@ -53,8 +53,8 @@ public class Problem {
 		if (!images.isEmpty()) {
 			imagesToSvg();
 		}
-		category = pathString.substring(0,pathString.lastIndexOf("/"));
-		getTagsFromPath(pathString);
+
+		getCategoryAndTagsFromPath(pathString);
 
 	}
 
@@ -130,9 +130,16 @@ public class Problem {
 		return false;
 	}
 	
-	private void getTagsFromPath(String path){
+	private void getCategoryAndTagsFromPath(String path){
+
+		category = "";
 		String[] split = path.substring(1).split("/");
-		for (int i=0; i<split.length-1; i++){
+		int startindex = 0;
+		if (path.startsWith("/res")) {
+			startindex = 3;
+		}
+		for (int i=startindex; i<split.length-1; i++){
+			category += "/"+split[i];
 			this.tags.add(split[i]);
 		}
 	}
