@@ -420,8 +420,7 @@ public class PerlScript extends ProblemElement{
 		script=script.replaceAll(";[\\r\\n]{2,}",";"+System.lineSeparator()+System.lineSeparator());
 
 		log.finer("--remove multiple spaces");
-		// newline or return at the end of line
-		script=script.replaceAll("\\s+"," ");
+		script=script.replaceAll(" {2,}"," ");
 
 		// -- -> -1		
 		log.finer("--replace all \"--\" with \"-1\"");
@@ -793,7 +792,7 @@ public class PerlScript extends ProblemElement{
 				while(true){
 					stringEnd++;
 					if(stringEnd>=script.length()){
-						log.warning("---found no end for string beginning with: "+ script.substring(stringStart,(stringStart+10<script.length()?stringStart+10:script.length()-1))+" ...\"");
+						log.warning("---found no end for string beginning with "+ script.substring(stringStart,(stringStart+10<script.length()?stringStart+10:script.length()-1))+" ...\". Following strings won't be found.");
 						// start over again with next quotes
 						lastStart=stringStart+1;
 						continue findString;
@@ -810,7 +809,7 @@ public class PerlScript extends ProblemElement{
 
 				String stringText=script.substring(stringStart,stringEnd+1);
 				String replacement="lc2mdltext"+stringNo;
-				stringNo++;
+
 				//preserve backslashes (cause we need it later for replaceAll)
 				stringsInScript.add(stringText.replace("\\","\\\\"));
 				
@@ -820,6 +819,8 @@ public class PerlScript extends ProblemElement{
 
 				// start over again from last quote (prevent loop on escaped marks)
 				lastStart=stringStart+1;
+				
+				stringNo++;
 			}while(stringStart!=-1);
 		}
 		
