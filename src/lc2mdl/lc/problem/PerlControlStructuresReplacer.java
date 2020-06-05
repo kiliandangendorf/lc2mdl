@@ -75,12 +75,9 @@ public class PerlControlStructuresReplacer{
 	}
 
 	public String getReplacedScript(){
-		//TODO: MULTILINE BOOLEAN?
-		allowMultilineBlocks=false;
+		allowMultilineBlocks=true;
 
-		//nice: Braces in strings aren't possible anymore;) (done in saveStrings)
-		//good news: Perl needs to have braces around (condition) and {block} (syntax error without)
-
+		//nice: irritating braces in strings aren't possible anymore;) (done in saveStrings)
 		
 		//temporary dictionary to prevent replacing same CS in different contexts
 		//Contains critical CS this program writes ITSELF. These will be temporarily named as values to not confuse itself. 
@@ -91,46 +88,43 @@ public class PerlControlStructuresReplacer{
 		csDict.put("while","lc2mdl_WHILE");
 		
 		
-		//CONDITIONS
-		//if elsif else AND unless elsif else
-		replaceConditions();
-		//TODO: if auch NACH EINEM Stmt möglich
-		//@see https://www.perltutorial.org/perl-if/
-		//my $a = 1; print("Welcome to Perl if tutorial\n") if($a == 1);
-		//Dasselbe für unless: statement unless(condition);
-		//aber jeweils SINGLE-STATEMENT, kein Block ;)
-		//Idee. Search backwards up to ";"
+		// CONDITIONS
+		// if (...) {...} elsif (...) {...} else {...} 
+		// unless (...) {...} elsif (...) {...} else {...} 
+		replaceConditions();		
 		
-		//TODO: Ternary Operator (condition)?{true}:{false} -->Check syntax
-		
-		
-		
-//		IDEA: Build new Stmtents with lc2mdl Strings: eg. lc2mdlELSE
-		//replace later in general
-		//so no mismatching will occur ;)
-		
-		//LOOPS
-		//DO before WHILE
-		// do{} while()
-		// while(){}
-		//TODO: gucken, dass das zweite NICHT erneut ersetzt wird
-		//auch möglich:  do '/foo/stat.pl';
+				
+		// LOOPS
+		// do {...} while (...)
+		// do {...} until (...)
 		replaceDoLoops();
 		
-		//LOOPS
+		// LOOPS
 		
-		//WHILE
-		//UNTIL
+		// while (...) {...}
+		// until (...) {...}
 		
 		
-		//Loop control Statements: next & last
-		//last≈break-->return? http://maxima.sourceforge.net/docs/manual/maxima_37.html
 		
-		//OPERATORS
 
 		//FOR
 		//FOREACH
-		//NACH do und while
+
+		//OPERATORS
+		
+		//Still TODO
+		// - multiline statements currently only affects blocks. New statements are build in oneline
+		// - do statement:  do '/foo/stat.pl';
+		// - if and until as CS AFTER one SINGLE statement
+		//		@see https://www.perltutorial.org/perl-if/
+		//		ex: my $a = 1; print("Welcome to Perl if tutorial\n") if($a == 1);
+		//		statement unless(condition);
+		//		idea: Search backwards up to ";"
+		// - Ternary Operator (condition)?{true}:{false} -->Check syntax
+		// - Loop control Statements: next & last
+		//		last≈break-->return? http://maxima.sourceforge.net/docs/manual/maxima_37.html
+
+
 		
 		for(String cs:csDict.keySet()){
 			script=script.replace(csDict.get(cs),cs);
@@ -240,7 +234,8 @@ public class PerlControlStructuresReplacer{
 	}
 
 	private void replaceConditions(){
-		//do "if" before "unless", because unless will be replaced by "if (not condition)"
+		//good news: Perl needs to have braces around (condition) and {block} (syntax error without)
+
 		for(String conditionType:Arrays.asList("if","unless")){
 			//FIND \b if {0,}(
 			String ifBeginPat="(?<=\\b)"+Pattern.quote(conditionType)+" {0,}\\(";

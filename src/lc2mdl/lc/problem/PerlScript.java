@@ -13,6 +13,20 @@ import lc2mdl.mdl.quiz.QuestionStack;
 import lc2mdl.util.FileFinder;
 
 public class PerlScript extends ProblemElement{
+	/* HINT:
+	 * Best way to use Matcher seems to be using "matcher.appendReplacement(...)" and "matcher.appendTail(...)" on a StringBuffer.
+	 * This makes sure, to replace exactly this match (not all matching Strings).
+	 * Problem here is, we need not only the match, but also some charSequences before and after.
+	 * 
+	 * For RegEx-Strings use look ahead and behind, eg. String csPat="(?<=[\\W])"+cs+"(?=\\W)";
+	 * 
+	 * Regarding replace-Functions:
+	 * - no regex needed => use only replace()
+	 * - if needed => use Matcher.quoteReplacement() in replacement-String (i.e. for backslashes and dollar-signs)
+	 * 		Pattern: replaceAll(Pattern.quote(),Matcher.quoteReplacement());
+	 * 		Example: replaceAll(Pattern.quote("/"), Matcher.quoteReplacement("\\"));
+	 * @see https://stackoverflow.com/questions/12941266/replace-and-replaceall-in-java
+	 * */
 
 	private String script;
 	private String scriptComment;
