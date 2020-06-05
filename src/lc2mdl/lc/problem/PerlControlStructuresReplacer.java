@@ -2,6 +2,7 @@ package lc2mdl.lc.problem;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
@@ -63,6 +64,10 @@ public class PerlControlStructuresReplacer{
 	private PerlScript perlScript;
 	private String script;
 	private boolean allowMultilineBlocks;
+	
+	private int boolNo=0;
+	private HashMap<String,String> csDict;
+
 
 	public PerlControlStructuresReplacer(PerlScript perlScript,String script){
 		this.perlScript=perlScript;
@@ -76,6 +81,16 @@ public class PerlControlStructuresReplacer{
 		//nice: Braces in strings aren't possible anymore;) (done in saveStrings)
 		//good news: Perl needs to have braces around (condition) and {block} (syntax error without)
 
+		
+		//temporary dictionary to prevent replacing same CS in different contexts
+		//Contains critical CS this program writes ITSELF. These will be temporarily named as values to not confuse itself. 
+		//In the end there will be clean maxima CS ;)
+		csDict=new HashMap<>();
+		csDict.put("if","lc2mdl_IF");
+		csDict.put("else","lc2mdl_ELSE");
+		csDict.put("while","lc2mdl_WHILE");
+		
+		
 		//CONDITIONS
 		//if elsif else AND unless elsif else
 		replaceConditions();
@@ -84,19 +99,30 @@ public class PerlControlStructuresReplacer{
 		//my $a = 1; print("Welcome to Perl if tutorial\n") if($a == 1);
 		//Dasselbe für unless: statement unless(condition);
 		//aber jeweils SINGLE-STATEMENT, kein Block ;)
+		//Idee. Search backwards up to ";"
 		
 		//TODO: Ternary Operator (condition)?{true}:{false} -->Check syntax
 		
+		
+		
+//		IDEA: Build new Stmtents with lc2mdl Strings: eg. lc2mdlELSE
+		//replace later in general
+		//so no mismatching will occur ;)
+		
+		//LOOPS
 		//DO before WHILE
 		// do{} while()
 		// while(){}
 		//TODO: gucken, dass das zweite NICHT erneut ersetzt wird
 		//auch möglich:  do '/foo/stat.pl';
+		replaceDoLoops();
 		
 		//LOOPS
-		//DO (WHILE | UNTIL)
+		
 		//WHILE
 		//UNTIL
+		
+		
 		//Loop control Statements: next & last
 		//last≈break-->return? http://maxima.sourceforge.net/docs/manual/maxima_37.html
 		
@@ -106,12 +132,101 @@ public class PerlControlStructuresReplacer{
 		//FOREACH
 		//NACH do und while
 		
+		for(String cs:csDict.keySet()){
+			script=script.replace(csDict.get(cs),cs);
+		}
+		
 		return script;
 	}
 
+	private void replaceDoLoops(){
+		//do {...} while (...)
+		//do {...} until (...)
+
+		int doStart,doEnd;
+		int curIndex=0;
+		
+		findingDoLoops:
+		do{
+	
+			Block doBlock=null;
+			String doLoopBeginPat="(?<=\\b)do {0,}\\{";
+			
+			int[] doMatch=ConvertAndFormatMethods.getRegexStartAndEndIndexInText(doLoopBeginPat,script,curIndex);
+			doStart=doMatch[0];
+			//break if no DO was found
+			if(doStart==-1)break;
+			
+			//find DO block {...}
+			int doBlockOpenBrace=doMatch[1];
+			doBlock=new Block(doBlockOpenBrace,"do",true);
+			if(!doBlock.valid){
+				curIndex=doStart+1;
+				continue findingDoLoops;
+			}
+			
+			//now find DO condition (while|until) (...)			
+			String loopConditionPattern="(?<=\\b)(while|until) {0,}\\(";
+			int[] loopConditionMatch=ConvertAndFormatMethods.getRegexStartAndEndIndexInText(loopConditionPattern,script,doBlock.closeBrace);
+			int loopConditionStart=loopConditionMatch[0];
+			
+			if(loopConditionStart==-1){
+				addConvertWarningToScript("---found \""+"do"+"\" without any condition (will not work on)");
+				curIndex=doStart+1;
+				continue findingDoLoops;
+			}
+			//there are loopConditions somewhere in script
+			int openCondBrace=loopConditionMatch[1];
+			
+			String fromBlockToCondition=script.substring(doBlock.closeBrace+1,openCondBrace);
+			String conditionType=null;
+			switch(fromBlockToCondition.trim()){
+				case "while":
+				case "until":
+					//set name
+					conditionType=fromBlockToCondition.trim();
+				break;
+				default:
+					addConvertWarningToScript("---found \"do\" statement without closing while or until (will not work on)");
+					curIndex=doStart+1;
+					continue findingDoLoops;
+			}
+			
+			Condition loopCondition=new Condition(openCondBrace);
+			
+			//build new maxima statement string
+			//do {BLOCK} while (CONDITION) => bool x: true; while (x) {BLOCK; x:CONDITION}
+		    String boolName="lc2mdl_do_bool"+perlScript.problem.getIndex(perlScript)+"_"+boolNo++;
+		    perlScript.problem.addVar(boolName);
+		    
+		    String maximaStmtText=" "+boolName+" : true"+";"+System.lineSeparator();
+			switch(conditionType){
+				case "while":
+					maximaStmtText+=" "+csDict.get("while")+" ("+boolName+") ";
+					break;
+				case "until":
+					maximaStmtText+=" "+csDict.get("while")+" (not "+boolName+") ";
+					break;
+			}
+			String doBlockModified=doBlock.toString().substring(0,doBlock.toString().length()-1);
+			doBlockModified+="; "+boolName+" : "+loopCondition+" }";
+			maximaStmtText+=doBlockModified+" ";
+
+			doEnd=loopCondition.closeBrace;
+			
+			script=ConvertAndFormatMethods.replaceSubsequenceInText(script,doStart,doEnd,maximaStmtText);
+	
+			addConvertWarningToScript("---found \"do\" statement with closing \""+conditionType+"\", try to replace and reorder with helper var \""+boolName+"\" -- please check condition.  ");
+	
+			// start over again from last match (prevents loop on IF replaced by IF)
+			curIndex=doStart+maximaStmtText.length();
+			
+		}while(doStart!=-1);
+
+		
+	}
+	
 	private void doingStuff(String script){
-
-
 		/*
 		 * HINT: Best way to use Matcher seems to be using
 		 * "matcher.appendReplacement(...)" and "matcher.appendTail(...)" on a
@@ -121,114 +236,6 @@ public class PerlControlStructuresReplacer{
 		 * separate Matcher for each CS and use appendReplacement(...) in most
 		 * possible cases... TODO: in this case, we should use regex look ahead
 		 * and behind, eg. String csPat="(?<=[\\W])"+cs+"(?=\\W)";
-		 */
-		/*
-		 * //Linked HashMap to keep order of insertion
-		 * LinkedHashMap<String,String> controlStructureStringReplacements;
-		 * 
-		 * //Keep order in this List: for has do be done BEFORE foreach
-		 * ArrayList<String> controlStructures=new ArrayList<>(
-		 * Arrays.asList("do","unless","else","elsif","if","until","while","for"
-		 * ,"foreach")); for(String cs:controlStructures){
-		 * controlStructureStringReplacements=new LinkedHashMap<>();
-		 * 
-		 * String csPat="\\W"+cs+"\\W"; Matcher
-		 * matcher=Pattern.compile(csPat).matcher(script); int startFind=0;
-		 * while(matcher.find(startFind)){ // System.out.println(startFind+" ");
-		 * log.warning("--found control structure: "
-		 * +cs+", try to replace, please check result"); int
-		 * csStart=matcher.start()+1; startFind=matcher.end()-1; int
-		 * csEnd=matcher.end()-1; int parenStart=csEnd; int parenEnd=parenStart;
-		 * //searchEnd only to find opening parenthesis int searchEnd=csEnd+20;
-		 * if(searchEnd>script.length()) searchEnd=script.length();
-		 * while(parenStart<searchEnd){ if(script.charAt(parenStart)=='('){
-		 * break; } parenStart++; } if(parenStart<searchEnd){
-		 * parenEnd=ConvertAndFormatMethods.findMatchingParentheses(script,
-		 * parenStart); }else{ parenStart=csEnd; //else doesn't need parentheses
-		 * if(!cs.equals("else"))addConvertWarning("--found "
-		 * +cs+" without parentheses (will not work on)"); }
-		 * 
-		 * if(parenEnd>0){ switch(cs){ case "do": int doStart=csStart; int
-		 * blockStart=matcher.end()-1; int
-		 * blockEnd=ConvertAndFormatMethods.findMatchingParentheses(script,
-		 * blockStart,false); if(blockEnd<0){
-		 * log.warning("--unmatched block parantheses {..} "); break; } String
-		 * blockString=script.substring(blockStart,blockEnd); String
-		 * whilePat="((while)|(until))"; Matcher
-		 * csMatcher=Pattern.compile(whilePat).matcher(script.substring(blockEnd
-		 * )); if(csMatcher.find()){
-		 * addConvertWarning("-- found do statement with closing "+csMatcher.
-		 * group() +" -- revert statements -- please check condition.  "); int
-		 * whileStart=csMatcher.start(); int whileEnd=csMatcher.end();
-		 * whileEnd=ConvertAndFormatMethods.findMatchingParentheses(script.
-		 * substring(blockEnd), whileEnd); int doEnd=blockEnd+whileEnd; String
-		 * whileString=script.substring(blockEnd).substring(whileStart,whileEnd)
-		 * ; String doString=script.substring(doStart,doEnd); String
-		 * newString=" "+whileString+blockString;
-		 * controlStructureStringReplacements.put(doString,newString); //
-		 * script=script.replace(doString,newString);
-		 * 
-		 * }else{ addConvertWarning(
-		 * "-- found do statement without closing while or until -- please check."
-		 * ); } break;
-		 * 
-		 * 
-		 * 
-		 * case "until": parenEnd++; // nobreak, continue with the while case
-		 * case "while": String oldWhile=script.substring(csStart,parenEnd);
-		 * String newWhile=oldWhile+" do "; //replace "until" in string in case
-		 * of "until"
-		 * if(cs.equals("until"))newWhile=newWhile.replace("until","unless");
-		 * controlStructureStringReplacements.put(oldWhile,newWhile); //
-		 * script=script.replace(oldWhile,newWhile); startFind=csEnd; break;
-		 * 
-		 * case "for": if(parenStart<parenEnd){ String
-		 * forString=script.substring(csStart,parenEnd); String
-		 * parenString=script.substring(parenStart+1,parenEnd-1); String[]
-		 * parenSplit=parenString.split(";"); // System.out.println(forString+"
-		 * // "+parenString+" "+parenSplit.length); if(parenSplit.length>2){
-		 * String start=parenSplit[0]; start=start.replaceFirst("=",":"); String
-		 * cond=parenSplit[1]; String next=parenSplit[2]; String
-		 * newForString="for "+start+" next "+next+" while( "+cond+" ) do";
-		 * controlStructureStringReplacements.put(forString,newForString); //
-		 * script=script.replace(forString,newForString);
-		 * 
-		 * }
-		 * 
-		 * } startFind=csEnd; break;
-		 * 
-		 * case "foreach": String forString=script.substring(csStart,parenEnd);
-		 * String parenString=script.substring(parenStart,parenEnd); String
-		 * varString="lcvariable"; if(csEnd<parenStart)
-		 * varString=script.substring(csEnd+1,parenStart); String
-		 * newForString="for "+varString+" in "+parenString+" do ";
-		 * controlStructureStringReplacements.put(forString,newForString); //
-		 * script=script.replace(forString,newForString); startFind=csEnd;
-		 * break; default: break; } }
-		 * 
-		 * } replaceStringKeysByValues(controlStructureStringReplacements); }
-		 * 
-		 * 
-		 * //Cleanup CS controlStructures.add("elseif"); for(String
-		 * cs:controlStructures){ //remove CR StringBuffer replacement=new
-		 * StringBuffer(); //if comment is closing or opening before "{" there
-		 * will be no match String
-		 * csPat="(?<=\\W)"+cs+"\\W"+"([^\\{](?!\\*\\/|\\/\\*))*\\{"; //earlier
-		 * regex //String csPat=cs+"[^\\{]*\\{"; Matcher
-		 * matcher=Pattern.compile(csPat).matcher(script);
-		 * while(matcher.find()){ String
-		 * csString=ConvertAndFormatMethods.removeCR(matcher.group());
-		 * matcher.appendReplacement(replacement,Matcher.quoteReplacement(
-		 * csString)); } matcher.appendTail(replacement);
-		 * script=replacement.toString();
-		 * 
-		 * //remove Whitespace-char replacement=new StringBuffer();
-		 * csPat="(?<=\\W) {0,}"+cs+" {0,}(?=\\W)";
-		 * matcher=Pattern.compile(csPat).matcher(script);
-		 * while(matcher.find()){
-		 * matcher.appendReplacement(replacement,Matcher.quoteReplacement(" "
-		 * +cs+" ")); } matcher.appendTail(replacement);
-		 * script=replacement.toString(); }
 		 */
 	}
 
@@ -245,7 +252,7 @@ public class PerlControlStructuresReplacer{
 			do{
 				int[] stmtMatch=ConvertAndFormatMethods.getRegexStartAndEndIndexInText(ifBeginPat,script,curIndex);
 				stmtStart=stmtMatch[0];
-				// Break if no IF ot UNLESS was found
+				// Break if no IF or UNLESS was found
 				if(stmtStart==-1) break;
 
 				//find IF condition (...)
@@ -266,7 +273,7 @@ public class PerlControlStructuresReplacer{
 				//n-times
 				do{
 					//look from lastBlockIndices[1] on for literal ELSIF
-					int[] optionalElsifMatch=ConvertAndFormatMethods.getRegexStartAndEndIndexInText("elsif {0,}\\(",script,lastBlockEnd);
+					int[] optionalElsifMatch=ConvertAndFormatMethods.getRegexStartAndEndIndexInText("(?<=\\b)elsif {0,}\\(",script,lastBlockEnd);
 					optionalElsifStart=optionalElsifMatch[0];
 					if(optionalElsifStart==-1) break;
 
@@ -296,7 +303,7 @@ public class PerlControlStructuresReplacer{
 				//one time
 				//look from lastBlockIndices[1] on for literal ELSE (no condition here, so only look BEFORE "{")
 				Block elseBlock=null;
-				int[] optionalElseMatch=ConvertAndFormatMethods.getRegexStartAndEndIndexInText("else {0,}(?=\\{)",script,lastBlockEnd);
+				int[] optionalElseMatch=ConvertAndFormatMethods.getRegexStartAndEndIndexInText("(?<=\\b)else {0,}(?=\\{)",script,lastBlockEnd);
 				int optionalElseStart=optionalElseMatch[0];
 
 				if(optionalElseStart!=-1){
@@ -322,11 +329,11 @@ public class PerlControlStructuresReplacer{
 				String maximaStmtText="";
 				switch(conditionType){
 					case "if":
-						maximaStmtText=" if "+ifCondition+" then "+ifBlock+" ";
+						maximaStmtText=" "+csDict.get("if")+" "+ifCondition+" then "+ifBlock+" ";
 						break;
 					case "unless":
 						//substring(1) means without open brace
-						maximaStmtText=" if (not "+ifCondition.toString().substring(1)+" then "+ifBlock+" ";
+						maximaStmtText=" "+csDict.get("if")+" (not "+ifCondition.toString().substring(1)+" then "+ifBlock+" ";
 						break;
 				}
 
@@ -342,7 +349,7 @@ public class PerlControlStructuresReplacer{
 				//replace old statement
 				script=ConvertAndFormatMethods.replaceSubsequenceInText(script,stmtStart,stmtEnd,maximaStmtText);
 
-				log.warning("--found control structure \""+conditionType+"\", try to replace and reorder, please check result");
+				log.warning("---found control structure \""+conditionType+"\", try to replace and reorder, please check result");
 
 				// start over again from last match (prevents loop on IF replaced by IF)
 				curIndex=stmtStart+maximaStmtText.length();
@@ -372,12 +379,15 @@ public class PerlControlStructuresReplacer{
 		}
 
 		if(mandatory){
-			//if anything else between startIndex (eg ")") and expected "{" than free space 
-			String fromCondToBlock=script.substring(startIndex+1,openBlockParen);
-			if(!fromCondToBlock.trim().isEmpty()){
-				//NO BLOCK WAS FOUND AS EXPECTED
-				addConvertWarningToScript("---found unexpected CS between \""+cs+"\" and mandatory block begin (will not work on)");
-				return indices;
+			//trival case if "{" is on startIndex
+			if(startIndex<openBlockParen){
+				//if anything else between startIndex (eg ")") and expected "{" than free space 
+				String fromCondToBlock=script.substring(startIndex+1,openBlockParen);
+				if(!fromCondToBlock.trim().isEmpty()){
+					//NO BLOCK WAS FOUND AS EXPECTED
+					addConvertWarningToScript("---found unexpected CS between \""+cs+"\" and mandatory block begin (will not work on)");
+					return indices;
+				}
 			}
 		}
 

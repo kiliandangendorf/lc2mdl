@@ -3,7 +3,6 @@ package lc2mdl.lc.problem;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -11,7 +10,6 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import lc2mdl.mdl.quiz.QuestionStack;
-import lc2mdl.util.ConvertAndFormatMethods;
 import lc2mdl.util.FileFinder;
 
 public class PerlScript extends ProblemElement{
@@ -167,7 +165,7 @@ public class PerlScript extends ProblemElement{
 			String csPat="\\W"+cs+"\\W";
 			Matcher matcher=Pattern.compile(csPat).matcher(script);
 			while(matcher.find()){
-				addConvertWarning("--found unknown control structure: "+cs+" (will not work on)");
+				addConvertWarning("---found unknown control structure: "+cs+" (will not work on)");
 			}
 		}
 	}
@@ -384,7 +382,7 @@ public class PerlScript extends ProblemElement{
 					// $var=array[$i]
 
 					// generate unique arrayName
-					String arrayName="lcmdlarray"+problem.getIndex(this)+arrayNo++;
+					String arrayName="lcmdlarray"+problem.getIndex(this)+"_"+arrayNo++;
 					problem.addVar(arrayName);
 
 					StringBuilder arrayDefinition=new StringBuilder(arrayName+": [");
@@ -634,7 +632,8 @@ public class PerlScript extends ProblemElement{
 			// log.finer("replace text" + stringText);
 			
 			//prevent to match lc2mdltext10 with lc2mdltext1
-			buf=buf.replaceFirst("(?<=\\W)lc2mdltext"+i+"(?=\\W)",stringText);
+//			buf=buf.replaceFirst("(?<=\\W)lc2mdltext"+i+"(?=\\W)",stringText);
+			buf=buf.replaceAll("(?<=\\W)lc2mdltext"+i+"(?=\\W)",stringText);
 		}
 		
 		script=buf;
