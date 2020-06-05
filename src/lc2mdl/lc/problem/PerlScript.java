@@ -86,7 +86,7 @@ public class PerlScript extends ProblemElement{
 
 		// COMMENTS
 		replaceComments();
-		
+
 		// UNKNOWN CONTROL-STRUCTURES
 		searchForUnknownControlStructures();
 
@@ -123,14 +123,13 @@ public class PerlScript extends ProblemElement{
 			count[specialChars.indexOf(sc)]=script.length()-script.replace(sc,"").length();
 		}
 		if(Arrays.stream(count).sum()>0){
-			log.warning("--found special chars. $:"+count[0]+", @: "+count[1]+", &: "+count[2]+", {: "+count[3]+", }: "
-					+count[4]);
+			log.warning("--found special chars. $:"+count[0]+", @: "+count[1]+", &: "+count[2]+", {: "+count[3]+", }: "+count[4]);
 		}
 	}
 
 	private void replaceControlStructures(){
-		PerlControlStructuresReplacer cSReplacer=new PerlControlStructuresReplacer(this, script);
-		
+		PerlControlStructuresReplacer cSReplacer=new PerlControlStructuresReplacer(this,script);
+
 		script=cSReplacer.getReplacedScript();
 	}
 
@@ -195,7 +194,7 @@ public class PerlScript extends ProblemElement{
 				comment=comment.substring(1);
 			}
 			//to prevent generating "**"
-			if(comment.charAt(0)=='#'&&comment.length()==1)comment=" ";
+			if(comment.charAt(0)=='#'&&comment.length()==1) comment=" ";
 			// remove # within
 			comment=comment.replaceAll("#","[HASH-SIGN]");
 			comment=comment.replaceAll("\\$","[DOLLAR-SIGN]");
@@ -410,8 +409,7 @@ public class PerlScript extends ProblemElement{
 					String assignArrayValue=arrayName+"["+params.get(0)+"]";//;";
 
 					//get left side of statement followed by EXACTLY that match
-					String leftStatement=getFirstMatchAsString(script,
-							"[^;\\n\\r]*(?=("+Pattern.quote(completeFunction)+"))");
+					String leftStatement=getFirstMatchAsString(script,"[^;\\n\\r]*(?=("+Pattern.quote(completeFunction)+"))");
 
 					String wholeStatement=leftStatement+completeFunction;
 					if(leftStatement==null||leftStatement.equals("")){
@@ -472,8 +470,7 @@ public class PerlScript extends ProblemElement{
 					break;
 
 				default:
-					if(!functionReplacements.containsValue(functionName))
-						log.warning("--unknown function: "+functionName);
+					if(!functionReplacements.containsValue(functionName)) log.warning("--unknown function: "+functionName);
 			}
 		}
 
@@ -578,13 +575,12 @@ public class PerlScript extends ProblemElement{
 			int stringStart,stringEnd;
 			int lastStart=0;
 
-			findString:
-			do{
+			findString:do{
 				stringStart=script.indexOf(quote,lastStart);
 
 				// Break if there aren't any quotes
 				if(stringStart==-1) break;
-				
+
 				// Continue if escaped quotation mark  
 				if(stringStart>0){
 					if(script.charAt(stringStart-1)==escape){
@@ -598,7 +594,8 @@ public class PerlScript extends ProblemElement{
 				while(true){
 					stringEnd++;
 					if(stringEnd>=script.length()){
-						log.warning("---found no end for string beginning with "+ script.substring(stringStart,(stringStart+10<script.length()?stringStart+10:script.length()-1))+" ...\". Following strings won't be found.");
+						log.warning("---found no end for string beginning with "+script.substring(stringStart,(stringStart+10<script.length()?stringStart+10:script.length()-1))
+								+" ...\". Following strings won't be found.");
 						// start over again with next quotes
 						lastStart=stringStart+1;
 						continue findString;
@@ -608,7 +605,7 @@ public class PerlScript extends ProblemElement{
 					if(script.charAt(stringEnd)==quote){
 						if(script.charAt(stringEnd-1)!=escape){
 							//end found
-							break; 
+							break;
 						}
 					}
 				}
@@ -618,18 +615,18 @@ public class PerlScript extends ProblemElement{
 
 				//preserve backslashes (cause we need it later for replaceAll)
 				stringsInScript.add(stringText.replace("\\","\\\\"));
-				
+
 				script=script.replace(stringText,replacement);
-				
+
 				log.finest("---replaced "+stringText+" by "+replacement);
 
 				// start over again from last quote (prevent loop on escaped marks)
 				lastStart=stringStart+1;
-				
+
 				stringNo++;
 			}while(stringStart!=-1);
 		}
-		
+
 		//TODO: Cannot handle nested strings of type: 'text "in" quotes' yet
 	}
 
@@ -644,20 +641,20 @@ public class PerlScript extends ProblemElement{
 			stringText=transformTextVariable(stringText);
 			stringText=replaceImagePathBySVG(stringText);
 			// log.finer("replace text" + stringText);
-			
+
 			//prevent to match lc2mdltext10 with lc2mdltext1
 //			buf=buf.replaceFirst("(?<=\\W)lc2mdltext"+i+"(?=\\W)",stringText);
 			buf=buf.replaceAll("(?<=\\W)lc2mdltext"+i+"(?=\\W)",stringText);
 		}
-		
+
 		script=buf;
 	}
 
 	private String replaceImagePathBySVG(String pathString){
 		String svgString=pathString;
 		pathString=pathString.substring(1,pathString.length()-1); // remove " "
-		if(pathString.endsWith(".png")||pathString.endsWith(".jpg")||pathString.endsWith("gif")
-				||pathString.endsWith(".PNG")||pathString.endsWith(".JPG")||pathString.endsWith("GIF")){
+		if(pathString.endsWith(".png")||pathString.endsWith(".jpg")||pathString.endsWith("gif")||pathString.endsWith(".PNG")||pathString.endsWith(".JPG")
+				||pathString.endsWith("GIF")){
 			svgString=FileFinder.extractFileName(pathString);
 			log.finer("pathname = "+pathString+" , filename = "+svgString);
 			svgString=problem.getImagesSVG().get(svgString);
