@@ -480,7 +480,8 @@ public class PerlScript extends ProblemElement{
 		ArrayList<String> vars=new ArrayList<>();
 
 		// find all variables
-		String varPat="\\$([a-zA-Z]+([a-zA-Z0-9])*)";
+		// rules for var-names: https://webassign.net/manual/instructor_guide/t_i_setting_perl_variables.htm 
+		String varPat="\\$([a-zA-Z\\_]+([a-zA-Z0-9\\_])*)";
 		Pattern pattern=Pattern.compile(varPat);
 		Matcher matcher=pattern.matcher(script);
 		while(matcher.find()){

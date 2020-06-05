@@ -19,6 +19,46 @@ public class PerlControlStructuresReplacer{
 			this.block=block;
 		}
 	}
+	private class Condition{
+		public int openBrace;
+		public int closeBrace;
+		public String conditionStringWithBraces;
+		public Condition(int openBrace){
+			conditionStringWithBraces=null;
+			this.openBrace=openBrace;
+			//function returns one char AFTER closing brace
+			closeBrace=ConvertAndFormatMethods.findMatchingParentheses(script,openBrace)-1;
+			
+			if(closeBrace!=-1){			
+				//substring incl. closeBrace
+				conditionStringWithBraces=script.substring(this.openBrace,closeBrace+1);
+			}
+		}
+		public String toString(){return conditionStringWithBraces;}
+	}
+	private class Block{
+		public int openBrace;
+		public int closeBrace;
+		public String blockStringWithBraces;
+		public boolean valid;
+		public Block(int startIndex,String csName,boolean mandatory){
+			blockStringWithBraces=null;
+			valid=false;
+			
+			int[] blockIndices=findIndicesOfFollowingBlockParentheses(startIndex,csName,mandatory);
+
+			this.openBrace=blockIndices[0];
+			this.closeBrace=blockIndices[1];
+			
+			if(openBrace!=-1){
+				valid=true;
+				//substring incl. closeBrace
+				blockStringWithBraces=script.substring(openBrace,closeBrace+1);
+				if(!allowMultilineBlocks) blockStringWithBraces=makeBlockOneLine(blockStringWithBraces);				
+			}
+		}
+		public String toString(){return blockStringWithBraces;}
+	}
 
 	private PerlScript perlScript;
 	private String script;
@@ -39,69 +79,38 @@ public class PerlControlStructuresReplacer{
 		//CONDITIONS
 		//if elsif else AND unless elsif else
 		replaceConditions();
+		//TODO: if auch NACH EINEM Stmt möglich
+		//@see https://www.perltutorial.org/perl-if/
+		//my $a = 1; print("Welcome to Perl if tutorial\n") if($a == 1);
+		//Dasselbe für unless: statement unless(condition);
+		//aber jeweils SINGLE-STATEMENT, kein Block ;)
+		
+		//TODO: Ternary Operator (condition)?{true}:{false} -->Check syntax
+		
+		//DO before WHILE
+		// do{} while()
+		// while(){}
+		//TODO: gucken, dass das zweite NICHT erneut ersetzt wird
+		//auch möglich:  do '/foo/stat.pl';
+		
+		//LOOPS
+		//DO (WHILE | UNTIL)
+		//WHILE
+		//UNTIL
+		//Loop control Statements: next & last
+		//last≈break-->return? http://maxima.sourceforge.net/docs/manual/maxima_37.html
+		
+		//OPERATORS
 
+		//FOR
+		//FOREACH
+		//NACH do und while
+		
 		return script;
 	}
 
 	private void doingStuff(String script){
 
-//		case "unless":{
-//			// log.warning("script.length= "+script.length()+"
-//			// csstart= "+csStart+" csend= "+csEnd+" parenStart=
-//			// "+parenStart+" parenend= "+parenEnd);
-//			String condSub=" ";
-//			String cond="unless";
-//			if(parenStart<parenEnd){
-//				condSub=script.substring(parenStart,parenEnd);
-//			}
-//			condSub=" if (not "+condSub+") ";
-//			cond=script.substring(csStart,parenEnd);
-//
-//			controlStructureStringReplacements.put(cond,condSub);
-//			startFind=parenEnd;
-//			addConvertWarning("--replaced \"unless\" partially. Please correct order of replaced \"unless\"-statement in context \""+condSub+"\"");
-//			}
-//			break;
-//
-//		case "else":
-//			String csString=matcher.group();
-//			String csNewString="  "+ConvertAndFormatMethods.removeCR(csString)+" ";
-//			controlStructureStringReplacements.put(csString,csNewString);
-//			startFind=csStart+csNewString.length()+1;
-//			break;
-//			
-//		case "elsif":
-//		case "if":
-//
-//			if(parenStart<parenEnd){
-//				//use first \W, too for making sure "if ..." doesn't match "eslif ..."
-//				String oldIf=script.substring(csStart-1,parenEnd);
-//				String newIf=oldIf+" then ";
-//
-//				//handle elsif as special case of if
-//				if(cs.equals("elsif")){
-//					csString=matcher.group();
-//					newIf=newIf.replaceFirst(Pattern.quote("elsif"),"elseif");
-//					//there are no changes in script, so parenEnd doesn't need to change
-//					//parenEnd+=csNewString.length()-csString.length();
-//					// parenEnd += 4;
-//					//matcher=Pattern.compile(csPat).matcher(script);
-//				}
-//				
-//				controlStructureStringReplacements.put(oldIf,newIf);
-//				startFind=csEnd;
-//			}else{
-//				startFind=csEnd;
-//			}
-//			break;
-		//OPERATORS
-
-		//LOOPS
-		//WHILE
-		//UNTIL
-		//FOR
-		//FOREACH
-		//DO (WHILE | UNTIL)
 
 		/*
 		 * HINT: Best way to use Matcher seems to be using
@@ -232,86 +241,80 @@ public class PerlControlStructuresReplacer{
 			int stmtStart,stmtEnd;
 			int curIndex=0;
 
-			findingIfStatemnets:do{
+			findingIfStatemnets:
+			do{
 				int[] stmtMatch=ConvertAndFormatMethods.getRegexStartAndEndIndexInText(ifBeginPat,script,curIndex);
 				stmtStart=stmtMatch[0];
-				// Break if no IF was found
+				// Break if no IF ot UNLESS was found
 				if(stmtStart==-1) break;
 
 				//find IF condition (...)
 				int openCondBrace=stmtMatch[1];
-				int closeCondBrace=ConvertAndFormatMethods.findMatchingParentheses(script,openCondBrace)-1;
-				String condition=script.substring(openCondBrace,closeCondBrace+1);
+				Condition ifCondition=new Condition(openCondBrace);
 
 				//now find IF block {...}
-				int[] ifBlockIndices=findIndicesOfFollowingBlockParentheses(closeCondBrace,conditionType,true);
-				if(ifBlockIndices[0]<0){
+				Block ifBlock=new Block(ifCondition.closeBrace,conditionType,true);
+				if(!ifBlock.valid){
 					curIndex=stmtStart+1;
 					continue;
 				}
-				String ifBlock=script.substring(ifBlockIndices[0],ifBlockIndices[1]+1);
-				if(!allowMultilineBlocks) ifBlock=makeBlockOneLine(ifBlock);
 
 				//look for ELSIF (cond) {block}
 				ArrayList<CondBlockPair> elsifConditionAndBlocksList=new ArrayList<>();
-				int[] lastBlockIndices=ifBlockIndices;
-				int[] optionalElsifMatch;
+				int lastBlockEnd=ifBlock.closeBrace;
+				int optionalElsifStart;
 				//n-times
 				do{
 					//look from lastBlockIndices[1] on for literal ELSIF
-					optionalElsifMatch=ConvertAndFormatMethods.getRegexStartAndEndIndexInText("elsif {0,}\\(",script,lastBlockIndices[1]);
-					if(optionalElsifMatch[0]==-1) break;
+					int[] optionalElsifMatch=ConvertAndFormatMethods.getRegexStartAndEndIndexInText("elsif {0,}\\(",script,lastBlockEnd);
+					optionalElsifStart=optionalElsifMatch[0];
+					if(optionalElsifStart==-1) break;
 
 					//there are elsif somewhere in script
-					String fromLastBlockToElsif=script.substring(lastBlockIndices[1]+1,optionalElsifMatch[1]);
+					int openCondBraceElsif=optionalElsifMatch[1];
+					String fromLastBlockToElsif=script.substring(lastBlockEnd+1,openCondBraceElsif);
+					//break if it's not directly follwing
 					if(!fromLastBlockToElsif.trim().equals("elsif")) break;
 
 					//direct following elsif was found
 
 					//find ELSIF condition (...)
-					int openCondBraceElsif=optionalElsifMatch[1];
-					int closeCondBraceElsif=ConvertAndFormatMethods.findMatchingParentheses(script,openCondBraceElsif)-1;
-					String conditionElsif=script.substring(openCondBraceElsif,closeCondBraceElsif+1);
+					Condition elsifCondition=new Condition(openCondBraceElsif);
 
 					//now find ELSIF block {...}
-					int[] elsifBlockIndices=findIndicesOfFollowingBlockParentheses(closeCondBraceElsif,"elsif",true);
-					if(elsifBlockIndices[0]<0){
+					Block elsifBlock=new Block(elsifCondition.closeBrace,"elsif",true);
+					if(!elsifBlock.valid){
 						curIndex=stmtStart+1;
 						continue findingIfStatemnets;
 					}
-					String elsifBlock=script.substring(elsifBlockIndices[0],elsifBlockIndices[1]+1);
-					if(!allowMultilineBlocks) elsifBlock=makeBlockOneLine(elsifBlock);
 
-					elsifConditionAndBlocksList.add(new CondBlockPair(conditionElsif,elsifBlock));
-					lastBlockIndices=elsifBlockIndices;
-					System.out.println(lastBlockIndices[0]+" "+lastBlockIndices[1]);
-
-				}while(optionalElsifMatch[0]!=-1);
+					elsifConditionAndBlocksList.add(new CondBlockPair(elsifCondition.toString(),elsifBlock.toString()));
+					lastBlockEnd=elsifBlock.closeBrace;
+				}while(optionalElsifStart!=-1);
 
 				//look for ELSE {block}
 				//one time
-				//look from lastBlockIndices[1] on for literal ELSE (no condition here, so only look before "{")
-				String elseBlock=null;
-				int[] optionalElseMatch=ConvertAndFormatMethods.getRegexStartAndEndIndexInText("else {0,}(?=\\{)",script,lastBlockIndices[1]);
-				System.out.println(optionalElseMatch[0]+"  "+optionalElseMatch[1]);
-				if(optionalElseMatch[0]!=-1){
+				//look from lastBlockIndices[1] on for literal ELSE (no condition here, so only look BEFORE "{")
+				Block elseBlock=null;
+				int[] optionalElseMatch=ConvertAndFormatMethods.getRegexStartAndEndIndexInText("else {0,}(?=\\{)",script,lastBlockEnd);
+				int optionalElseStart=optionalElseMatch[0];
+
+				if(optionalElseStart!=-1){
+					int beforeElseBlock=optionalElseMatch[1];
 					//there are else somewhere in script
-					String fromLastBlockToElse=script.substring(lastBlockIndices[1]+1,optionalElseMatch[1]+1);
+					String fromLastBlockToElse=script.substring(lastBlockEnd+1,beforeElseBlock+1);
 					if(fromLastBlockToElse.trim().equals("else")){
 						//direct following else was found
 
 						//no condition ;) 
 
 						//now find ELSE block {...}
-						int[] elseBlockIndices=findIndicesOfFollowingBlockParentheses(optionalElseMatch[1],"else",true);
-						if(elseBlockIndices[0]<0){
+						elseBlock=new Block(beforeElseBlock,"else",true);
+						if(!elseBlock.valid){
 							curIndex=stmtStart+1;
 							continue findingIfStatemnets;
 						}
-						elseBlock=script.substring(elseBlockIndices[0],elseBlockIndices[1]+1);
-						if(!allowMultilineBlocks) elseBlock=makeBlockOneLine(elseBlock);
-
-						lastBlockIndices=elseBlockIndices;
+						lastBlockEnd=elseBlock.closeBrace;
 					}
 				}
 
@@ -319,10 +322,11 @@ public class PerlControlStructuresReplacer{
 				String maximaStmtText="";
 				switch(conditionType){
 					case "if":
-						maximaStmtText=" if "+condition+" then "+ifBlock+" ";
+						maximaStmtText=" if "+ifCondition+" then "+ifBlock+" ";
 						break;
 					case "unless":
-						maximaStmtText=" if (not "+condition.substring(1)+" then "+ifBlock+" ";
+						//substring(1) means without open brace
+						maximaStmtText=" if (not "+ifCondition.toString().substring(1)+" then "+ifBlock+" ";
 						break;
 				}
 
@@ -333,13 +337,11 @@ public class PerlControlStructuresReplacer{
 					maximaStmtText+="else "+elseBlock+" ";
 				}
 
-				stmtEnd=lastBlockIndices[1];
+				stmtEnd=lastBlockEnd;
 
 				//replace old statement
 				script=ConvertAndFormatMethods.replaceSubsequenceInText(script,stmtStart,stmtEnd,maximaStmtText);
 
-//			String perlStmtText=script.substring(stmtStart,stmtEnd+1);
-//			log.finest("---replaced "+perlStmtText+" by "+maximaStmtText);
 				log.warning("--found control structure \""+conditionType+"\", try to replace and reorder, please check result");
 
 				// start over again from last match (prevents loop on IF replaced by IF)
@@ -365,7 +367,7 @@ public class PerlControlStructuresReplacer{
 
 		if(openBlockParen<0){
 			//NO BLOCK BEGIN WAS FOUND AT ALL
-			addConvertWarning("---found \""+cs+"\" without any block \"{\" (will not work on)");
+			addConvertWarningToScript("---found \""+cs+"\" without any block \"{\" (will not work on)");
 			return indices;
 		}
 
@@ -374,7 +376,7 @@ public class PerlControlStructuresReplacer{
 			String fromCondToBlock=script.substring(startIndex+1,openBlockParen);
 			if(!fromCondToBlock.trim().isEmpty()){
 				//NO BLOCK WAS FOUND AS EXPECTED
-				addConvertWarning("---found unexpected CS between \""+cs+"\" and mandatory block begin (will not work on)");
+				addConvertWarningToScript("---found unexpected CS between \""+cs+"\" and mandatory block begin (will not work on)");
 				return indices;
 			}
 		}
@@ -382,7 +384,7 @@ public class PerlControlStructuresReplacer{
 		int closeBlockParen=ConvertAndFormatMethods.findMatchingParentheses(script,startIndex,false)-1;
 		if(closeBlockParen<0){
 			//NO BLOCK END WAS FOUND
-			addConvertWarning("---found \""+cs+"\" without block end \"}\" (will not work on)");
+			addConvertWarningToScript("---found \""+cs+"\" without block end \"}\" (will not work on)");
 			return indices;
 		}
 		return new int[]{openBlockParen,closeBlockParen};
@@ -392,7 +394,7 @@ public class PerlControlStructuresReplacer{
 		return ConvertAndFormatMethods.removeCR(text);
 	}
 
-	private void addConvertWarning(String warning){
+	private void addConvertWarningToScript(String warning){
 		perlScript.addConvertWarning(warning);
 	}
 }
