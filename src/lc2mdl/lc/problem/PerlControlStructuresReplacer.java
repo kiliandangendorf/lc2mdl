@@ -24,13 +24,16 @@ public class PerlControlStructuresReplacer{
 		public int openBrace;
 		public int closeBrace;
 		public String conditionStringWithBraces;
-		public Condition(int openBrace){
+		public boolean valid;
+		public Condition(int openBrace,String csName){
 			conditionStringWithBraces=null;
+			valid=false;
 			this.openBrace=openBrace;
-			//function returns one char AFTER closing brace
-			closeBrace=ConvertAndFormatMethods.findMatchingParentheses(script,openBrace)-1;
 			
-			if(closeBrace!=-1){			
+			closeBrace=findClosingConditionIndex(openBrace, csName);
+			
+			if(closeBrace>=0){			
+				valid=true;
 				//substring incl. closeBrace
 				conditionStringWithBraces=script.substring(this.openBrace,closeBrace+1);
 			}
@@ -88,6 +91,9 @@ public class PerlControlStructuresReplacer{
 		csDict.put("while","lc2mdl_WHILE");
 		csDict.put("unless","lc2mdl_UNLESS");
 		csDict.put("do","lc2mdl_DO");
+		csDict.put("for","lc2mdl_FOR");
+		csDict.put("next","lc2mdl_NEXT");
+		
 		
 		
 		// CONDITIONS
@@ -104,11 +110,13 @@ public class PerlControlStructuresReplacer{
 		// while (...) {...}
 		// until (...) {...}
 		replaceWhileLoops();
-		
-		
-		
+				
 
-		//FOR
+		// for (...; ...; ...) {...}
+		replaceForLoops();
+		
+		
+		
 		//FOREACH
 
 		//OPERATORS
@@ -133,6 +141,67 @@ public class PerlControlStructuresReplacer{
 		
 		return script;
 	}
+
+	private void replaceForLoops(){
+		// for (...; ...; ...) {...}
+		String forBeginPat="(?<=\\b)"+Pattern.quote("for")+" {0,}\\(";
+
+		int stmtStart,stmtEnd;
+		int curIndex=0;
+
+		findingForStatements:
+		do{
+			int[] stmtMatch=ConvertAndFormatMethods.getRegexStartAndEndIndexInText(forBeginPat,script,curIndex);
+			stmtStart=stmtMatch[0];
+			// Break if no FOR was found
+			if(stmtStart==-1) break;
+
+			//find FOR condition (...)
+			int openCondBrace=stmtMatch[1];
+			Condition wholeForCondition=new Condition(openCondBrace, "for");
+			if(!wholeForCondition.valid){
+				curIndex=stmtStart+1;
+				continue findingForStatements;
+			}
+			
+			//splitting up and reorder condition
+			String[] forParts=wholeForCondition.toString().substring(1,wholeForCondition.toString().length()-1).split(";");
+			if(forParts.length!=3){
+				//TODO: WARNING
+				curIndex=stmtStart+1;
+				continue findingForStatements;
+			}
+			//for (INIT ; CONDITION ; COMMAND) {BLOCK}
+			String init=forParts[0];
+			String condition=forParts[1];
+			String command=forParts[2];
+
+			//now find block {...}
+			Block forBlock=new Block(wholeForCondition.closeBrace,"for",true);
+			if(!forBlock.valid){
+				curIndex=stmtStart+1;
+				continue findingForStatements;
+			}
+
+			//build new maxima statement string
+			//for INIT next COMMAND while (CONDITION) do {BLOCK}
+			String maximaStmtText=" "+csDict.get("for")+" ";
+			maximaStmtText+=init+" "+csDict.get("next")+" "+command+" "+csDict.get("while")+" ("+condition+") ";
+			
+			maximaStmtText+=csDict.get("do")+" "+forBlock+" ";
+
+			stmtEnd=forBlock.closeBrace;
+
+			//replace old statement
+			script=ConvertAndFormatMethods.replaceSubsequenceInText(script,stmtStart,stmtEnd,maximaStmtText);
+
+			log.warning("---found control structure \""+"for"+"\", try to replace and reorder, please check result");
+
+			// start over again from last match (prevents loop on IF replaced by IF)
+			curIndex=stmtStart+maximaStmtText.length();
+		}while(stmtStart!=-1);
+	}
+	
 	private void replaceWhileLoops(){
 		// while (...) {...}
 		// until (...) {...}
@@ -143,7 +212,7 @@ public class PerlControlStructuresReplacer{
 			int stmtStart,stmtEnd;
 			int curIndex=0;
 
-			findingWhileStatemnets:
+			findingWhileStatements:
 			do{
 				int[] stmtMatch=ConvertAndFormatMethods.getRegexStartAndEndIndexInText(whileBeginPat,script,curIndex);
 				stmtStart=stmtMatch[0];
@@ -152,13 +221,17 @@ public class PerlControlStructuresReplacer{
 
 				//find WHILE resp. UNTIL condition (...)
 				int openCondBrace=stmtMatch[1];
-				Condition whileCondition=new Condition(openCondBrace);
+				Condition whileCondition=new Condition(openCondBrace, loopType);
+				if(!whileCondition.valid){
+					curIndex=stmtStart+1;
+					continue findingWhileStatements;
+				}
 
 				//now find block {...}
 				Block whileBlock=new Block(whileCondition.closeBrace,loopType,true);
 				if(!whileBlock.valid){
 					curIndex=stmtStart+1;
-					continue findingWhileStatemnets;
+					continue findingWhileStatements;
 				}
 
 				//build new maxima statement string
@@ -238,7 +311,12 @@ public class PerlControlStructuresReplacer{
 					continue findingDoLoops;
 			}
 			
-			Condition loopCondition=new Condition(openCondBrace);
+			Condition loopCondition=new Condition(openCondBrace, "do");
+			if(!loopCondition.valid){
+				curIndex=doStart+1;
+				continue findingDoLoops;	
+			}
+			
 			
 			//build new maxima statement string
 			//do {BLOCK} while (CONDITION) => bool x: true; while (x) {BLOCK; x:CONDITION}
@@ -282,7 +360,7 @@ public class PerlControlStructuresReplacer{
 			int stmtStart,stmtEnd;
 			int curIndex=0;
 
-			findingIfStatemnets:
+			findingIfStatements:
 			do{
 				int[] stmtMatch=ConvertAndFormatMethods.getRegexStartAndEndIndexInText(ifBeginPat,script,curIndex);
 				stmtStart=stmtMatch[0];
@@ -291,13 +369,17 @@ public class PerlControlStructuresReplacer{
 
 				//find IF condition (...)
 				int openCondBrace=stmtMatch[1];
-				Condition ifCondition=new Condition(openCondBrace);
+				Condition ifCondition=new Condition(openCondBrace, conditionType);
+				if(!ifCondition.valid){
+					curIndex=stmtStart+1;
+					continue findingIfStatements;
+				}
 
 				//now find IF block {...}
 				Block ifBlock=new Block(ifCondition.closeBrace,conditionType,true);
 				if(!ifBlock.valid){
 					curIndex=stmtStart+1;
-					continue;
+					continue findingIfStatements;
 				}
 
 				//look for ELSIF (cond) {block}
@@ -320,13 +402,17 @@ public class PerlControlStructuresReplacer{
 					//direct following elsif was found
 
 					//find ELSIF condition (...)
-					Condition elsifCondition=new Condition(openCondBraceElsif);
+					Condition elsifCondition=new Condition(openCondBraceElsif, "elsif");
+					if(!elsifCondition.valid){
+						curIndex=stmtStart+1;
+						continue findingIfStatements;						
+					}
 
 					//now find ELSIF block {...}
 					Block elsifBlock=new Block(elsifCondition.closeBrace,"elsif",true);
 					if(!elsifBlock.valid){
 						curIndex=stmtStart+1;
-						continue findingIfStatemnets;
+						continue findingIfStatements;
 					}
 
 					elsifConditionAndBlocksList.add(new CondBlockPair(elsifCondition.toString(),elsifBlock.toString()));
@@ -353,7 +439,7 @@ public class PerlControlStructuresReplacer{
 						elseBlock=new Block(beforeElseBlock,"else",true);
 						if(!elseBlock.valid){
 							curIndex=stmtStart+1;
-							continue findingIfStatemnets;
+							continue findingIfStatements;
 						}
 						lastBlockEnd=elseBlock.closeBrace;
 					}
@@ -389,6 +475,19 @@ public class PerlControlStructuresReplacer{
 				curIndex=stmtStart+maximaStmtText.length();
 			}while(stmtStart!=-1);
 		}
+	}
+	
+	private int findClosingConditionIndex(int openBrace,String cs){
+	
+		//function returns one char AFTER closing brace
+		int closeBrace=ConvertAndFormatMethods.findMatchingParentheses(script,openBrace)-1;
+		
+		if(closeBrace<0){
+			//NO CONDITION END WAS FOUND
+			addConvertWarningToScript("---found \""+cs+"\" without condition end \")\" (will not work on)");
+			return -1;
+		}
+		return closeBrace;
 	}
 
 	/**

@@ -58,7 +58,7 @@ public class ConvertAndFormatMethods{
 			end++;
 		}
 
-		while((bracketCount>0)&&(end<text.length())){
+		while((bracketCount>0)&&(end<text.length()-1)){
 			if(text.charAt(end)==charOpen) bracketCount++;
 			if(text.charAt(end)==charClose) bracketCount--;
 			end++;
