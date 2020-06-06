@@ -86,6 +86,8 @@ public class PerlControlStructuresReplacer{
 		csDict.put("if","lc2mdl_IF");
 		csDict.put("else","lc2mdl_ELSE");
 		csDict.put("while","lc2mdl_WHILE");
+		csDict.put("unless","lc2mdl_UNLESS");
+		csDict.put("do","lc2mdl_DO");
 		
 		
 		// CONDITIONS
@@ -99,10 +101,9 @@ public class PerlControlStructuresReplacer{
 		// do {...} until (...)
 		replaceDoLoops();
 		
-		// LOOPS
-		
 		// while (...) {...}
 		// until (...) {...}
+		replaceWhileLoops();
 		
 		
 		
@@ -132,7 +133,58 @@ public class PerlControlStructuresReplacer{
 		
 		return script;
 	}
+	private void replaceWhileLoops(){
+		// while (...) {...}
+		// until (...) {...}
+		for(String loopType:Arrays.asList("while","until")){
+			//FIND \b if {0,}(
+			String whileBeginPat="(?<=\\b)"+Pattern.quote(loopType)+" {0,}\\(";
 
+			int stmtStart,stmtEnd;
+			int curIndex=0;
+
+			findingWhileStatemnets:
+			do{
+				int[] stmtMatch=ConvertAndFormatMethods.getRegexStartAndEndIndexInText(whileBeginPat,script,curIndex);
+				stmtStart=stmtMatch[0];
+				// Break if no WHILE or UNTIL was found
+				if(stmtStart==-1) break;
+
+				//find WHILE resp. UNTIL condition (...)
+				int openCondBrace=stmtMatch[1];
+				Condition whileCondition=new Condition(openCondBrace);
+
+				//now find block {...}
+				Block whileBlock=new Block(whileCondition.closeBrace,loopType,true);
+				if(!whileBlock.valid){
+					curIndex=stmtStart+1;
+					continue findingWhileStatemnets;
+				}
+
+				//build new maxima statement string
+				String maximaStmtText="";
+				switch(loopType){
+					case "while":
+						maximaStmtText=" "+csDict.get("while")+" "+whileCondition+" "+csDict.get("do")+" "+whileBlock+" ";
+						break;
+					case "until":
+						maximaStmtText=" "+csDict.get("unless")+" "+whileCondition+" "+csDict.get("do")+" "+whileBlock+" ";
+						break;
+				}
+
+				stmtEnd=whileBlock.closeBrace;
+
+				//replace old statement
+				script=ConvertAndFormatMethods.replaceSubsequenceInText(script,stmtStart,stmtEnd,maximaStmtText);
+
+				log.warning("---found control structure \""+loopType+"\", try to replace and reorder, please check result");
+
+				// start over again from last match (prevents loop on IF replaced by IF)
+				curIndex=stmtStart+maximaStmtText.length();
+			}while(stmtStart!=-1);
+		}
+		
+	}
 	private void replaceDoLoops(){
 		//do {...} while (...)
 		//do {...} until (...)
@@ -218,19 +270,6 @@ public class PerlControlStructuresReplacer{
 		}while(doStart!=-1);
 
 		
-	}
-	
-	private void doingStuff(String script){
-		/*
-		 * HINT: Best way to use Matcher seems to be using
-		 * "matcher.appendReplacement(...)" and "matcher.appendTail(...)" on a
-		 * StringBuffer. This makes sure, to replace exactly this match (not all
-		 * matching Strings). Problem here is, we need not only the match, but
-		 * also some charSequences before and after. TODO: Maybe we need a
-		 * separate Matcher for each CS and use appendReplacement(...) in most
-		 * possible cases... TODO: in this case, we should use regex look ahead
-		 * and behind, eg. String csPat="(?<=[\\W])"+cs+"(?=\\W)";
-		 */
 	}
 
 	private void replaceConditions(){
