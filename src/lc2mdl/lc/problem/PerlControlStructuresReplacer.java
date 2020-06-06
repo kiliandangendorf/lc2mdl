@@ -23,7 +23,7 @@ public class PerlControlStructuresReplacer{
 	private class Condition{
 		public int openBrace;
 		public int closeBrace;
-		public String conditionStringWithBraces;
+		private String conditionStringWithBraces;
 		public boolean valid;
 		public Condition(int openBrace,String csName){
 			conditionStringWithBraces=null;
@@ -43,7 +43,7 @@ public class PerlControlStructuresReplacer{
 	private class Block{
 		public int openBrace;
 		public int closeBrace;
-		public String blockStringWithBraces;
+		private String blockStringWithBraces;
 		public boolean valid;
 		public Block(int startIndex,String csName,boolean mandatory){
 			blockStringWithBraces=null;
@@ -67,6 +67,7 @@ public class PerlControlStructuresReplacer{
 	private PerlScript perlScript;
 	private String script;
 	private boolean allowMultilineBlocks;
+	private boolean addSemicolonAtEndOfStmt;
 	
 	private int boolNo=0;
 	private HashMap<String,String> csDict;
@@ -79,6 +80,7 @@ public class PerlControlStructuresReplacer{
 
 	public String getReplacedScript(){
 		allowMultilineBlocks=true;
+		addSemicolonAtEndOfStmt=true;
 
 		//nice: irritating braces in strings aren't possible anymore;) (done in saveStrings)
 		
@@ -189,6 +191,7 @@ public class PerlControlStructuresReplacer{
 			maximaStmtText+=init+" "+csDict.get("next")+" "+command+" "+csDict.get("while")+" ("+condition+") ";
 			
 			maximaStmtText+=csDict.get("do")+" "+forBlock+" ";
+			if(addSemicolonAtEndOfStmt)maximaStmtText+=";";
 
 			stmtEnd=forBlock.closeBrace;
 
@@ -244,6 +247,7 @@ public class PerlControlStructuresReplacer{
 						maximaStmtText=" "+csDict.get("unless")+" "+whileCondition+" "+csDict.get("do")+" "+whileBlock+" ";
 						break;
 				}
+				if(addSemicolonAtEndOfStmt)maximaStmtText+=";";
 
 				stmtEnd=whileBlock.closeBrace;
 
@@ -319,7 +323,7 @@ public class PerlControlStructuresReplacer{
 			
 			
 			//build new maxima statement string
-			//do {BLOCK} while (CONDITION) => bool x: true; while (x) {BLOCK; x:CONDITION}
+			//do {BLOCK} while (CONDITION) => bool x: true; while (x) do {BLOCK; x:CONDITION}
 		    String boolName="lc2mdl_do_bool"+perlScript.problem.getIndex(perlScript)+"_"+boolNo++;
 		    perlScript.problem.addVar(boolName);
 		    
@@ -332,9 +336,12 @@ public class PerlControlStructuresReplacer{
 					maximaStmtText+=" "+csDict.get("while")+" (not "+boolName+") ";
 					break;
 			}
+			maximaStmtText+=csDict.get("do")+" ";
+			
 			String doBlockModified=doBlock.toString().substring(0,doBlock.toString().length()-1);
-			doBlockModified+="; "+boolName+" : "+loopCondition+" }";
+			doBlockModified+=boolName+" : "+loopCondition+" }";
 			maximaStmtText+=doBlockModified+" ";
+			if(addSemicolonAtEndOfStmt)maximaStmtText+=";";
 
 			doEnd=loopCondition.closeBrace;
 			
@@ -463,6 +470,7 @@ public class PerlControlStructuresReplacer{
 				if(elseBlock!=null){
 					maximaStmtText+="else "+elseBlock+" ";
 				}
+				if(addSemicolonAtEndOfStmt)maximaStmtText+=";";
 
 				stmtEnd=lastBlockEnd;
 
