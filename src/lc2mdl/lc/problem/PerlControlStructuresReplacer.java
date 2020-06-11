@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import lc2mdl.util.ConvertAndFormatMethods;
@@ -70,6 +71,7 @@ public class PerlControlStructuresReplacer{
 	private boolean addSemicolonAtEndOfStmt;
 	
 	private int boolNo=0;
+	private int varNo=0;
 	private HashMap<String,String> csDict;
 
 
@@ -95,8 +97,9 @@ public class PerlControlStructuresReplacer{
 		csDict.put("do","lc2mdl_DO");
 		csDict.put("for","lc2mdl_FOR");
 		csDict.put("next","lc2mdl_NEXT");
+		csDict.put("in","lc2mdl_IN");
 		
-		
+		//TODO: making all log warnings to infos? (severe warning will come anyway by addConvertWarning() )
 		
 		// CONDITIONS
 		// if (...) {...} elsif (...) {...} else {...} 
@@ -115,13 +118,18 @@ public class PerlControlStructuresReplacer{
 				
 
 		// for (...; ...; ...) {...}
+		// TODO for (ARRAY) {...}
 		replaceForLoops();
 		
 		
+		// FOREACH
+		replaceForEachLoops();
 		
-		//FOREACH
 
-		//OPERATORS
+		// OPERATORS
+		// i.e. $a++ => (a:a+1) 
+		// 1..9 => [1,2,...,9]
+		// => makelist(i,i,1,9); where makelist (expr, i, i_0, i_1)
 		
 		//Still TODO
 		// - multiline statements currently only affects blocks. New statements are build in oneline
@@ -134,6 +142,8 @@ public class PerlControlStructuresReplacer{
 		// - Ternary Operator (condition)?{true}:{false} -->Check syntax
 		// - Loop control Statements: next & last
 		//		last≈break-->return? http://maxima.sourceforge.net/docs/manual/maxima_37.html
+		// - Arrays in Maxima start at 1 (not at 0 as it is in Perl)
+		// - Special for and foreach loops with for var ()... and foreach var ()...
 
 
 		
@@ -144,8 +154,87 @@ public class PerlControlStructuresReplacer{
 		return script;
 	}
 
+	private void replaceForEachLoops(){
+		// foreach (ARRAY) {...}
+		// TODO foreach var (ARRAY) {...}
+		String forBeginPat="(?<=\\b)"+Pattern.quote("foreach")+" {0,}\\(";
+
+		int stmtStart,stmtEnd;
+		int curIndex=0;
+
+		findingForEachStatements:
+			do{
+				int[] stmtMatch=ConvertAndFormatMethods.getRegexStartAndEndIndexInText(forBeginPat,script,curIndex);
+				stmtStart=stmtMatch[0];
+				// Break if no FOREACH was found
+				if(stmtStart==-1) break;
+
+				//find FOREACH condition (...)
+				int openCondBrace=stmtMatch[1];
+				Condition foreachCondition=new Condition(openCondBrace, "foreach");
+				if(!foreachCondition.valid){
+					curIndex=stmtStart+1;
+					continue findingForEachStatements;
+				}
+				
+				//now find block {...}
+				Block foreachBlock=new Block(foreachCondition.closeBrace,"foreach",true);
+				if(!foreachBlock.valid){
+					curIndex=stmtStart+1;
+					continue findingForEachStatements;
+				}
+				
+				// in case of nested loops make control variable unique
+			    String controlVarName="lc2mdl_for_cvar"+perlScript.problem.getIndex(perlScript)+"_"+varNo++;
+//			    perlScript.problem.addVar(controlVarName);
+
+			    // replace $_ in block
+			    // TODO case of nested loops :/ Only in this block layer
+			    // it's possible to have the following: foreach(@b){print "$_";foreach(@c){print "$_";}}
+				String foreachBlockWithVar=foreachBlock.toString().replaceAll("(?<=\\b)\\_(?=\\b)",Matcher.quoteReplacement(controlVarName));
+				if(foreachBlockWithVar.contains("lc2mdltext")){
+					addConvertWarningToScript("---found strings in \""+"foreach"+"\" loop. Not sure, if they contain the control variable. Please look for \"_\" resp. (?<=\\b)\\_(?=\\b) in loop strings resp. sconcat() and replace manually by \"lc2mdl_for_cvarX_Y\"");
+				}
+
+
+				//build new maxima statement string
+				//for VAR in ARRAY do {BLOCK}
+				String maximaStmtText=" "+csDict.get("for")+" ";
+				maximaStmtText+=controlVarName+" "+csDict.get("in")+" "+foreachCondition+" ";
+				maximaStmtText+=csDict.get("do")+" "+foreachBlockWithVar+" ";
+				if(addSemicolonAtEndOfStmt)maximaStmtText+=";";
+	
+				stmtEnd=foreachBlock.closeBrace;
+	
+				//replace old statement
+				script=ConvertAndFormatMethods.replaceSubsequenceInText(script,stmtStart,stmtEnd,maximaStmtText);
+	
+				log.warning("---found control structure \""+"foreach"+"\", try to replace and reorder, please check result");
+	
+				// start over again from last match (prevents loop on IF replaced by IF)
+				curIndex=stmtStart+maximaStmtText.length();
+				
+			}while(stmtStart!=-1);
+
+		//TODO
+//		foreach(@a){
+//			print("$_","\n");
+//		}
+//		
+//		@colors = ('red', 'blue', 'yellow');
+//		foreach $color (@colors) {
+//		    print "Color: $color\n";
+//		}
+//
+//		for $i (@a){
+//			print("$i","\n");
+//		}
+//		
+	}
+
 	private void replaceForLoops(){
 		// for (...; ...; ...) {...}
+		// TODO for (ARRAY) {...} -->same as foreach :/
 		String forBeginPat="(?<=\\b)"+Pattern.quote("for")+" {0,}\\(";
 
 		int stmtStart,stmtEnd;
@@ -167,41 +256,58 @@ public class PerlControlStructuresReplacer{
 			}
 			
 			//splitting up and reorder condition
-			String[] forParts=wholeForCondition.toString().substring(1,wholeForCondition.toString().length()-1).split(";");
-			if(forParts.length!=3){
+			String[] forParams=wholeForCondition.toString().substring(1,wholeForCondition.toString().length()-1).split(";");
+			if(forParams.length==1){
+				//for (1...9) {BLOCK}
+				//for (@array) {BLOCK}
+				
+				//check, what if it is an array inside. Then its the same as a foreach loop
+				//@see https://www.perltutorial.org/perl-for-loop/
+
+				//TODO: handle;)
+				addConvertWarningToScript("---found \""+"for"+"\" with only one parameter (will not work on)");
+
+				curIndex=stmtStart+1;
+				continue findingForStatements;
+
+			}else if(forParams.length==3){
+				//for (INIT ; CONDITION ; COMMAND) {BLOCK}
+				String init=forParams[0];
+				String condition=forParams[1];
+				String command=forParams[2];
+	
+				//now find block {...}
+				Block forBlock=new Block(wholeForCondition.closeBrace,"for",true);
+				if(!forBlock.valid){
+					curIndex=stmtStart+1;
+					continue findingForStatements;
+				}
+	
+				//build new maxima statement string
+				//for INIT next COMMAND while (CONDITION) do {BLOCK}
+				String maximaStmtText=" "+csDict.get("for")+" ";
+				maximaStmtText+=init+" "+csDict.get("next")+" "+command+" "+csDict.get("while")+" ("+condition+") ";
+				
+				maximaStmtText+=csDict.get("do")+" "+forBlock+" ";
+				if(addSemicolonAtEndOfStmt)maximaStmtText+=";";
+	
+				stmtEnd=forBlock.closeBrace;
+	
+				//replace old statement
+				script=ConvertAndFormatMethods.replaceSubsequenceInText(script,stmtStart,stmtEnd,maximaStmtText);
+	
+				log.warning("---found control structure \""+"for"+"\", try to replace and reorder, please check result");
+	
+				// start over again from last match (prevents loop on IF replaced by IF)
+				curIndex=stmtStart+maximaStmtText.length();
+			}else{
+				//for with 0, 2 or more than 3 Parts in (...)
 				//TODO: WARNING
+				addConvertWarningToScript("---found \""+"for"+"\" with unexpected parameters (will not work on)");
+
 				curIndex=stmtStart+1;
 				continue findingForStatements;
 			}
-			//for (INIT ; CONDITION ; COMMAND) {BLOCK}
-			String init=forParts[0];
-			String condition=forParts[1];
-			String command=forParts[2];
-
-			//now find block {...}
-			Block forBlock=new Block(wholeForCondition.closeBrace,"for",true);
-			if(!forBlock.valid){
-				curIndex=stmtStart+1;
-				continue findingForStatements;
-			}
-
-			//build new maxima statement string
-			//for INIT next COMMAND while (CONDITION) do {BLOCK}
-			String maximaStmtText=" "+csDict.get("for")+" ";
-			maximaStmtText+=init+" "+csDict.get("next")+" "+command+" "+csDict.get("while")+" ("+condition+") ";
-			
-			maximaStmtText+=csDict.get("do")+" "+forBlock+" ";
-			if(addSemicolonAtEndOfStmt)maximaStmtText+=";";
-
-			stmtEnd=forBlock.closeBrace;
-
-			//replace old statement
-			script=ConvertAndFormatMethods.replaceSubsequenceInText(script,stmtStart,stmtEnd,maximaStmtText);
-
-			log.warning("---found control structure \""+"for"+"\", try to replace and reorder, please check result");
-
-			// start over again from last match (prevents loop on IF replaced by IF)
-			curIndex=stmtStart+maximaStmtText.length();
 		}while(stmtStart!=-1);
 	}
 	
@@ -327,7 +433,8 @@ public class PerlControlStructuresReplacer{
 		    String boolName="lc2mdl_do_bool"+perlScript.problem.getIndex(perlScript)+"_"+boolNo++;
 		    perlScript.problem.addVar(boolName);
 		    
-		    String maximaStmtText=" "+boolName+" : true"+";"+System.lineSeparator();
+		    String maximaStmtText="/* replaced perl-"+csDict.get("do")+"-loop here using \""+boolName+"\" as helper: */"+System.lineSeparator();
+		    maximaStmtText+=" "+boolName+" : true"+";"+System.lineSeparator();
 			switch(conditionType){
 				case "while":
 					maximaStmtText+=" "+csDict.get("while")+" ("+boolName+") ";
