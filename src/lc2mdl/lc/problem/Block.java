@@ -5,40 +5,53 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 public class Block extends ProblemElement {
+
+    public static final boolean OPEN=true;
+	public static final boolean CLOSE=false;
+	private boolean open;
+
     private String additionalCASVariables = "";
     private int index=0;
     private String addToText = "";
     private String blockWarning = " ATTENTION !!! Conditional block ";
 
-    public Block(Problem problem, Node node) {
+    public Block(Problem problem, Node node, Boolean open) {
         super(problem, node);
-        questionType = "stack";
-        problem.addQuestionType(questionType);
-        index = problem.getIndexFromSameClassOnly(this)+1;
+        this.open=open;
+        if (open) {
+            questionType = "stack";
+            problem.addQuestionType(questionType);
+            index = problem.getIndexFromSameClassOnly(this)/2 + 1;
+        }
     }
 
     @Override
     public void consumeNode() {
+
         log.finer("--found conditional block");
+        if(open) {
+            Element e = (Element) node;
 
-        Element e = (Element)node;
+            if (e.hasAttribute("condition")) {
+                String condition = e.getAttribute("condition");
+                if (!condition.equals("")) {
+                    addToText = System.lineSeparator() + "<!-- " + blockWarning + "block_condition" + index + " -->" + System.lineSeparator();
+                    addToText += System.lineSeparator() + "[[if test=\"block_condition" + index + "\" ]]";
 
-        if (e.hasAttribute("condition")) {
-            String condition = e.getAttribute("condition");
-            if (!condition.equals("")){
-                addToText = System.lineSeparator()+"<!-- "+blockWarning+"block_condition"+index+" -->"+System.lineSeparator();
-                addToText += System.lineSeparator()+"[[if test=\"block_condition"+index+"\" ]]"  ;
-
-                condition = transformBlockCondition(condition);
-                additionalCASVariables = System.lineSeparator()+" "+System.lineSeparator()+"/* "+blockWarning+" */";
-                additionalCASVariables += System.lineSeparator()+"block_condition"+index+" : "+condition+";";
-                additionalCASVariables += System.lineSeparator()+"if block_condition"+index+" then (";
+                    condition = transformBlockCondition(condition);
+                    additionalCASVariables = System.lineSeparator() + " " + System.lineSeparator() + "/* " + blockWarning + " */";
+                    additionalCASVariables += System.lineSeparator() + "block_condition" + index + " : " + condition + ";";
+                    additionalCASVariables += System.lineSeparator() + "if block_condition" + index + " then (";
+                }
+            } else {
+                log.warning("--found block without condition");
             }
-        }else{
-            log.warning("--found block without condition");
-        }
-        removeAttributeIfExist(e,"condition");
+            removeAttributeIfExist(e, "condition");
 
+        }else{
+            additionalCASVariables = ");"+System.lineSeparator()+"/* Block End */"+System.lineSeparator()+System.lineSeparator();
+            addToText = "[[/ if ]]";
+        }
     }
 
     @Override

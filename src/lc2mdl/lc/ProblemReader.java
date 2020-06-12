@@ -140,11 +140,11 @@ public class ProblemReader{
 					break;
 				case "block":
 					log.finer("found conditional block");
-					problem.addElement(new Block(problem,element));
+					problem.addElement(new Block(problem,element,Block.OPEN));
 
 					//run again, for all elements within part-element
 					readingRecursively(problem,element);
-					problem.addElement(new BlockEnd(problem,element));
+					problem.addElement(new Block(problem,element,Block.CLOSE));
 					break;
 
 				case "table":case "tr": case "td": case "ol": case "ul": case "li" :case "center": case "br": case "hr" : case "div" : case "p": case "b":
