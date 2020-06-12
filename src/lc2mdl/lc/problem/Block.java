@@ -26,12 +26,13 @@ public class Block extends ProblemElement {
         if (e.hasAttribute("condition")) {
             String condition = e.getAttribute("condition");
             if (!condition.equals("")){
-                addToText = System.lineSeparator()+blockWarning+"block_condition"+index+System.lineSeparator();
+                addToText = System.lineSeparator()+"<!-- "+blockWarning+"block_condition"+index+" -->"+System.lineSeparator();
+                addToText += System.lineSeparator()+"[[if test=\"block_condition"+index+"\" ]]"  ;
 
                 condition = transformBlockCondition(condition);
                 additionalCASVariables = System.lineSeparator()+" "+System.lineSeparator()+"/* "+blockWarning+" */";
-                additionalCASVariables += System.lineSeparator()+"block_condition"+index+" : "+condition;
-
+                additionalCASVariables += System.lineSeparator()+"block_condition"+index+" : "+condition+";";
+                additionalCASVariables += System.lineSeparator()+"if block_condition"+index+" then (";
             }
         }else{
             log.warning("--found block without condition");
@@ -56,7 +57,7 @@ public class Block extends ProblemElement {
         condition = condition.replaceAll("\\|\\|"," or ");
          // && replaced by "and" already in PreParser
         condition = condition.replaceAll("!\\(","not (");
-
+        condition = condition.replaceAll("==","=");
         return condition;
     }
 }
