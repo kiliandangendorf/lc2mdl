@@ -83,7 +83,7 @@ public class OptionResponse extends ChoiceResponse {
             question.addToQuestionText(inputString);
             // the variable does not appear in the questiontext but usually it is randomized
             String qnote = question.getQuestionnote();
-            qnote += answerdisplay;
+            qnote += ", ("+answerdisplay+" : {@"+answerdisplay+"@})";
             question.setQuestionnote(qnote);
 
             //INPUT-TAG

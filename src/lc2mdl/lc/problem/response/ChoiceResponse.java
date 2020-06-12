@@ -99,7 +99,7 @@ public abstract class ChoiceResponse extends Response {
                             int currentcgfoil=1;
                             String conceptArray = responseprefix+"_concept"+currentconcept;
                             String prefix = conceptArray;
-                            additionalCASVars += System.lineSeparator()+conceptArray+": []";
+                            additionalCASVars += System.lineSeparator()+conceptArray+": [];";
                             String conceptfoils = System.lineSeparator()+responseprefix+"_conceptfoils : endcons ( [";
                             for (int k=0; k<cgList.getLength();k++) {
                                 Element elementcg = (Element) cgList.item(k);
