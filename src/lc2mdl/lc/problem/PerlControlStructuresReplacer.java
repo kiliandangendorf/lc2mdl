@@ -84,7 +84,7 @@ public class PerlControlStructuresReplacer{
 		allowMultilineBlocks=true;
 		addSemicolonAtEndOfStmt=true;
 
-		//nice: irritating braces in strings aren't possible anymore;) (done in saveStrings)
+		//nice: irritating braces in strings or comments aren't possible anymore;) (done in saveStrings)
 		
 		//temporary dictionary to prevent replacing same CS in different contexts
 		//Contains critical CS this program writes ITSELF. These will be temporarily named as values to not confuse itself. 
@@ -99,7 +99,6 @@ public class PerlControlStructuresReplacer{
 		csDict.put("next","lc2mdl_NEXT");
 		csDict.put("in","lc2mdl_IN");
 		
-		//TODO: making all log warnings to infos? (severe warning will come anyway by addConvertWarning() )
 		
 		// CONDITIONS
 		// if (...) {...} elsif (...) {...} else {...} 
@@ -125,15 +124,9 @@ public class PerlControlStructuresReplacer{
 		
 
 		// OPERATORS
-		// i.e. $a++ => (a:a+1) 
-		// idea: op=(?<=\b)[\w] {0,}+\+\+(?!\+)
-		// 		op=op.substring(0,op.length-2).trim()
-		//		new="("+op+":"+op+"+1)"
-		// TODO: remove in replaceSyntax and link to here
-		// 1..9 => [1,2,...,9]
-		// idea: list=(?<=\b)[0-9]+\.\.[0-9](?=\b)
-		//		list.split(".")
-		// => makelist(i,i,1,9); where makelist (expr, i, i_0, i_1)
+		// e.g. $a++ => (a:a+1) 
+		replaceOperators();
+
 		
 		//Still TODO
 		// - multiline statements currently only affects blocks. New statements are build in oneline
@@ -158,6 +151,84 @@ public class PerlControlStructuresReplacer{
 		}
 		
 		return script;
+	}
+
+	private void replaceOperators(){
+		
+		// TODO remaining range opertaors 
+		// 		1..9 => [1,2,...,9] better: makelist(i,i,1,9)
+		// 		idea: list=(?<=\b)[0-9]+\.\.[0-9](?=\b)
+		//			list.split(".")
+		// 		=> makelist(i,i,1,9); where makelist (expr, i, i_0, i_1)
+		//		see foreach loop
+		
+		StringBuffer sb;
+		Matcher matcher;
+		
+		// ++ -> +1
+		// $a++ => (a:a+1) 
+		log.finer("--replace all \"x++\" with \"(x: x+1)\"");		
+		String operatorPat="(?<=\\b)[\\w]+ {0,}\\+\\+(?!\\+)";
+		sb=new StringBuffer();
+		matcher=Pattern.compile(operatorPat).matcher(script);
+		while(matcher.find()){
+			String var=matcher.group();
+			// remove ++ in the end
+			var=var.substring(0,var.length()-2);
+			//at least one char must be in front of "++" (otherwise there would be no match)
+			String replacement=var+": "+var+" + 1";
+			replacement="("+replacement+")";
+			matcher.appendReplacement(sb,replacement);
+		}
+		matcher.appendTail(sb);
+		script=sb.toString();
+
+		// -- -> -1		
+		log.finer("--replace all \"x--\" with \"(x: x-1)\"");
+		operatorPat="(?<=\\b)[\\w]+ {0,}\\-\\-(?!\\-)";
+		sb=new StringBuffer();
+		matcher=Pattern.compile(operatorPat).matcher(script);
+		while(matcher.find()){
+			String var=matcher.group();
+			// remove -- in the end
+			var=var.substring(0,var.length()-2);
+			//at least one char must be in front of "--" (otherwise there would be no match)
+			String replacement=var+": "+var+" - 1";
+			replacement="("+replacement+")";
+			matcher.appendReplacement(sb,replacement);
+		}
+		matcher.appendTail(sb);
+		script=sb.toString();
+		
+		// = -> :
+		log.finer("--replace all \"=\" with \": \"");
+		// single equal sign (left no AND right no equal sign, left no !,<,>)
+		// since savestrings() not needed anymore to look for " (2020-04-23)
+		// and not equal signs in quotes: (?<!=)=(?!=)(?=([^"]*"[^"]*")*[^"]*;)
+		// script=script.replaceAll("(?<![!=<>]) {0,}=(?!=) {0,}(?=([^\"]*\"[^\"]*\")*[^\"]*;)",": ");
+		script=script.replaceAll("(?<![=<>])=(?![=<>])",": ");
+
+		// ** -> ^
+		// replace double ** (only if double occurs, not more or less)
+		// look ahead (?<![\\*])
+		// look behind (?!\\*)
+		log.finer("--replace all \"**\" with \"^\"");
+		script=script.replaceAll("(?<![\\*])\\*\\*(?!\\*)","^");
+
+		//== -> =
+		log.finer("--replace all \"==\" with \"=\"");
+		script=script.replaceAll("(?<![=])==(?!=)","=");
+
+		//&& -> and
+		log.finer("--replace all \"&&\" with \" and \"");
+		script=script.replaceAll("(?<![&]) {0,}&& {0,}(?!&)"," and ");
+
+		//|| -> or
+		log.finer("--replace all \"||\" with \" or \"");
+		script=script.replaceAll("(?<![\\|]) {0,}\\|\\| {0,}(?!\\|)"," or ");
+		
+		// TODO: More Operators 
+
 	}
 
 	private void replaceForEachLoops(){
@@ -297,7 +368,7 @@ public class PerlControlStructuresReplacer{
 		//replace old statement
 		script=ConvertAndFormatMethods.replaceSubsequenceInText(script,stmtStart,stmtEnd,maximaStmtText);
 
-		log.warning("---found control structure \""+forName+"\", try to replace and reorder, please check result");
+		log.info("---found control structure \""+forName+"\", try to replace and reorder, please check result");
 
 		// return end of new statement in script
 		return stmtStart+maximaStmtText.length();
@@ -374,7 +445,7 @@ public class PerlControlStructuresReplacer{
 				//replace old statement
 				script=ConvertAndFormatMethods.replaceSubsequenceInText(script,stmtStart,stmtEnd,maximaStmtText);
 	
-				log.warning("---found control structure \""+"for"+"\", try to replace and reorder, please check result");
+				log.info("---found control structure \""+"for"+"\", try to replace and reorder, please check result");
 	
 				// start over again from last match (prevents loop on IF replaced by IF)
 				curIndex=stmtStart+maximaStmtText.length();
@@ -437,7 +508,7 @@ public class PerlControlStructuresReplacer{
 				//replace old statement
 				script=ConvertAndFormatMethods.replaceSubsequenceInText(script,stmtStart,stmtEnd,maximaStmtText);
 
-				log.warning("---found control structure \""+loopType+"\", try to replace and reorder, please check result");
+				log.info("---found control structure \""+loopType+"\", try to replace and reorder, please check result");
 
 				// start over again from last match (prevents loop on IF replaced by IF)
 				curIndex=stmtStart+maximaStmtText.length();
@@ -661,7 +732,7 @@ public class PerlControlStructuresReplacer{
 				//replace old statement
 				script=ConvertAndFormatMethods.replaceSubsequenceInText(script,stmtStart,stmtEnd,maximaStmtText);
 
-				log.warning("---found control structure \""+conditionType+"\", try to replace and reorder, please check result");
+				log.info("---found control structure \""+conditionType+"\", try to replace and reorder, please check result");
 
 				// start over again from last match (prevents loop on IF replaced by IF)
 				curIndex=stmtStart+maximaStmtText.length();

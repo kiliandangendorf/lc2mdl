@@ -235,14 +235,6 @@ public class PerlScript extends ProblemElement{
 
 	private void replaceSyntax(){
 
-		// = -> :
-		log.finer("--replace all \"=\" with \": \"");
-		// single equal sign (left no AND right no equal sign, left no !,<,>)
-		// since savestrings() not needed anymore to look for " (2020-04-23)
-		// and not equal signs in quotes: (?<!=)=(?!=)(?=([^"]*"[^"]*")*[^"]*;)
-		// script=script.replaceAll("(?<![!=<>]) {0,}=(?!=) {0,}(?=([^\"]*\"[^\"]*\")*[^\"]*;)",": ");
-		script=script.replaceAll("(?<![=<>])=(?![=<>])",": ");
-
 		log.finer("--remove multiple empty lines");
 		// newline or return at the end of line
 		script=script.replaceAll(";[\\r\\n]{2,}",";"+System.lineSeparator()+System.lineSeparator());
@@ -250,33 +242,7 @@ public class PerlScript extends ProblemElement{
 		log.finer("--remove multiple spaces");
 		script=script.replaceAll(" {2,}"," ");
 
-		// -- -> -1		
-		log.finer("--replace all \"--\" with \"-1\"");
-		// replace double -- (only if double occurs, not more or less)
-		// look ahead (?<![-])
-		// look behind (?!-)
-		script=script.replaceAll("(?<![-])--(?!-)","-1");
-
-		// ++ -> +1
-		log.finer("--replace all \"++\" with \"+1\"");
-		script=script.replaceAll("(?<![\\+])\\+\\+(?!\\+)","+1");
-
-		// ** -> ^
-		log.finer("--replace all \"**\" with \"^\"");
-		script=script.replaceAll("(?<![\\*])\\*\\*(?!\\*)","^");
-
-		//== -> =
-		log.finer("--replace all \"==\" with \"=\"");
-		script=script.replaceAll("(?<![=])==(?!=)","=");
-
-		//&& -> and
-		log.finer("--replace all \"&&\" with \" and \"");
-		script=script.replaceAll("(?<![&]) {0,}&& {0,}(?!&)"," and ");
-
-		//|| -> or
-		log.finer("--replace all \"||\" with \" or \"");
-		script=script.replaceAll("(?<![\\|]) {0,}\\|\\| {0,}(?!\\|)"," or ");
-
+		// Operator-Replacement moved to class PerlControlStructuresReplacer
 	}
 
 	private void replaceFunctions(){
