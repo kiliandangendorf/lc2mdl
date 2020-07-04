@@ -115,20 +115,24 @@ public class PerlControlStructuresReplacer{
 		// while (...) {...}
 		// until (...) {...}
 		replaceWhileLoops();
-				
 
 		// for (...; ...; ...) {...}
-		// TODO for (ARRAY) {...}
+		// for (ARRAY) {...}
 		replaceForLoops();
 		
-		
-		// FOREACH
+		// foreach (ARRAY) {...}
 		replaceForEachLoops();
 		
 
 		// OPERATORS
 		// i.e. $a++ => (a:a+1) 
+		// idea: op=(?<=\b)[\w] {0,}+\+\+(?!\+)
+		// 		op=op.substring(0,op.length-2).trim()
+		//		new="("+op+":"+op+"+1)"
+		// TODO: remove in replaceSyntax and link to here
 		// 1..9 => [1,2,...,9]
+		// idea: list=(?<=\b)[0-9]+\.\.[0-9](?=\b)
+		//		list.split(".")
 		// => makelist(i,i,1,9); where makelist (expr, i, i_0, i_1)
 		
 		//Still TODO
@@ -143,9 +147,11 @@ public class PerlControlStructuresReplacer{
 		// - Loop control Statements: next & last
 		//		last≈break-->return? http://maxima.sourceforge.net/docs/manual/maxima_37.html
 		// - Arrays in Maxima start at 1 (not at 0 as it is in Perl)
-		// - Special for and foreach loops with for var ()... and foreach var ()...
 
 
+		
+		//TODO: Look for missed CS before re-replacing
+		//if, for, foreach, etc...
 		
 		for(String cs:csDict.keySet()){
 			script=script.replace(csDict.get(cs),cs);
@@ -155,11 +161,10 @@ public class PerlControlStructuresReplacer{
 	}
 
 	private void replaceForEachLoops(){
-		// foreach (ARRAY) {...}
-		// TODO foreach var (ARRAY) {...}
+		// foreach [$var] (ARRAY) {...}
 		String forBeginPat="(?<=\\b)"+Pattern.quote("foreach")+" {0,}\\(";
 
-		int stmtStart,stmtEnd;
+		int stmtStart;
 		int curIndex=0;
 
 		findingForEachStatements:
@@ -184,59 +189,129 @@ public class PerlControlStructuresReplacer{
 					continue findingForEachStatements;
 				}
 				
-				// in case of nested loops make control variable unique
-			    String controlVarName="lc2mdl_for_cvar"+perlScript.problem.getIndex(perlScript)+"_"+varNo++;
-//			    perlScript.problem.addVar(controlVarName);
-
-			    // replace $_ in block
-			    // TODO case of nested loops :/ Only in this block layer
-			    // it's possible to have the following: foreach(@b){print "$_";foreach(@c){print "$_";}}
-				String foreachBlockWithVar=foreachBlock.toString().replaceAll("(?<=\\b)\\_(?=\\b)",Matcher.quoteReplacement(controlVarName));
-				if(foreachBlockWithVar.contains("lc2mdltext")){
-					addConvertWarningToScript("---found strings in \""+"foreach"+"\" loop. Not sure, if they contain the control variable. Please look for \"_\" resp. (?<=\\b)\\_(?=\\b) in loop strings resp. sconcat() and replace manually by \"lc2mdl_for_cvarX_Y\"");
+				//replace this foreach-loop
+				int nextIndex=replaceOneForEachLoopAndReturnNewIndex(stmtMatch,foreachCondition,foreachBlock,"foreach");
+				if(nextIndex<0){
+					//Error in replacing
+					curIndex=stmtStart+1;
+					continue findingForEachStatements;					
+				}else{
+					//everything's fine
+					curIndex=nextIndex;
 				}
-
-
-				//build new maxima statement string
-				//for VAR in ARRAY do {BLOCK}
-				String maximaStmtText=" "+csDict.get("for")+" ";
-				maximaStmtText+=controlVarName+" "+csDict.get("in")+" "+foreachCondition+" ";
-				maximaStmtText+=csDict.get("do")+" "+foreachBlockWithVar+" ";
-				if(addSemicolonAtEndOfStmt)maximaStmtText+=";";
-	
-				stmtEnd=foreachBlock.closeBrace;
-	
-				//replace old statement
-				script=ConvertAndFormatMethods.replaceSubsequenceInText(script,stmtStart,stmtEnd,maximaStmtText);
-	
-				log.warning("---found control structure \""+"foreach"+"\", try to replace and reorder, please check result");
-	
-				// start over again from last match (prevents loop on IF replaced by IF)
-				curIndex=stmtStart+maximaStmtText.length();
-				
 			}while(stmtStart!=-1);
+	}
+	
+	private int replaceOneForEachLoopAndReturnNewIndex(int[] stmtMatch, Condition foreachCondition, Block foreachBlock, String forName){
+		int stmtStart=stmtMatch[0];
+		int stmtEnd;
+		//for|foreach [$var] (1..9) {BLOCK}
+		//for|foreach [$var] (@array) {BLOCK}
+		//if it is an array inside. Then its the SAME as a foreach loop
+		//@see https://www.perltutorial.org/perl-for-loop/
 
-		//TODO
-//		foreach(@a){
-//			print("$_","\n");
-//		}
-//		
-//		@colors = ('red', 'blue', 'yellow');
-//		foreach $color (@colors) {
-//		    print "Color: $color\n";
-//		}
-//
-//		for $i (@a){
-//			print("$i","\n");
-//		}
-//		
+	    String controlVarName;
+		//find optional variable name between FOR and "(" (empty string, if there is no)
+		controlVarName=script.substring(stmtStart+forName.length(), foreachCondition.openBrace).trim();
+		if(controlVarName.length()==0){
+			// generate unique control variable 
+		    controlVarName="lc2mdl_for_cvar"+perlScript.problem.getIndex(perlScript)+"_"+varNo++;			
+		}
+
+	    // TODO case of nested loops following replacement should only affect this block layer
+	    //		it's possible to have the following: foreach(@b){print "$_";foreach(@c){print "$_";}}
+	    //		maybe search backwards? 
+	    // replace $_ by controlVarName in block
+		String foreachBlockWithVar=foreachBlock.toString().replaceAll("(?<=\\b)\\_(?=\\b)",Matcher.quoteReplacement(controlVarName));
+
+		//Warn that there could be control variables in escaped strings...
+		if(foreachBlockWithVar.contains("lc2mdltext")){
+			addConvertWarningToScript("---found strings in \""+forName+"\" loop. Not sure, if they contain the control variable. Please look for \"_\" resp. (?<=\\b)\\_(?=\\b) in loop strings resp. sconcat() and replace manually by \"lc2mdl_for_cvarX_Y\"");
+		}
+
+		String conditionStringWithoutBraces=foreachCondition.toString().substring(1,foreachCondition.toString().length()-1);
+		String optionalAssignments="";
+
+		// check condition for "a..b" or "a","b","c" or array-variable
+		if(conditionStringWithoutBraces.contains("..")){
+			// (a..b)
+			String[] arrayBounds=conditionStringWithoutBraces.split("\\.\\.");
+			if(arrayBounds.length!=2){
+				addConvertWarningToScript("---found \""+forName+"\" with unexpected range-operator (will not work on)");
+				return -1;
+			}
+			int from, to;
+			// test if numeric (maxima does not support on strings)
+			try{
+				from=Integer.parseInt(arrayBounds[0]);
+				to=Integer.parseInt(arrayBounds[1]);
+			}catch(NumberFormatException e){
+				addConvertWarningToScript("---found \""+forName+"\" with not-numeric range-operator (will not work on)");
+			    return -1;  
+			}
+			
+			// build new ConditionString
+			// in maxima this "i" is in on scope and won't affect other "i"'s -->no own variable is needed
+			// maxima example: for a in (makelist(i,i,1,9)) do (display(a));
+			conditionStringWithoutBraces="makelist(i,i,"+from+","+to+")";
+		}else if(conditionStringWithoutBraces.contains(",")){
+			// ("a","b","c")
+			String[] entries=conditionStringWithoutBraces.split(",");
+		    String arrayName="lc2mdl_for_array"+perlScript.problem.getIndex(perlScript)+"_"+varNo++;			
+
+			StringBuilder arrayDefinition=new StringBuilder(arrayName+": [");
+			for(int i=1;i<entries.length;i++){
+				if(i!=1) arrayDefinition.append(" ,");
+				arrayDefinition.append(entries[i]);
+			}
+			arrayDefinition.append("];");
+			arrayDefinition.append(System.lineSeparator());
+
+			optionalAssignments+=arrayDefinition;
+			// new conditionString is just the array-name
+			conditionStringWithoutBraces=arrayName;
+		}else{
+			// (array)
+			// Dollar- and At-Signs were removed before
+			if(conditionStringWithoutBraces.matches("\\w+")){
+				//seems to be an array-variable that was declared before...
+				//everythings'fine go on
+			}else{
+				//if nothing above
+				addConvertWarningToScript("---found \""+forName+"\" with one unexpected parameter, that is not an array (will not work on)");
+				return -1;
+			}			
+		}
+		
+		//build new maxima statement string
+		String maximaStmtText=optionalAssignments;
+		//for VAR in ARRAY do {BLOCK}
+		maximaStmtText+=" "+csDict.get("for")+" ";
+		maximaStmtText+=controlVarName+" ";
+		maximaStmtText+=csDict.get("in")+" "+"("+conditionStringWithoutBraces+")"+" ";
+		maximaStmtText+=csDict.get("do")+" "+foreachBlockWithVar+" ";
+		if(addSemicolonAtEndOfStmt)maximaStmtText+=";";
+
+		stmtEnd=foreachBlock.closeBrace;
+
+		//replace old statement
+		script=ConvertAndFormatMethods.replaceSubsequenceInText(script,stmtStart,stmtEnd,maximaStmtText);
+
+		log.warning("---found control structure \""+forName+"\", try to replace and reorder, please check result");
+
+		// return end of new statement in script
+		return stmtStart+maximaStmtText.length();
 	}
 
 	private void replaceForLoops(){
 		// for (...; ...; ...) {...}
-		// TODO for (ARRAY) {...} -->same as foreach :/
+		// for (ARRAY) {...}
 		String forBeginPat="(?<=\\b)"+Pattern.quote("for")+" {0,}\\(";
-
+		
+		//Vars are already replaced, so there is no $ in front
+		String forWithVarBeginPat="(?<=\\b)"+Pattern.quote("for")+"( {0,}\\(| {1,}((\\$)?[\\w]+ {0,})?\\()";
+		forBeginPat=forWithVarBeginPat;
+		
 		int stmtStart,stmtEnd;
 		int curIndex=0;
 
@@ -254,39 +329,42 @@ public class PerlControlStructuresReplacer{
 				curIndex=stmtStart+1;
 				continue findingForStatements;
 			}
-			
+						
+			//now find block {...}
+			Block forBlock=new Block(wholeForCondition.closeBrace,"for",true);
+			if(!forBlock.valid){
+				curIndex=stmtStart+1;
+				continue findingForStatements;
+			}
+
 			//splitting up and reorder condition
 			String[] forParams=wholeForCondition.toString().substring(1,wholeForCondition.toString().length()-1).split(";");
 			if(forParams.length==1){
-				//for (1...9) {BLOCK}
+				//for (1..9) {BLOCK}
 				//for (@array) {BLOCK}
 				
-				//check, what if it is an array inside. Then its the same as a foreach loop
-				//@see https://www.perltutorial.org/perl-for-loop/
+				//Do same as foreach ;)
+				int nextIndex=replaceOneForEachLoopAndReturnNewIndex(stmtMatch,wholeForCondition,forBlock,"for");
 
-				//TODO: handle;)
-				addConvertWarningToScript("---found \""+"for"+"\" with only one parameter (will not work on)");
-
-				curIndex=stmtStart+1;
-				continue findingForStatements;
-
+				if(nextIndex<0){
+					//Error in replacing
+					curIndex=stmtStart+1;
+					continue findingForStatements;					
+				}else{
+					//everything's fine
+					curIndex=nextIndex;
+				}
 			}else if(forParams.length==3){
 				//for (INIT ; CONDITION ; COMMAND) {BLOCK}
 				String init=forParams[0];
 				String condition=forParams[1];
 				String command=forParams[2];
-	
-				//now find block {...}
-				Block forBlock=new Block(wholeForCondition.closeBrace,"for",true);
-				if(!forBlock.valid){
-					curIndex=stmtStart+1;
-					continue findingForStatements;
-				}
-	
+		
 				//build new maxima statement string
 				//for INIT next COMMAND while (CONDITION) do {BLOCK}
 				String maximaStmtText=" "+csDict.get("for")+" ";
 				maximaStmtText+=init+" "+csDict.get("next")+" "+command+" "+csDict.get("while")+" ("+condition+") ";
+				//TODO: is NEXT still correct, if I replace ++ Operator?
 				
 				maximaStmtText+=csDict.get("do")+" "+forBlock+" ";
 				if(addSemicolonAtEndOfStmt)maximaStmtText+=";";
@@ -302,7 +380,6 @@ public class PerlControlStructuresReplacer{
 				curIndex=stmtStart+maximaStmtText.length();
 			}else{
 				//for with 0, 2 or more than 3 Parts in (...)
-				//TODO: WARNING
 				addConvertWarningToScript("---found \""+"for"+"\" with unexpected parameters (will not work on)");
 
 				curIndex=stmtStart+1;
@@ -627,13 +704,13 @@ public class PerlControlStructuresReplacer{
 		}
 
 		if(mandatory){
-			//trival case if "{" is on startIndex
+			//trivial case if "{" is on startIndex
 			if(startIndex<openBlockParen){
 				//if anything else between startIndex (eg ")") and expected "{" than free space 
 				String fromCondToBlock=script.substring(startIndex+1,openBlockParen);
 				if(!fromCondToBlock.trim().isEmpty()){
 					//NO BLOCK WAS FOUND AS EXPECTED
-					addConvertWarningToScript("---found unexpected CS between \""+cs+"\" and mandatory block begin (will not work on)");
+					addConvertWarningToScript("---found unexpected CS "+" between \""+cs+"\" and mandatory block begin (will not work on)");
 					return indices;
 				}
 			}
