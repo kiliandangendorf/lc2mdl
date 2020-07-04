@@ -32,9 +32,11 @@ public class PerlScript extends ProblemElement{
 	private String scriptComment;
 	private String convertWarning;
 	private ArrayList<String> stringsInScript=new ArrayList<String>();
+	private ArrayList<String> commentsInScript=new ArrayList<String>();
 
 	private int arrayNo=0;
 	private int stringNo=0;
+	private int commentNo=0;
 
 	// determines if e.g. random(...) will be converted, too, not only &random(...)
 	private final boolean SUPPORT_OLD_CAPA_FUNCTIONS_WITHOUT_AMPERSAND=true;
@@ -74,6 +76,9 @@ public class PerlScript extends ProblemElement{
 
 		// save Strings to prevent them from converting
 		saveStrings();
+		
+		// save COMMENTS to prevent them from converting
+		saveComments();
 
 		// FUNCTIONS
 		replaceFunctions();
@@ -83,9 +88,6 @@ public class PerlScript extends ProblemElement{
 
 		// ARRAYS
 		findAndReplaceArraysAssignments();
-
-		// COMMENTS
-		replaceComments();
 
 		// UNKNOWN CONTROL-STRUCTURES
 		searchForUnknownControlStructures();
@@ -99,6 +101,9 @@ public class PerlScript extends ProblemElement{
 
 		// = -> :, etc. (needs to be placed BEFORE replaceStrings() )
 		replaceSyntax();
+
+		// replace Comments
+		replaceComments();
 
 		// replace Strings
 		replaceStrings();
@@ -183,7 +188,11 @@ public class PerlScript extends ProblemElement{
 		}
 	}
 
-	private void replaceComments(){
+	private void saveComments(){
+		log.finer("--save comments before transforming");
+		commentNo=0;
+
+		// not "$#" what means length of an array
 		String commentPat="(?<!\\$)#.*(?=[\\n\\r])";
 		StringBuffer sb=new StringBuffer();
 		Matcher matcher=Pattern.compile(commentPat).matcher(script);
@@ -202,11 +211,26 @@ public class PerlScript extends ProblemElement{
 			comment=comment.replaceAll("\\*/","[CLOSING-COMMAND]");
 			// put into c-style comments /* ... */
 			comment="/*"+comment+"*/";
-			matcher.appendReplacement(sb,comment);
-//			script=script.replaceFirst(commentPat,comment);
+			
+			String replacement="lc2mdl_comment"+commentNo++;
+			commentsInScript.add(comment);
+			
+			matcher.appendReplacement(sb,replacement);
 		}
 		matcher.appendTail(sb);
 		script=sb.toString();
+	}
+	private void replaceComments(){
+		log.finer("--replace comments again");
+
+		String buf=script;
+		//going inverse direction (as it was at replaceStrings) 
+		for(int i=commentNo-1;i>=0;i--){
+			String commentText=commentsInScript.get(i);
+			//prevent to match lc2mdl_comment10 with lc2mdl_comment1
+			buf=buf.replaceAll("(?<=\\W)lc2mdl_comment"+i+"(?=\\W)",commentText);
+		}
+		script=buf;
 	}
 
 	private void replaceSyntax(){
