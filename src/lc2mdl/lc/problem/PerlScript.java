@@ -228,7 +228,7 @@ public class PerlScript extends ProblemElement{
 		for(int i=commentNo-1;i>=0;i--){
 			String commentText=commentsInScript.get(i);
 			//prevent to match lc2mdl_comment10 with lc2mdl_comment1
-			buf=buf.replaceAll("(?<=\\W)lc2mdl_comment"+i+"(?=\\W)",commentText);
+			buf=buf.replaceAll("(?<=\\W)lc2mdl_comment"+i+"(?=\\W)",Matcher.quoteReplacement(commentText));
 		}
 		script=buf;
 	}
@@ -603,8 +603,10 @@ public class PerlScript extends ProblemElement{
 				String stringText=script.substring(stringStart,stringEnd+1);
 				String replacement="lc2mdltext"+stringNo;
 
+				//We don't need, if we use Matcher.quoteReplacement() 
 				//preserve backslashes (cause we need it later for replaceAll)
-				stringsInScript.add(stringText.replace("\\","\\\\"));
+				//stringsInScript.add(stringText.replace("\\","\\\\"));
+				stringsInScript.add(stringText);
 
 				script=script.replace(stringText,replacement);
 
@@ -634,7 +636,7 @@ public class PerlScript extends ProblemElement{
 
 			//prevent to match lc2mdltext10 with lc2mdltext1
 //			buf=buf.replaceFirst("(?<=\\W)lc2mdltext"+i+"(?=\\W)",stringText);
-			buf=buf.replaceAll("(?<=\\W)lc2mdltext"+i+"(?=\\W)",stringText);
+			buf=buf.replaceAll("(?<=\\W)lc2mdltext"+i+"(?=\\W)",Matcher.quoteReplacement(stringText));
 		}
 
 		script=buf;
