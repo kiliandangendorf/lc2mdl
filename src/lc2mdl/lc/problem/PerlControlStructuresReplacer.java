@@ -184,6 +184,7 @@ public class PerlControlStructuresReplacer{
 		script=sb.toString();
 
 		// -- -> -1		
+		// $a-- => (a:a-1) 
 		log.finer("--replace all \"x--\" with \"(x: x-1)\"");
 		operatorPat="(?<=\\b)[\\w]+ {0,}\\-\\-(?!\\-)";
 		sb=new StringBuffer();
@@ -194,6 +195,25 @@ public class PerlControlStructuresReplacer{
 			var=var.substring(0,var.length()-2);
 			//at least one char must be in front of "--" (otherwise there would be no match)
 			String replacement=var+": "+var+" - 1";
+			replacement="("+replacement+")";
+			matcher.appendReplacement(sb,replacement);
+		}
+		matcher.appendTail(sb);
+		script=sb.toString();
+		
+		// $# -> length()		
+		// $#a => (length(a)-1) 
+		log.finer("--replace all array-lengths \"$#x\" with \"(length(x)-1)\"");
+		//these Dollars wasn't recognized before because of the following "#"
+		operatorPat="(?<=\\W)\\$\\#[\\w]+(?=\\b)";
+		sb=new StringBuffer();
+		matcher=Pattern.compile(operatorPat).matcher(script);
+		while(matcher.find()){
+			String var=matcher.group();
+			// remove "$#" in the beginning
+			var=var.substring(2);
+			//var must be at least one character (otherwise there would be no match)
+			String replacement="length("+var+")-1";
 			replacement="("+replacement+")";
 			matcher.appendReplacement(sb,replacement);
 		}
