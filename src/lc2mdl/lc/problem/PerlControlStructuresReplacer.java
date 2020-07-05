@@ -124,7 +124,8 @@ public class PerlControlStructuresReplacer{
 		
 
 		// OPERATORS
-		// e.g. $a++ => (a:a+1) 
+		// e.g. $a++ --> (a:a+1) 
+		// e.g. 1..9 --> makelist(i,i,1,9)
 		replaceOperators();
 
 		
@@ -154,21 +155,46 @@ public class PerlControlStructuresReplacer{
 	}
 
 	private void replaceOperators(){
-		
-		// TODO remaining range opertaors 
-		// 		1..9 => [1,2,...,9] better: makelist(i,i,1,9)
-		// 		idea: list=(?<=\b)[0-9]+\.\.[0-9](?=\b)
-		//			list.split(".")
-		// 		=> makelist(i,i,1,9); where makelist (expr, i, i_0, i_1)
-		//		see foreach loop
-		
+				
+		String operatorPat;
 		StringBuffer sb;
 		Matcher matcher;
+
+		// range operator 
+		// 1..9 --> makelist(i,i,1,9)
+		log.finer("--replace range operators \"x..y\" with \"(makelist(i,i,x,y)\"");
+		operatorPat="(?<=\\b)[\\w]+\\.\\.[\\w]+(?=\\b)";
+		sb=new StringBuffer();
+		matcher=Pattern.compile(operatorPat).matcher(script);
+		while(matcher.find()){
+			String list=matcher.group();
+			String[] listBounds=list.split("\\.\\.");
+			if(listBounds.length!=2){
+				addConvertWarningToScript("---error in match for range operator in \""+list+"\" (will not work on)");
+			}else{
+				int from, to;
+				// test if numeric (maxima makelist does not support on strings)
+				try{
+					from=Integer.parseInt(listBounds[0]);
+					to=Integer.parseInt(listBounds[1]);
+					
+					// in maxima this "i" is in function scope and won't affect other "i"'s -->no own variable is needed
+					// 1..9 --> makelist(i,i,1,9) (where makelist (expr, i, i_0, i_1) )
+					String replacement="makelist(i,i,"+from+","+to+")";
+					
+					matcher.appendReplacement(sb,replacement);
+				}catch(NumberFormatException e){
+					addConvertWarningToScript("---found range operator \""+list+"\" with not-numeric range-operator (will not work on. Only numeric range operators are supported yet)");
+				}
+			}
+		}
+		matcher.appendTail(sb);
+		script=sb.toString();		
 		
 		// ++ -> +1
 		// $a++ => (a:a+1) 
 		log.finer("--replace all \"x++\" with \"(x: x+1)\"");		
-		String operatorPat="(?<=\\b)[\\w]+ {0,}\\+\\+(?!\\+)";
+		operatorPat="(?<=\\b)[\\w]+ {0,}\\+\\+(?!\\+)";
 		sb=new StringBuffer();
 		matcher=Pattern.compile(operatorPat).matcher(script);
 		while(matcher.find()){
@@ -326,6 +352,7 @@ public class PerlControlStructuresReplacer{
 		// check condition for "a..b" or "a","b","c" or array-variable
 		if(conditionStringWithoutBraces.contains("..")){
 			// (a..b)
+			// similar to what is done in replaceOpertaors(). But here specific feedback
 			String[] arrayBounds=conditionStringWithoutBraces.split("\\.\\.");
 			if(arrayBounds.length!=2){
 				addConvertWarningToScript("---found \""+forName+"\" with unexpected range-operator (will not work on)");

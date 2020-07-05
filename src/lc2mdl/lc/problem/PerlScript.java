@@ -522,10 +522,13 @@ public class PerlScript extends ProblemElement{
 				log.warning("--found unknown array function: "+functionName);
 			}
 			if(!isFunction){
-				log.finer("--replace \""+leftBrace+"\" with \"[\" and \")\" with \"]\"");
-				// if normal array assignment, just replace round braces
-				varAssignment=varAssignment.replaceFirst(leftBracePat,"[");
-				varAssignment=varAssignment.replaceFirst(rightBracePat,"]");
+				//if contains range operator (e.g. "1..9"), do not replace braces (see PerlControlStructuresReplacer replaceOperators
+				if(!varAssignment.contains("..")){
+					log.finer("--replace \""+leftBrace+"\" with \"[\" and \")\" with \"]\"");
+					// if normal array assignment, just replace round braces
+					varAssignment=varAssignment.replaceFirst(leftBracePat,"[");
+					varAssignment=varAssignment.replaceFirst(rightBracePat,"]");
+				}
 			}
 
 			// extract array-name and put to problemVars
