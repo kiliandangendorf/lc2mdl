@@ -401,7 +401,7 @@ public class PerlScript extends ProblemElement{
 						if(i!=1) arrayDefinition.append(" ,");
 						arrayDefinition.append(params.get(i));
 					}
-					arrayDefinition.append("];");
+					arrayDefinition.append("]; ");
 
 					// make assignment on array[i]
 					String assignArrayValue=arrayName+"["+params.get(0)+"]";//;";
