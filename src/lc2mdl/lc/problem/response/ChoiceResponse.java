@@ -222,7 +222,6 @@ public abstract class ChoiceResponse extends Response {
         }
 
         private String transformFoil(String foilString){
-            foilString = foilString.replaceAll("\\\\([a-zA-Z:;, {}])","\\\\\\\\$1");
             foilString = transformTextVariable(foilString);
             return foilString;
         }

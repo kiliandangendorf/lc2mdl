@@ -1,11 +1,19 @@
 package lc2mdl.xml;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.logging.Logger;
+import java.util.regex.Matcher;
+
 import lc2mdl.Prefs;
 import lc2mdl.util.FileFinder;
-
-import java.io.*;
-import java.util.HashMap;
-import java.util.logging.Logger;
 
 public class PreParser {	
 	private static final Logger log = Logger.getLogger(PreParser.class.getName());
@@ -15,7 +23,10 @@ public class PreParser {
 	 * Replacing outtext-tags and creating CDATA-Tags in given String s.
 	 */
 	private String replaceLCByXML(String s){
-		HashMap<String, String> xmlReplacements=new HashMap<>();
+		//String replacements put here
+		HashMap<String, String> xmlReplacements=new LinkedHashMap<>();
+		//RegEx replacements (using group identifier $1, etc) put here
+		HashMap<String, String> xmlReplacementsWithGroups=new LinkedHashMap<>();
 
 		//Using CDATA-Tags no need to remove special-characters as & - &amp; etc.
 		
@@ -26,12 +37,12 @@ public class PreParser {
 		xmlReplacements.put("<script {0,}type=\"text/javascript\" {0,}>", "<script type=\"text/javascript\"><![CDATA[");
 		xmlReplacements.put("<script {0,}>", "<script><![CDATA[");
 		xmlReplacements.put("</script {0,}>", "]]></script>");
-		xmlReplacements.put("<textfield([ 0-9a-z\"=δ]*)>", "<textfield $1><![CDATA[");
-		//xmlReplacements.put("<textfield {0,}([0-9a-z\"=]*) {0,}spellcheck=\"none\">", "<textfield $1 spellcheck=\"none\"><![CDATA[");
+		xmlReplacementsWithGroups.put("<textfield([ 0-9a-z\"=δ]*)>", "<textfield $1><![CDATA[");
+		//xmlReplacementsWithGroups.put("<textfield {0,}([0-9a-z\"=]*) {0,}spellcheck=\"none\">", "<textfield $1 spellcheck=\"none\"><![CDATA[");
 		//xmlReplacements.put("<textfield {0,}>", "<textfield><![CDATA[");
 		xmlReplacements.put("</textfield>","]]></textfield>");
 
-		xmlReplacements.put("<answer {0,}name=\"(.*)\" {0,}type=\"(.*)\" {0,}>", "<answer name=\"$1\" type=\"$2\"><![CDATA[");
+		xmlReplacementsWithGroups.put("<answer {0,}name=\"(.*)\" {0,}type=\"(.*)\" {0,}>", "<answer name=\"$1\" type=\"$2\"><![CDATA[");
 		xmlReplacements.put("<answer {0,}type=\"loncapa/perl\" {0,}>", "<answer type=\"loncapa/perl\"><![CDATA[");
 		xmlReplacements.put("<answer {0,}>", "<answer><![CDATA[");
 
@@ -47,10 +58,10 @@ public class PreParser {
 		//replace NO-BRAKE-SPACE escape by itself
         // HTML stuff
 		xmlReplacements.put("&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;","<![CDATA[ &emsp;&emsp;&emsp;&emsp;&emsp;&emsp; ]]>");
-		xmlReplacements.put("(<td>\\s*)&emsp;(\\s*</td>)","$1<![CDATA[ &emsp; ]]>$2");
-		xmlReplacements.put("(<TD>\\s*)&emsp;(\\s*</TD>)","$1<![CDATA[ &emsp; ]]>$2");
-		xmlReplacements.put("(<td>\\s*)&nbsp;(\\s*</td>)","$1<![CDATA[ &nbsp; ]]>$2");
-		xmlReplacements.put("(<TD>\\s*)&nbsp;(\\s*</TD>)","$1<![CDATA[ &nbsp; ]]>$2");
+		xmlReplacementsWithGroups.put("(<td>\\s*)&emsp;(\\s*</td>)","$1<![CDATA[ &emsp; ]]>$2");
+		xmlReplacementsWithGroups.put("(<TD>\\s*)&emsp;(\\s*</TD>)","$1<![CDATA[ &emsp; ]]>$2");
+		xmlReplacementsWithGroups.put("(<td>\\s*)&nbsp;(\\s*</td>)","$1<![CDATA[ &nbsp; ]]>$2");
+		xmlReplacementsWithGroups.put("(<TD>\\s*)&nbsp;(\\s*</TD>)","$1<![CDATA[ &nbsp; ]]>$2");
 		xmlReplacements.put("&nbsp;"," ");
 		xmlReplacements.put("&uuml;","ü");
 		xmlReplacements.put("&auml;","ä");
@@ -60,19 +71,19 @@ public class PreParser {
 		xmlReplacements.put("&Ouml;","Ö");
 		xmlReplacements.put("&szlig;","ß");
 		xmlReplacements.put("&euro;","€");
-		xmlReplacements.put("&le;","\\\\(\\\\le\\\\)");
-		xmlReplacements.put("&ge;","\\\\(\\\\ge\\\\)");
- 		xmlReplacements.put("&lt;","\\\\(\\\\lt\\\\)");
-		xmlReplacements.put("&gt;","\\\\(\\\\gt\\\\)");
-       	xmlReplacements.put("&infin;", "\\\\( \\\\infty \\\\)");
-       	xmlReplacements.put("&epsilon;","\\\\( \\\\varepsion \\\\)");
-       	xmlReplacements.put("<sub>","\\\\(_");
-       	xmlReplacements.put("</sub>","\\\\)");
-       	xmlReplacements.put("&ne;","\\\\(\\neq\\\\)");
-       	xmlReplacements.put("&not;","\\\\(\\neg\\\\)");
-       	xmlReplacements.put("&forall;","\\\\(\\forall\\\\)");
-       	xmlReplacements.put("&exist;","\\\\(\\exists\\\\)");
-
+		xmlReplacements.put("&le;","\\(\\le\\)");
+		xmlReplacements.put("&ge;","\\(\\ge\\)");
+ 		xmlReplacements.put("&lt;","\\(\\lt\\)");
+		xmlReplacements.put("&gt;","\\(\\gt\\)");
+       	xmlReplacements.put("&infin;", "\\( \\infty \\)");
+       	xmlReplacements.put("&epsilon;","\\( \\varepsion \\)");
+       	xmlReplacements.put("<sub>","\\(_");
+       	xmlReplacements.put("</sub>","\\)");
+       	xmlReplacements.put("&ne;","\\(\\neq\\)");
+       	xmlReplacements.put("&not;","\\(\\neg\\)");
+       	xmlReplacements.put("&forall;","\\(\\forall\\)");
+       	xmlReplacements.put("&exist;","\\(\\exists\\)");
+       	
 		// LON-CAPA inbuilt functions
 		xmlReplacements.put("&check_status","check_status");
 		xmlReplacements.put("&EXT","EXT");
@@ -80,25 +91,25 @@ public class PreParser {
 		// make it an correct attribute
 
 		xmlReplacements.put("condition=\"&abs", "condition=\"abs");
-		xmlReplacements.put("condition=\"([^<]*?)<=([^<]*?)<=([^<]*?)<=([^<]*?)<=", "condition=\"$1 LE $2 LE $3 LE $4 LE");
-		xmlReplacements.put("condition=\"([^<]*?)<=([^<]*?)<=", "condition=\"$1 LE $2 LE");
-		xmlReplacements.put("condition=\"([^<\"]*)<([^<\"]*)\"", "condition=\"$1 LT $2\"");
-		xmlReplacements.put("condition=\"([^>\"]*)>([^>\"]*)\"", "condition=\"$1 GT $2\"");
-		xmlReplacements.put("condition=\"([^<\"]*)<([^<\"]*)<([^<\"]*)\"", "condition=\"$1 LT $2 LT $3\"");
-		xmlReplacements.put("condition=\"([^>\"]*)>([^>\"]*)>([^>\"]*)\"", "condition=\"$1 GT $2 GT $3\"");
-		xmlReplacements.put("condition=\"([^<\"]*)<([^<\"]*)<([^<\"]*)<([^<\"]*)\"", "condition=\"$1 LT $2 LT $3 LT $4\"");
-		xmlReplacements.put("condition=\"([^>\"]*)>([^>\"]*)>([^>\"]*)>([^>\"]*)\"", "condition=\"$1 GT $2 GT $3 GT $4\"");
-		xmlReplacements.put("condition=\"([^&\"]*)&&([^&\"]*)\"", "condition=\"$1 and $2\"");
-		xmlReplacements.put("condition=\"([^&\"]*)&&([^&\"]*)&&([^&\"]*)\"", "condition=\"$1 and $2 and $3\"");
-		xmlReplacements.put("condition=\"([^&]*)&&", "condition=\"$1 and");
-		xmlReplacements.put("condition=\"([^<]*?)<=([^<]*?)<=", "condition=\"$1 LE $2 LE");
+		xmlReplacementsWithGroups.put("condition=\"([^<]*?)<=([^<]*?)<=([^<]*?)<=([^<]*?)<=", "condition=\"$1 LE $2 LE $3 LE $4 LE");
+		xmlReplacementsWithGroups.put("condition=\"([^<]*?)<=([^<]*?)<=", "condition=\"$1 LE $2 LE");
+		xmlReplacementsWithGroups.put("condition=\"([^<\"]*)<([^<\"]*)\"", "condition=\"$1 LT $2\"");
+		xmlReplacementsWithGroups.put("condition=\"([^>\"]*)>([^>\"]*)\"", "condition=\"$1 GT $2\"");
+		xmlReplacementsWithGroups.put("condition=\"([^<\"]*)<([^<\"]*)<([^<\"]*)\"", "condition=\"$1 LT $2 LT $3\"");
+		xmlReplacementsWithGroups.put("condition=\"([^>\"]*)>([^>\"]*)>([^>\"]*)\"", "condition=\"$1 GT $2 GT $3\"");
+		xmlReplacementsWithGroups.put("condition=\"([^<\"]*)<([^<\"]*)<([^<\"]*)<([^<\"]*)\"", "condition=\"$1 LT $2 LT $3 LT $4\"");
+		xmlReplacementsWithGroups.put("condition=\"([^>\"]*)>([^>\"]*)>([^>\"]*)>([^>\"]*)\"", "condition=\"$1 GT $2 GT $3 GT $4\"");
+		xmlReplacementsWithGroups.put("condition=\"([^&\"]*)&&([^&\"]*)\"", "condition=\"$1 and $2\"");
+		xmlReplacementsWithGroups.put("condition=\"([^&\"]*)&&([^&\"]*)&&([^&\"]*)\"", "condition=\"$1 and $2 and $3\"");
+		xmlReplacementsWithGroups.put("condition=\"([^&]*)&&", "condition=\"$1 and");
+		xmlReplacementsWithGroups.put("condition=\"([^<]*?)<=([^<]*?)<=", "condition=\"$1 LE $2 LE");
 
-        xmlReplacements.put("options=\"([^\"]*)<=([^\"]*)\"", "options=\"$1 \\\\(\\\\le\\\\) $2\"");
-        xmlReplacements.put("options=\"([^\"]*)>=([^\"]*)\"", "options=\"$1 \\\\(\\\\ge\\\\) $2\"");
-       xmlReplacements.put("options=\"([^<\"]*)<([^<\"]*)\"", "options=\"$1 \\\\(\\\\lt\\\\) $2\"");
-        xmlReplacements.put("options=\"([^>\"]*)>([^>\"]*)\"", "options=\"$1 \\\\(\\\\gt\\\\) $2\"");
-        xmlReplacements.put("value=\"([^<\"]*)<([^<\"]*)\"", "options=\"$1 \\\\(\\\\lt\\\\) $2\"");
-        xmlReplacements.put("value=\"([^>\"]*)>([^>\"]*)\"", "options=\"$1 \\\\(\\\\gt\\\\) $2\"");
+        xmlReplacementsWithGroups.put("options=\"([^\"]*)<=([^\"]*)\"", "options=\"$1 "+Matcher.quoteReplacement("\\(\\le\\)")+" $2\"");
+        xmlReplacementsWithGroups.put("options=\"([^\"]*)>=([^\"]*)\"", "options=\"$1 "+Matcher.quoteReplacement("\\(\\ge\\)")+" $2\"");
+        xmlReplacementsWithGroups.put("options=\"([^<\"]*)<([^<\"]*)\"", "options=\"$1 "+Matcher.quoteReplacement("\\(\\lt\\)")+" $2\"");
+        xmlReplacementsWithGroups.put("options=\"([^>\"]*)>([^>\"]*)\"", "options=\"$1 "+Matcher.quoteReplacement("\\(\\gt\\)")+" $2\"");
+        xmlReplacementsWithGroups.put("value=\"([^<\"]*)<([^<\"]*)\"", "options=\"$1 "+Matcher.quoteReplacement("\\(\\lt\\)")+" $2\"");
+        xmlReplacementsWithGroups.put("value=\"([^>\"]*)>([^>\"]*)\"", "options=\"$1 "+Matcher.quoteReplacement("\\(\\gt\\)")+" $2\"");
         xmlReplacements.put("clear=\"all\"","");
         xmlReplacements.put("display=\"tth\"","");
          xmlReplacements.put("display=\"mathjax\"","");
@@ -115,6 +126,11 @@ public class PreParser {
 
 		String buf;
 		for(HashMap.Entry<String, String> item : xmlReplacements.entrySet()) {
+			buf=s.replaceAll(item.getKey(), Matcher.quoteReplacement(item.getValue()));
+			if(!buf.equals(s))log.finer("line "+curLine+": replaced "+item.getKey()+" with "+item.getValue());
+			s=buf;
+	    }	
+		for(HashMap.Entry<String, String> item : xmlReplacementsWithGroups.entrySet()) {
 			buf=s.replaceAll(item.getKey(), item.getValue());
 			if(!buf.equals(s))log.finer("line "+curLine+": replaced "+item.getKey()+" with "+item.getValue());
 			s=buf;

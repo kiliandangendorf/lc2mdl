@@ -3,6 +3,7 @@ package lc2mdl.lc.problem;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -153,7 +154,7 @@ public class PerlScript extends ProblemElement{
 	}
 
 	private String replaceSyntaxInBlock(String block){
-		HashMap<String,String> replacements=new HashMap<>();
+		HashMap<String,String> replacements=new LinkedHashMap<>();
 		String newBlock=block;
 
 		replacements.put("(?<![!=<>])=(?!=)(?=([^\"]*\"[^\"]*\")*[^\"]*;)",": ");
@@ -247,7 +248,7 @@ public class PerlScript extends ProblemElement{
 
 	private void replaceFunctions(){
 		log.finer("--replace functions");
-		HashMap<String,String> functionReplacements=new HashMap<>();
+		HashMap<String,String> functionReplacements=new LinkedHashMap<>();
 
 		// ONE BY ONE CONVERSION (same parameters)
 
@@ -288,7 +289,7 @@ public class PerlScript extends ProblemElement{
 		functionReplacements.put("&sub_string\\(","substring("); // both with 2 or three parameters
 
 		if(SUPPORT_OLD_CAPA_FUNCTIONS_WITHOUT_AMPERSAND){
-			HashMap<String,String> additionalFunctionsWithoutAmpersand=new HashMap<String,String>();
+			HashMap<String,String> additionalFunctionsWithoutAmpersand=new LinkedHashMap<String,String>();
 			for(String key:functionReplacements.keySet()){
 				if(key.charAt(0)=='&'){
 					String val=functionReplacements.get(key);
@@ -305,7 +306,7 @@ public class PerlScript extends ProblemElement{
 		// regex was not possible for balanced parentheses
 
 		//		String scriptOriginal=script;
-		HashMap<String,String> functionStringReplacements=new HashMap<>();
+		HashMap<String,String> functionStringReplacements=new LinkedHashMap<>();
 		String functionBeginPat;
 		// optional &-sign (ampersand)
 		if(SUPPORT_OLD_CAPA_FUNCTIONS_WITHOUT_AMPERSAND) functionBeginPat="\\&?\\w+\\(";
@@ -467,12 +468,9 @@ public class PerlScript extends ProblemElement{
 		//now replace all collected function-Strings in script
 		replaceStringKeysByValues(functionStringReplacements);
 
-		HashMap<String,String> paramReplacement=new HashMap<>();
+		HashMap<String,String> paramReplacement=new LinkedHashMap<>();
 		paramReplacement.put("parameter_setting(\"([a-zA-Z][a-zA-Z0-9_]*?)\")","lcparam_$1");
 		replaceRegExKeysByValues(paramReplacement);
-
-		// script =
-		// script.replaceAll("parameter_setting(\"([a-zA-Z][a-zA-Z0-9_]*?)\")","lcparam_$1");
 	}
 
 	private void findAndReplaceVariables(){
@@ -685,6 +683,7 @@ public class PerlScript extends ProblemElement{
 			while(matcher.find()){
 				String s=matcher.group();
 				if(!silent) log.finer("--replace \""+s+"\" with \""+replacements.get(key)+"\"");
+				//no Matcher.quoteReplacement( here, beacuse we need regex-groups
 				script=script.replaceFirst(key,replacements.get(key));
 			}
 		}
