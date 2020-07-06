@@ -11,6 +11,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import lc2mdl.mdl.quiz.QuestionStack;
+import lc2mdl.util.ConvertAndFormatMethods;
 import lc2mdl.util.FileFinder;
 
 public class PerlScript extends ProblemElement{
@@ -609,7 +610,9 @@ public class PerlScript extends ProblemElement{
 				//stringsInScript.add(stringText.replace("\\","\\\\"));
 				stringsInScript.add(stringText);
 
-				script=script.replace(stringText,replacement);
+//				script=script.replace(stringText,replacement);
+				//Only replace exactly this substring, not any matching string (bad example "," as string or as separator "..","..")
+				script=ConvertAndFormatMethods.replaceSubsequenceInText(script,stringStart,stringEnd,replacement);
 
 				log.finest("---replaced "+stringText+" by "+replacement);
 
