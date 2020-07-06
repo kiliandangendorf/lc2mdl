@@ -244,6 +244,12 @@ public class PerlScript extends ProblemElement{
 		log.finer("--remove multiple spaces");
 		script=script.replaceAll(" {2,}"," ");
 
+		log.finer("--remove multiple semicola");
+		script=script.replaceAll("(; {0,}){2,}","; ");
+
+		log.finer("--remove multiple commata");
+		script=script.replaceAll("(, {0,}){2,}",", ");
+
 		// Operator-Replacement moved to class PerlControlStructuresReplacer
 	}
 
