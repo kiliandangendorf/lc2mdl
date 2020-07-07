@@ -288,14 +288,17 @@ public abstract class ProblemElement {
 		List<String> rightPat = new ArrayList<String>();
 
 		String addbackslashes ="";
-		if (isVariable) { addbackslashes ="\\\\"; }
+//		if (isVariable) { addbackslashes ="\\\\"; }
 
+		//Note: one backslash (literal) in text means 4 in java-regex (1. and 3. for escaping the following backslash. It remains one literal backslash) 
+		
 		// TEX all with begin / end e.g. eqnarray*,equation*
 		leftPat.add("<m {0,}(eval=\"on\"){0,1}(eval=\"off\"){0,1} {0,}>\\s{0,}\\\\begin");
 		rightPat.add("\\*\\}\\s{0,}<\\/\\s{0,}m>");
 
 		for (String s: leftPat){
-			text=replacePatternWithString(s,addbackslashes+"\\\\begin",text);
+//			text=replacePatternWithString(s,addbackslashes+"\\\\begin",text);
+			text=replacePatternWithString(s,addbackslashes+"\\begin",text);
 		}
 		for (String s: rightPat) {
 			text = replacePatternWithString(s, addbackslashes+"\\*"+addbackslashes+"\\}", text);
@@ -308,14 +311,17 @@ public abstract class ProblemElement {
 		leftPat.add("<m\\s{0,}(eval=\"on\"){0,1}(eval=\"off\"){0,1}\\s{0,}>\\s{0,}\\$\\$");
 		rightPat.add("\\$\\$\\s{0,}<\\/\\s{0,}m>");
 
+		//Yes, 6 backslashes. 4 for the one literal and two for the [
 		leftPat.add("<m\\s{0,}(eval=\"on\"){0,1}(eval=\"off\"){0,1}\\s{0,}>\\s{0,}\\\\\\[");
 		rightPat.add("\\\\\\]\\s{0,}<\\/\\s{0,}m>");
 
 		for (String s: leftPat){
-			text=replacePatternWithString(s,addbackslashes+"\\\\[",text);
+//			text=replacePatternWithString(s,addbackslashes+"\\\\[",text);
+			text=replacePatternWithString(s,addbackslashes+"\\[",text);
 		}
 		for (String s: rightPat) {
-			text = replacePatternWithString(s, addbackslashes+"\\\\]", text);
+//			text = replacePatternWithString(s, addbackslashes+"\\\\]", text);
+			text = replacePatternWithString(s, addbackslashes+"\\]", text);
 		}
 
 		leftPat.clear();
@@ -332,10 +338,12 @@ public abstract class ProblemElement {
 		rightPat.add("\\${0,1}\\s{0,}<\\/\\s{0,}tex>");
 
 		for (String s: leftPat){
-			text=replacePatternWithString(s,addbackslashes+"\\\\(",text);
+//			text=replacePatternWithString(s,addbackslashes+"\\\\(",text);
+			text=replacePatternWithString(s,addbackslashes+"\\(",text);
 		}
 		for (String s: rightPat){
-			text=replacePatternWithString(s,addbackslashes+"\\\\)",text);
+//			text=replacePatternWithString(s,addbackslashes+"\\\\)",text);
+			text=replacePatternWithString(s,addbackslashes+"\\)",text);
 		}
 
 		return text;
@@ -398,12 +406,15 @@ public abstract class ProblemElement {
 		return text;
 	}
 
+	/**
+	 * Note replacement String may not contain regex-group identifiers. This method uses Matcher.quoteReplacement
+	 */
 	private String replacePatternWithString(String regExPattern,String replacement,String text){
 		Matcher matcher=Pattern.compile(regExPattern).matcher(text);
 		while(matcher.find()){
 			String match=matcher.group();
 			log.finer("--replace "+match+" with "+replacement);
-			text=text.replaceFirst(regExPattern,replacement);
+			text=text.replaceFirst(regExPattern,Matcher.quoteReplacement(replacement));
 		}
 		return text;
 	}

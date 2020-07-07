@@ -15,14 +15,30 @@ import lc2mdl.util.ConvertAndFormatMethods;
 import lc2mdl.util.FileFinder;
 
 public class PerlScript extends ProblemElement{
+	/* HINT:
+	 * Best way to use Matcher seems to be using "matcher.appendReplacement(...)" and "matcher.appendTail(...)" on a StringBuffer.
+	 * This makes sure, to replace exactly this match (not all matching Strings).
+	 * Problem here is, we need not only the match, but also some charSequences before and after.
+	 * 
+	 * For RegEx-Strings use look ahead and behind, eg. String csPat="(?<=[\\W])"+cs+"(?=\\W)";
+	 * 
+	 * Regarding replace-Functions:
+	 * - no regex needed => use only replace()
+	 * - if needed => use Matcher.quoteReplacement() in replacement-String (i.e. for backslashes and dollar-signs)
+	 * 		Pattern: replaceAll(Pattern.quote(),Matcher.quoteReplacement());
+	 * 		Example: replaceAll(Pattern.quote("/"), Matcher.quoteReplacement("\\"));
+	 * @see https://stackoverflow.com/questions/12941266/replace-and-replaceall-in-java
+	 * */
 
 	private String script;
 	private String scriptComment;
 	private String convertWarning;
 	private ArrayList<String> stringsInScript=new ArrayList<String>();
+	private ArrayList<String> commentsInScript=new ArrayList<String>();
 
 	private int arrayNo=0;
 	private int stringNo=0;
+	private int commentNo=0;
 
 	// determines if e.g. random(...) will be converted, too, not only &random(...)
 	private final boolean SUPPORT_OLD_CAPA_FUNCTIONS_WITHOUT_AMPERSAND=true;
@@ -62,6 +78,9 @@ public class PerlScript extends ProblemElement{
 
 		// save Strings to prevent them from converting
 		saveStrings();
+		
+		// save COMMENTS to prevent them from converting
+		saveComments();
 
 		// FUNCTIONS
 		replaceFunctions();
@@ -72,9 +91,6 @@ public class PerlScript extends ProblemElement{
 		// ARRAYS
 		findAndReplaceArraysAssignments();
 
-		// COMMENTS
-		replaceComments();
-		
 		// UNKNOWN CONTROL-STRUCTURES
 		searchForUnknownControlStructures();
 
@@ -88,6 +104,9 @@ public class PerlScript extends ProblemElement{
 		// = -> :, etc. (needs to be placed BEFORE replaceStrings() )
 		replaceSyntax();
 
+		// replace Comments
+		replaceComments();
+
 		// replace Strings
 		replaceStrings();
 
@@ -97,7 +116,7 @@ public class PerlScript extends ProblemElement{
 		script=convertWarning+System.lineSeparator()+script;
 	}
 
-	private void addConvertWarning(String warning){
+	public void addConvertWarning(String warning){
 		log.warning(warning);
 		convertWarning=convertWarning+System.lineSeparator()+"/* "+warning+" */";
 	}
@@ -111,222 +130,14 @@ public class PerlScript extends ProblemElement{
 			count[specialChars.indexOf(sc)]=script.length()-script.replace(sc,"").length();
 		}
 		if(Arrays.stream(count).sum()>0){
-			log.warning("--found special chars. $:"+count[0]+", @: "+count[1]+", &: "+count[2]+", {: "+count[3]+", }: "
-					+count[4]);
+			log.warning("--found special chars. $:"+count[0]+", @: "+count[1]+", &: "+count[2]+", {: "+count[3]+", }: "+count[4]);
 		}
 	}
 
 	private void replaceControlStructures(){
-		/* HINT:
-		 * Best way to use Matcher seems to be using "matcher.appendReplacement(...)" and "matcher.appendTail(...)" on a StringBuffer.
-		 * This makes sure, to replace exactly this match (not all matching Strings).
-		 * Problem here is, we need not only the match, but also some charSequences before and after.
-		 * TODO: Maybe we need a separate Matcher for each CS and use appendReplacement(...) in most possible cases...
-		 * TODO: in this case, we should use regex look ahead and behind, eg. String csPat="(?<=[\\W])"+cs+"(?=\\W)";
-		 * */
-		
-		//Linked HashMap to keep order of insertion
-		LinkedHashMap<String,String> controlStructureStringReplacements;
+		PerlControlStructuresReplacer cSReplacer=new PerlControlStructuresReplacer(this,script);
 
-		//Keep order in this List: for has do be done BEFORE foreach
-		ArrayList<String> controlStructures=new ArrayList<>(
-				Arrays.asList("do","unless","else","elsif","if","until","while","for","foreach"));
-		for(String cs:controlStructures){
-			controlStructureStringReplacements=new LinkedHashMap<>();
-			
-			String csPat="\\W"+cs+"\\W";
-			Matcher matcher=Pattern.compile(csPat).matcher(script);
-			int startFind=0;
-			while(matcher.find(startFind)){
-				// System.out.println(startFind+" ");
-				log.warning("--found control structure: "+cs+", try to replace, please check result");
-				int csStart=matcher.start()+1;
-				startFind=matcher.end()-1;
-				int csEnd=matcher.end()-1;
-				int parenStart=csEnd;
-				int parenEnd=parenStart;
-				//searchEnd only to find opening parenthesis
-				int searchEnd=csEnd+20;
-				if(searchEnd>script.length()) searchEnd=script.length();
-				while(parenStart<searchEnd){
-					if(script.charAt(parenStart)=='('){
-						break;
-					}
-					parenStart++;
-				}
-				if(parenStart<searchEnd){
-					parenEnd=ConvertAndFormatMethods.findMatchingParentheses(script,parenStart);
-				}else{
-					parenStart=csEnd;
-					//else doesn't need parentheses
-					if(!cs.equals("else"))addConvertWarning("--found "+cs+" without parentheses (will not work on)");
-				}
-
-				if(parenEnd>0){
-					switch(cs){
-						case "do":
-							int doStart=csStart;
-							int blockStart=matcher.end()-1;
-							int blockEnd=ConvertAndFormatMethods.findMatchingParentheses(script,blockStart,false);
-							if(blockEnd<0){
-								log.warning("--unmatched block parantheses {..} ");
-								break;
-							}
-							String blockString=script.substring(blockStart,blockEnd);
-							String whilePat="((while)|(until))";
-							Matcher csMatcher=Pattern.compile(whilePat).matcher(script.substring(blockEnd));
-							if(csMatcher.find()){
-								addConvertWarning("-- found do statement with closing "+csMatcher.group()
-										+" -- revert statements -- please check condition.  ");
-								int whileStart=csMatcher.start();
-								int whileEnd=csMatcher.end();
-								whileEnd=ConvertAndFormatMethods.findMatchingParentheses(script.substring(blockEnd),
-										whileEnd);
-								int doEnd=blockEnd+whileEnd;
-								String whileString=script.substring(blockEnd).substring(whileStart,whileEnd);
-								String doString=script.substring(doStart,doEnd);
-								String newString=" "+whileString+blockString;
-								controlStructureStringReplacements.put(doString,newString);
-//								script=script.replace(doString,newString);
-
-							}else{
-								addConvertWarning(
-										"-- found do statement without closing while or until -- please check.");
-							}
-							break;
-
-						case "unless":{
-							// log.warning("script.length= "+script.length()+"
-							// csstart= "+csStart+" csend= "+csEnd+" parenStart=
-							// "+parenStart+" parenend= "+parenEnd);
-							String condSub=" ";
-							String cond="unless";
-							if(parenStart<parenEnd){
-								condSub=script.substring(parenStart,parenEnd);
-							}
-							condSub=" if (not "+condSub+") ";
-							cond=script.substring(csStart,parenEnd);
-
-							controlStructureStringReplacements.put(cond,condSub);
-							startFind=parenEnd;
-							addConvertWarning("--replaced \"unless\" partially. Please correct order of replaced \"unless\"-statement in context \""+condSub+"\"");
-							}
-							break;
-
-						case "else":
-							String csString=matcher.group();
-							String csNewString="  "+ConvertAndFormatMethods.removeCR(csString)+" ";
-							controlStructureStringReplacements.put(csString,csNewString);
-							startFind=csStart+csNewString.length()+1;
-							break;
-							
-						case "elsif":
-						case "if":
-
-							if(parenStart<parenEnd){
-								//use first \W, too for making sure "if ..." doesn't match "eslif ..."
-								String oldIf=script.substring(csStart-1,parenEnd);
-								String newIf=oldIf+" then ";
-
-								//handle elsif as special case of if
-								if(cs.equals("elsif")){
-									csString=matcher.group();
-									newIf=newIf.replaceFirst(Pattern.quote("elsif"),"elseif");
-									//there are no changes in script, so parenEnd doesn't need to change
-									//parenEnd+=csNewString.length()-csString.length();
-									// parenEnd += 4;
-									//matcher=Pattern.compile(csPat).matcher(script);
-								}
-								
-								controlStructureStringReplacements.put(oldIf,newIf);
-								startFind=csEnd;
-							}else{
-								startFind=csEnd;
-							}
-							break;
-
-						case "until":
-							parenEnd++;
-							// nobreak, continue with the while case
-						case "while":
-							String oldWhile=script.substring(csStart,parenEnd);
-							String newWhile=oldWhile+" do ";
-							//replace "until" in string in case of "until"
-							if(cs.equals("until"))newWhile=newWhile.replace("until","unless");
-							controlStructureStringReplacements.put(oldWhile,newWhile);
-//							script=script.replace(oldWhile,newWhile);
-							startFind=csEnd;
-							break;
-
-						case "for":
-							if(parenStart<parenEnd){
-								String forString=script.substring(csStart,parenEnd);
-								String parenString=script.substring(parenStart+1,parenEnd-1);
-								String[] parenSplit=parenString.split(";");
-								// System.out.println(forString+"
-								// "+parenString+" "+parenSplit.length);
-								if(parenSplit.length>2){
-									String start=parenSplit[0];
-									start=start.replaceFirst("=",":");
-									String cond=parenSplit[1];
-									String next=parenSplit[2];
-									String newForString="for "+start+" next "+next+" while( "+cond+" ) do";
-									controlStructureStringReplacements.put(forString,newForString);
-//									script=script.replace(forString,newForString);
-
-								}
-
-							}
-							startFind=csEnd;
-							break;
-
-						case "foreach":
-							String forString=script.substring(csStart,parenEnd);
-							String parenString=script.substring(parenStart,parenEnd);
-							String varString="lcvariable";
-							if(csEnd<parenStart) varString=script.substring(csEnd+1,parenStart);
-							String newForString="for "+varString+" in "+parenString+" do ";
-							controlStructureStringReplacements.put(forString,newForString);
-//							script=script.replace(forString,newForString);
-							startFind=csEnd;
-							break;
-						default:
-							break;
-					}
-				}
-
-			}
-			replaceStringKeysByValues(controlStructureStringReplacements);
-		}
-
-		
-		//Cleanup CS
-		controlStructures.add("elseif");
-		for(String cs:controlStructures){
-			//remove CR
-			StringBuffer replacement=new StringBuffer();
-			//if comment is closing or opening before "{" there will be no match
-			String csPat="(?<=\\W)"+cs+"\\W"+"([^\\{](?!\\*\\/|\\/\\*))*\\{";			
-			//earlier regex
-			//String csPat=cs+"[^\\{]*\\{";
-			Matcher matcher=Pattern.compile(csPat).matcher(script);
-			while(matcher.find()){
-				String csString=ConvertAndFormatMethods.removeCR(matcher.group());
-				matcher.appendReplacement(replacement,Matcher.quoteReplacement(csString));
-			}
-			matcher.appendTail(replacement);
-			script=replacement.toString();
-
-			//remove Whitespace-char
-			replacement=new StringBuffer();
-			csPat="(?<=\\W) {0,}"+cs+" {0,}(?=\\W)";
-			matcher=Pattern.compile(csPat).matcher(script);
-			while(matcher.find()){				
-				matcher.appendReplacement(replacement,Matcher.quoteReplacement(" "+cs+" "));
-			}
-			matcher.appendTail(replacement);
-			script=replacement.toString();
-		}
+		script=cSReplacer.getReplacedScript();
 	}
 
 	private void replaceBlocks(){
@@ -344,7 +155,7 @@ public class PerlScript extends ProblemElement{
 	}
 
 	private String replaceSyntaxInBlock(String block){
-		HashMap<String,String> replacements=new HashMap<>();
+		HashMap<String,String> replacements=new LinkedHashMap<>();
 		String newBlock=block;
 
 		replacements.put("(?<![!=<>])=(?!=)(?=([^\"]*\"[^\"]*\")*[^\"]*;)",": ");
@@ -374,12 +185,16 @@ public class PerlScript extends ProblemElement{
 			String csPat="\\W"+cs+"\\W";
 			Matcher matcher=Pattern.compile(csPat).matcher(script);
 			while(matcher.find()){
-				addConvertWarning("--found unknown control structure: "+cs+" (will not work on)");
+				addConvertWarning("---found unknown control structure: "+cs+" (will not work on)");
 			}
 		}
 	}
 
-	private void replaceComments(){
+	private void saveComments(){
+		log.finer("--save comments before transforming");
+		commentNo=0;
+
+		// not "$#" what means length of an array
 		String commentPat="(?<!\\$)#.*(?=[\\n\\r])";
 		StringBuffer sb=new StringBuffer();
 		Matcher matcher=Pattern.compile(commentPat).matcher(script);
@@ -390,7 +205,7 @@ public class PerlScript extends ProblemElement{
 				comment=comment.substring(1);
 			}
 			//to prevent generating "**"
-			if(comment.charAt(0)=='#'&&comment.length()==1)comment=" ";
+			if(comment.charAt(0)=='#'&&comment.length()==1) comment=" ";
 			// remove # within
 			comment=comment.replaceAll("#","[HASH-SIGN]");
 			comment=comment.replaceAll("\\$","[DOLLAR-SIGN]");
@@ -398,22 +213,29 @@ public class PerlScript extends ProblemElement{
 			comment=comment.replaceAll("\\*/","[CLOSING-COMMAND]");
 			// put into c-style comments /* ... */
 			comment="/*"+comment+"*/";
-			matcher.appendReplacement(sb,comment);
-//			script=script.replaceFirst(commentPat,comment);
+			
+			String replacement="lc2mdl_comment"+commentNo++;
+			commentsInScript.add(comment);
+			
+			matcher.appendReplacement(sb,replacement);
 		}
 		matcher.appendTail(sb);
 		script=sb.toString();
 	}
+	private void replaceComments(){
+		log.finer("--replace comments again");
+
+		String buf=script;
+		//going inverse direction (as it was at replaceStrings) 
+		for(int i=commentNo-1;i>=0;i--){
+			String commentText=commentsInScript.get(i);
+			//prevent to match lc2mdl_comment10 with lc2mdl_comment1
+			buf=buf.replaceAll("(?<=\\W)lc2mdl_comment"+i+"(?=\\W)",Matcher.quoteReplacement(commentText));
+		}
+		script=buf;
+	}
 
 	private void replaceSyntax(){
-
-		// = -> :
-		log.finer("--replace all \"=\" with \": \"");
-		// single equal sign (left no AND right no equal sign, left no !,<,>)
-		// since savestrings() not needed anymore to look for " (2020-04-23)
-		// and not equal signs in quotes: (?<!=)=(?!=)(?=([^"]*"[^"]*")*[^"]*;)
-		// script=script.replaceAll("(?<![!=<>]) {0,}=(?!=) {0,}(?=([^\"]*\"[^\"]*\")*[^\"]*;)",": ");
-		script=script.replaceAll("(?<![=<>])=(?![=<>])",": ");
 
 		log.finer("--remove multiple empty lines");
 		// newline or return at the end of line
@@ -422,38 +244,18 @@ public class PerlScript extends ProblemElement{
 		log.finer("--remove multiple spaces");
 		script=script.replaceAll(" {2,}"," ");
 
-		// -- -> -1		
-		log.finer("--replace all \"--\" with \"-1\"");
-		// replace double -- (only if double occurs, not more or less)
-		// look ahead (?<![-])
-		// look behind (?!-)
-		script=script.replaceAll("(?<![-])--(?!-)","-1");
+		log.finer("--remove multiple semicola");
+		script=script.replaceAll("(; {0,}){2,}","; ");
 
-		// ++ -> +1
-		log.finer("--replace all \"++\" with \"+1\"");
-		script=script.replaceAll("(?<![\\+])\\+\\+(?!\\+)","+1");
+		log.finer("--remove multiple commata");
+		script=script.replaceAll("(, {0,}){2,}",", ");
 
-		// ** -> ^
-		log.finer("--replace all \"**\" with \"^\"");
-		script=script.replaceAll("(?<![\\*])\\*\\*(?!\\*)","^");
-
-		//== -> =
-		log.finer("--replace all \"==\" with \"=\"");
-		script=script.replaceAll("(?<![=])==(?!=)","=");
-
-		//&& -> and
-		log.finer("--replace all \"&&\" with \" and \"");
-		script=script.replaceAll("(?<![&]) {0,}&& {0,}(?!&)"," and ");
-
-		//|| -> or
-		log.finer("--replace all \"||\" with \" or \"");
-		script=script.replaceAll("(?<![\\|]) {0,}\\|\\| {0,}(?!\\|)"," or ");
-
+		// Operator-Replacement moved to class PerlControlStructuresReplacer
 	}
 
 	private void replaceFunctions(){
 		log.finer("--replace functions");
-		HashMap<String,String> functionReplacements=new HashMap<>();
+		HashMap<String,String> functionReplacements=new LinkedHashMap<>();
 
 		// ONE BY ONE CONVERSION (same parameters)
 
@@ -494,7 +296,7 @@ public class PerlScript extends ProblemElement{
 		functionReplacements.put("&sub_string\\(","substring("); // both with 2 or three parameters
 
 		if(SUPPORT_OLD_CAPA_FUNCTIONS_WITHOUT_AMPERSAND){
-			HashMap<String,String> additionalFunctionsWithoutAmpersand=new HashMap<String,String>();
+			HashMap<String,String> additionalFunctionsWithoutAmpersand=new LinkedHashMap<String,String>();
 			for(String key:functionReplacements.keySet()){
 				if(key.charAt(0)=='&'){
 					String val=functionReplacements.get(key);
@@ -511,7 +313,7 @@ public class PerlScript extends ProblemElement{
 		// regex was not possible for balanced parentheses
 
 		//		String scriptOriginal=script;
-		HashMap<String,String> functionStringReplacements=new HashMap<>();
+		HashMap<String,String> functionStringReplacements=new LinkedHashMap<>();
 		String functionBeginPat;
 		// optional &-sign (ampersand)
 		if(SUPPORT_OLD_CAPA_FUNCTIONS_WITHOUT_AMPERSAND) functionBeginPat="\\&?\\w+\\(";
@@ -591,7 +393,7 @@ public class PerlScript extends ProblemElement{
 					// $var=array[$i]
 
 					// generate unique arrayName
-					String arrayName="lcmdlarray"+problem.getIndex(this)+arrayNo++;
+					String arrayName="lcmdlarray"+problem.getIndex(this)+"_"+arrayNo++;
 					problem.addVar(arrayName);
 
 					StringBuilder arrayDefinition=new StringBuilder(arrayName+": [");
@@ -599,14 +401,13 @@ public class PerlScript extends ProblemElement{
 						if(i!=1) arrayDefinition.append(" ,");
 						arrayDefinition.append(params.get(i));
 					}
-					arrayDefinition.append("];");
+					arrayDefinition.append("]; ");
 
 					// make assignment on array[i]
 					String assignArrayValue=arrayName+"["+params.get(0)+"]";//;";
 
 					//get left side of statement followed by EXACTLY that match
-					String leftStatement=getFirstMatchAsString(script,
-							"[^;\\n\\r]*(?=("+Pattern.quote(completeFunction)+"))");
+					String leftStatement=getFirstMatchAsString(script,"[^;\\n\\r]*(?=("+Pattern.quote(completeFunction)+"))");
 
 					String wholeStatement=leftStatement+completeFunction;
 					if(leftStatement==null||leftStatement.equals("")){
@@ -667,27 +468,24 @@ public class PerlScript extends ProblemElement{
 					break;
 
 				default:
-					if(!functionReplacements.containsValue(functionName))
-						log.warning("--unknown function: "+functionName);
+					if(!functionReplacements.containsValue(functionName)) log.warning("--unknown function: "+functionName);
 			}
 		}
 
 		//now replace all collected function-Strings in script
 		replaceStringKeysByValues(functionStringReplacements);
 
-		HashMap<String,String> paramReplacement=new HashMap<>();
+		HashMap<String,String> paramReplacement=new LinkedHashMap<>();
 		paramReplacement.put("parameter_setting(\"([a-zA-Z][a-zA-Z0-9_]*?)\")","lcparam_$1");
 		replaceRegExKeysByValues(paramReplacement);
-
-		// script =
-		// script.replaceAll("parameter_setting(\"([a-zA-Z][a-zA-Z0-9_]*?)\")","lcparam_$1");
 	}
 
 	private void findAndReplaceVariables(){
 		ArrayList<String> vars=new ArrayList<>();
 
 		// find all variables
-		String varPat="\\$([a-zA-Z]+([a-zA-Z0-9])*)";
+		// rules for var-names: https://webassign.net/manual/instructor_guide/t_i_setting_perl_variables.htm 
+		String varPat="\\$([a-zA-Z\\_]+([a-zA-Z0-9\\_])*)";
 		Pattern pattern=Pattern.compile(varPat);
 		Matcher matcher=pattern.matcher(script);
 		while(matcher.find()){
@@ -729,10 +527,13 @@ public class PerlScript extends ProblemElement{
 				log.warning("--found unknown array function: "+functionName);
 			}
 			if(!isFunction){
-				log.finer("--replace \""+leftBrace+"\" with \"[\" and \")\" with \"]\"");
-				// if normal array assignment, just replace round braces
-				varAssignment=varAssignment.replaceFirst(leftBracePat,"[");
-				varAssignment=varAssignment.replaceFirst(rightBracePat,"]");
+				//if contains range operator (e.g. "1..9"), do not replace braces (see PerlControlStructuresReplacer replaceOperators
+				if(!varAssignment.contains("..")){
+					log.finer("--replace \""+leftBrace+"\" with \"[\" and \")\" with \"]\"");
+					// if normal array assignment, just replace round braces
+					varAssignment=varAssignment.replaceFirst(leftBracePat,"[");
+					varAssignment=varAssignment.replaceFirst(rightBracePat,"]");
+				}
 			}
 
 			// extract array-name and put to problemVars
@@ -772,13 +573,12 @@ public class PerlScript extends ProblemElement{
 			int stringStart,stringEnd;
 			int lastStart=0;
 
-			findString:
-			do{
+			findString:do{
 				stringStart=script.indexOf(quote,lastStart);
 
 				// Break if there aren't any quotes
 				if(stringStart==-1) break;
-				
+
 				// Continue if escaped quotation mark  
 				if(stringStart>0){
 					if(script.charAt(stringStart-1)==escape){
@@ -792,7 +592,8 @@ public class PerlScript extends ProblemElement{
 				while(true){
 					stringEnd++;
 					if(stringEnd>=script.length()){
-						log.warning("---found no end for string beginning with "+ script.substring(stringStart,(stringStart+10<script.length()?stringStart+10:script.length()-1))+" ...\". Following strings won't be found.");
+						log.warning("---found no end for string beginning with "+script.substring(stringStart,(stringStart+10<script.length()?stringStart+10:script.length()-1))
+								+" ...\". Following strings won't be found.");
 						// start over again with next quotes
 						lastStart=stringStart+1;
 						continue findString;
@@ -802,7 +603,7 @@ public class PerlScript extends ProblemElement{
 					if(script.charAt(stringEnd)==quote){
 						if(script.charAt(stringEnd-1)!=escape){
 							//end found
-							break; 
+							break;
 						}
 					}
 				}
@@ -810,20 +611,24 @@ public class PerlScript extends ProblemElement{
 				String stringText=script.substring(stringStart,stringEnd+1);
 				String replacement="lc2mdltext"+stringNo;
 
+				//We don't need, if we use Matcher.quoteReplacement() 
 				//preserve backslashes (cause we need it later for replaceAll)
-				stringsInScript.add(stringText.replace("\\","\\\\"));
-				
-				script=script.replace(stringText,replacement);
-				
+				//stringsInScript.add(stringText.replace("\\","\\\\"));
+				stringsInScript.add(stringText);
+
+//				script=script.replace(stringText,replacement);
+				//Only replace exactly this substring, not any matching string (bad example "," as string or as separator "..","..")
+				script=ConvertAndFormatMethods.replaceSubsequenceInText(script,stringStart,stringEnd,replacement);
+
 				log.finest("---replaced "+stringText+" by "+replacement);
 
 				// start over again from last quote (prevent loop on escaped marks)
 				lastStart=stringStart+1;
-				
+
 				stringNo++;
 			}while(stringStart!=-1);
 		}
-		
+
 		//TODO: Cannot handle nested strings of type: 'text "in" quotes' yet
 	}
 
@@ -838,19 +643,20 @@ public class PerlScript extends ProblemElement{
 			stringText=transformTextVariable(stringText);
 			stringText=replaceImagePathBySVG(stringText);
 			// log.finer("replace text" + stringText);
-			
+
 			//prevent to match lc2mdltext10 with lc2mdltext1
-			buf=buf.replaceFirst("(?<=\\W)lc2mdltext"+i+"(?=\\W)",stringText);
+//			buf=buf.replaceFirst("(?<=\\W)lc2mdltext"+i+"(?=\\W)",stringText);
+			buf=buf.replaceAll("(?<=\\W)lc2mdltext"+i+"(?=\\W)",Matcher.quoteReplacement(stringText));
 		}
-		
+
 		script=buf;
 	}
 
 	private String replaceImagePathBySVG(String pathString){
 		String svgString=pathString;
 		pathString=pathString.substring(1,pathString.length()-1); // remove " "
-		if(pathString.endsWith(".png")||pathString.endsWith(".jpg")||pathString.endsWith("gif")
-				||pathString.endsWith(".PNG")||pathString.endsWith(".JPG")||pathString.endsWith("GIF")){
+		if(pathString.endsWith(".png")||pathString.endsWith(".jpg")||pathString.endsWith("gif")||pathString.endsWith(".PNG")||pathString.endsWith(".JPG")
+				||pathString.endsWith("GIF")){
 			svgString=FileFinder.extractFileName(pathString);
 			log.finer("pathname = "+pathString+" , filename = "+svgString);
 			svgString=problem.getImagesSVG().get(svgString);
@@ -886,6 +692,7 @@ public class PerlScript extends ProblemElement{
 			while(matcher.find()){
 				String s=matcher.group();
 				if(!silent) log.finer("--replace \""+s+"\" with \""+replacements.get(key)+"\"");
+				//no Matcher.quoteReplacement( here, beacuse we need regex-groups
 				script=script.replaceFirst(key,replacements.get(key));
 			}
 		}

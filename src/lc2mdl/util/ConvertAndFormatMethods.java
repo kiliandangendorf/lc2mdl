@@ -2,6 +2,8 @@ package lc2mdl.util;
 
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class ConvertAndFormatMethods{
 	
@@ -56,7 +58,7 @@ public class ConvertAndFormatMethods{
 			end++;
 		}
 
-		while((bracketCount>0)&&(end<text.length())){
+		while((bracketCount>0)&&(end<text.length()-1)){
 			if(text.charAt(end)==charOpen) bracketCount++;
 			if(text.charAt(end)==charClose) bracketCount--;
 			end++;
@@ -75,8 +77,64 @@ public class ConvertAndFormatMethods{
 	 * @return
 	 */
 	public static String removeCR(String text){
-		String newText = text.replaceAll("\\n","");
-		newText = newText.replaceAll("\\r", "");
+		String newText = text.replaceAll("\\n"," ");
+		newText = newText.replaceAll("\\r", " ");
 		return (newText);
 	}
+	
+	/**
+	 * Returns the start index of a regex match in a given text from a given startIndex
+	 * @param regex to match in text
+	 * @param text to be searched
+	 * @param startIndex starting search at that index
+	 * @return first index of match, -1 if there's no match  
+	 */
+	public static int getRegexStartIndexInText(String regex, String text, int startIndex){
+	    Matcher matcher = Pattern.compile(regex).matcher(text);
+	    if(matcher.find(startIndex)){
+	        return matcher.start();
+	    }
+	    return -1;
+	}
+	/**
+	 * Returns the start index of a regex match in a given text (starting at char 0)
+	 * @param regex to match in text
+	 * @param text to be searched
+	 * @return first index of match, -1 if there's no match  
+	 */
+	public static int getRegexStartIndexInText(String regex, String text){
+	    return getRegexStartIndexInText(regex, text, 0);
+	}
+	/**
+	 * Returns the start and end index of a regex match in a given text from a given startIndex <br/>
+	 * Example:<br/>
+	 * 		regex="oob", text="foobar"<br/>
+	 * 		return is [1,3]
+	 * @param regex to match in text
+	 * @param text to be searched
+	 * @return first start and end index of match, [-1,-1] if there's no match  
+	 */
+	public static int[] getRegexStartAndEndIndexInText(String regex, String text, int startIndex){
+	    Matcher matcher = Pattern.compile(regex).matcher(text);
+	    if(matcher.find(startIndex)){
+	        return new int[] {matcher.start(), matcher.end()-1};
+	    }
+	    return new int[]{-1,-1};
+	}
+	
+	/**
+	 * Replaces sequence between from and to in the text by replacement
+	 * @param text where replacement should be done
+	 * @param from index of first char that should be replaced (incl.)
+	 * @param to index of last char that should be replaced (incl.)
+	 * @param replacement string
+	 * @return modified text
+	 */
+	public static String replaceSubsequenceInText(String text, int from, int to, String replacement){
+		//String.replace was not save, because it would replace any occurance of the replacement string 
+		// (eg. elsif(condition) matches if(condition)
+		return text.substring(0,from)+replacement+text.substring(to+1,text.length());
+
+	}
+
 }

@@ -11,6 +11,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import java.util.*;
+import java.util.regex.Matcher;
 
 public class OptionResponse extends ChoiceResponse {
 
@@ -254,7 +255,7 @@ public class OptionResponse extends ChoiceResponse {
     }
 
     protected String replaceMathSymbols(String text){
-        HashMap<String, String> mathStuff=new HashMap<>();
+        HashMap<String, String> mathStuff=new LinkedHashMap<>();
 
 		mathStuff.put("\\\\(\\\\le\\\\)","&le;");
         mathStuff.put("\\\\(\\\\ge\\\\)","&ge;");
@@ -269,7 +270,7 @@ public class OptionResponse extends ChoiceResponse {
 
         String buf;
 		for(HashMap.Entry<String, String> item : mathStuff.entrySet()) {
-			buf=text.replaceAll(item.getKey(), item.getValue());
+			buf=text.replaceAll(item.getKey(), Matcher.quoteReplacement(item.getValue()));
 			if(!buf.equals(text))log.finer("options : replaced "+item.getKey()+" with "+item.getValue());
 			text=buf;
 	    }
