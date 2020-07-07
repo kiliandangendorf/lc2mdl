@@ -140,7 +140,7 @@ public class PerlControlStructuresReplacer{
 		// - Ternary Operator (condition)?{true}:{false} -->Check syntax
 		// - Loop control Statements: next & last
 		//		last≈break-->return? http://maxima.sourceforge.net/docs/manual/maxima_37.html
-		// - Arrays in Maxima start at 1 (not at 0 as it is in Perl)
+		// - Arrays (Lists) in Maxima start at 1 (not at 0 as it is in Perl)
 
 
 		
@@ -245,6 +245,43 @@ public class PerlControlStructuresReplacer{
 		}
 		matcher.appendTail(sb);
 		script=sb.toString();
+
+		
+		//x%y -> mod(x,y) 
+		log.finer("--replace all \"x%y\" with \" mod(x, y)  \"");
+		script=script.replaceAll("([\\w]+) {0,}\\% {0,}([\\w]+)","mod($1, $2)");
+
+		//x**y -> x^y 
+		log.finer("--replace all \"x**y\" with \" x ^ y  \"");
+		script=script.replaceAll("([\\w]+) {0,}\\*\\* {0,}([\\w]+)","$1 ^ $2");
+
+		
+		//BEFORE equals signs ("=") are replaced
+		
+		//x+=y -> x: x+y 
+		log.finer("--replace all \"x+=y\" with \" x: x + y  \"");
+		script=script.replaceAll("([\\w]+) {0,}\\+= {0,}([\\w]+)","$1: $1 + $2");
+		
+		//x-=y -> x: x-y 
+		log.finer("--replace all \"x-=y\" with \" x: x - y  \"");
+		script=script.replaceAll("([\\w]+) {0,}\\-= {0,}([\\w]+)","$1: $1 - $2");
+		
+		//x*=y -> x: x*y 
+		log.finer("--replace all \"x*=y\" with \" x: x * y  \"");
+		script=script.replaceAll("([\\w]+) {0,}\\*= {0,}([\\w]+)","$1: $1 * $2");
+		
+		//x/=y -> x: x/y 
+		log.finer("--replace all \"x/=y\" with \" x: x / y  \"");
+		script=script.replaceAll("([\\w]+) {0,}\\/= {0,}([\\w]+)","$1: $1 / $2");
+		
+		//x%=y -> x: mod(x,y) 
+		log.finer("--replace all \"x%=y\" with \" x: mod(x, y)  \"");
+		script=script.replaceAll("([\\w]+) {0,}\\%= {0,}([\\w]+)","$1: mod($1, $2)");
+		
+		//x**=y -> x^y 
+		log.finer("--replace all \"x**=y\" with \" x: x^y  \"");
+		script=script.replaceAll("([\\w]+) {0,}\\*\\*= {0,}([\\w]+)","$1: $1 ^ $2");
+
 		
 		// = -> :
 		log.finer("--replace all \"=\" with \": \"");
@@ -271,7 +308,7 @@ public class PerlControlStructuresReplacer{
 
 		//|| -> or
 		log.finer("--replace all \"||\" with \" or \"");
-		script=script.replaceAll("(?<![\\|]) {0,}\\|\\| {0,}(?!\\|)"," or ");
+		script=script.replaceAll("(?<![\\|]) {0,}\\|\\| {0,}(?!\\|)"," or ");		
 		
 		// TODO: More Operators 
 
