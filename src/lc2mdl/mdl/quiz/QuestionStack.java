@@ -104,7 +104,7 @@ public class QuestionStack extends Question{
 		//append to questionnote 
 		if(!vars.equals("")){
 			if(vars.endsWith(", "))vars=vars.substring(0,vars.length()-2);
-			questionnote+=", ("+vars+")";
+			questionnote+=" ("+vars+")";
 			log.finer("added variables to questionnote: "+vars);
 		}
 	}

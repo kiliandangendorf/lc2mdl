@@ -91,7 +91,7 @@ public class QuestionGenerator{
 		if (!qnote.contains("LON-CAPA")) {
 			String basedOn = "/res" + p.getCategory() + "/" + p.getProblemName() + ".problem";
 			basedOn = "This question is based on LON-CAPA problem " + basedOn;
-			qnote +=  System.lineSeparator() + ", "  + basedOn;
+			qnote +=  ", " + System.lineSeparator()  + basedOn;
 			question.setQuestionnote(qnote);
 		}
 		question.appendVarsToQuestionnote();

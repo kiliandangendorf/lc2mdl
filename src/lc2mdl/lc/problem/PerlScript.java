@@ -130,7 +130,8 @@ public class PerlScript extends ProblemElement{
 			count[specialChars.indexOf(sc)]=script.length()-script.replace(sc,"").length();
 		}
 		if(Arrays.stream(count).sum()>0){
-			log.warning("--found special chars. $:"+count[0]+", @: "+count[1]+", &: "+count[2]+", {: "+count[3]+", }: "+count[4]);
+//			log.warning("--found special chars. $:"+count[0]+", @: "+count[1]+", &: "+count[2]+", {: "+count[3]+", }: "+count[4]);
+			addConvertWarning("--found special chars. $:"+count[0]+", @: "+count[1]+", &: "+count[2]+", {: "+count[3]+", }: "+count[4]);
 		}
 	}
 
