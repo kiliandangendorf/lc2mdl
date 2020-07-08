@@ -7,6 +7,7 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import lc2mdl.Prefs;
 import lc2mdl.util.ConvertAndFormatMethods;
 
 public class PerlControlStructuresReplacer{
@@ -59,7 +60,7 @@ public class PerlControlStructuresReplacer{
 				valid=true;
 				//substring incl. closeBrace
 				blockStringWithBraces=script.substring(openBrace,closeBrace+1);
-				if(!allowMultilineBlocks) blockStringWithBraces=makeBlockOneLine(blockStringWithBraces);				
+				if(!Prefs.ALLOW_MULTILINE_BLOCKS) blockStringWithBraces=makeBlockOneLine(blockStringWithBraces);				
 			}
 		}
 		public String toString(){return blockStringWithBraces;}
@@ -67,8 +68,6 @@ public class PerlControlStructuresReplacer{
 
 	private PerlScript perlScript;
 	private String script;
-	private boolean allowMultilineBlocks;
-	private boolean addSemicolonAtEndOfStmt;
 	
 	private int boolNo=0;
 	private int varNo=0;
@@ -81,9 +80,6 @@ public class PerlControlStructuresReplacer{
 	}
 
 	public String getReplacedScript(){
-		allowMultilineBlocks=true;
-		addSemicolonAtEndOfStmt=true;
-
 		//nice: irritating braces in strings or comments aren't possible anymore;) (done in saveStrings)
 		
 		//temporary dictionary to prevent replacing same CS in different contexts
@@ -445,7 +441,7 @@ public class PerlControlStructuresReplacer{
 		maximaStmtText+=controlVarName+" ";
 		maximaStmtText+=csDict.get("in")+" "+"("+conditionStringWithoutBraces+")"+" ";
 		maximaStmtText+=csDict.get("do")+" "+foreachBlockWithVar+" ";
-		if(addSemicolonAtEndOfStmt)maximaStmtText+=";";
+		if(Prefs.ADD_SEMICOLON_AT_END_OF_STMT)maximaStmtText+=";";
 
 		stmtEnd=foreachBlock.closeBrace;
 
@@ -522,7 +518,7 @@ public class PerlControlStructuresReplacer{
 				//TODO: is NEXT still correct, if I replace ++ Operator?
 				
 				maximaStmtText+=csDict.get("do")+" "+forBlock+" ";
-				if(addSemicolonAtEndOfStmt)maximaStmtText+=";";
+				if(Prefs.ADD_SEMICOLON_AT_END_OF_STMT)maximaStmtText+=";";
 	
 				stmtEnd=forBlock.closeBrace;
 	
@@ -585,7 +581,7 @@ public class PerlControlStructuresReplacer{
 						maximaStmtText=" "+csDict.get("unless")+" "+whileCondition+" "+csDict.get("do")+" "+whileBlock+" ";
 						break;
 				}
-				if(addSemicolonAtEndOfStmt)maximaStmtText+=";";
+				if(Prefs.ADD_SEMICOLON_AT_END_OF_STMT)maximaStmtText+=";";
 
 				stmtEnd=whileBlock.closeBrace;
 
@@ -680,7 +676,7 @@ public class PerlControlStructuresReplacer{
 			String doBlockModified=doBlock.toString().substring(0,doBlock.toString().length()-1);
 			doBlockModified+=boolName+" : "+loopCondition+" }";
 			maximaStmtText+=doBlockModified+" ";
-			if(addSemicolonAtEndOfStmt)maximaStmtText+=";";
+			if(Prefs.ADD_SEMICOLON_AT_END_OF_STMT)maximaStmtText+=";";
 
 			doEnd=loopCondition.closeBrace;
 			
@@ -809,7 +805,7 @@ public class PerlControlStructuresReplacer{
 				if(elseBlock!=null){
 					maximaStmtText+="else "+elseBlock+" ";
 				}
-				if(addSemicolonAtEndOfStmt)maximaStmtText+=";";
+				if(Prefs.ADD_SEMICOLON_AT_END_OF_STMT)maximaStmtText+=";";
 
 				stmtEnd=lastBlockEnd;
 

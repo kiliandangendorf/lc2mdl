@@ -37,4 +37,15 @@ public class Prefs {
 	public static final String ESSAY_FILE_EXT="Zum Hochladen bitte nur Dateien des folgenden Typs verwenden: ";
 
 
+	//**********************
+	// Perl converting prefs
+	//**********************
+	
+	// determines if e.g. random(...) will be converted, too, not only &random(...)
+	public static final boolean SUPPORT_OLD_CAPA_FUNCTIONS_WITHOUT_AMPERSAND=true;
+
+	public static final boolean ALLOW_MULTILINE_BLOCKS=true;
+	// add semicolon at end of new added statements
+	public static final boolean ADD_SEMICOLON_AT_END_OF_STMT=true;
+
 }

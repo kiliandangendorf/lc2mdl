@@ -10,6 +10,7 @@ import java.util.regex.Pattern;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
+import lc2mdl.Prefs;
 import lc2mdl.mdl.quiz.QuestionStack;
 import lc2mdl.util.ConvertAndFormatMethods;
 import lc2mdl.util.FileFinder;
@@ -39,9 +40,6 @@ public class PerlScript extends ProblemElement{
 	private int arrayNo=0;
 	private int stringNo=0;
 	private int commentNo=0;
-
-	// determines if e.g. random(...) will be converted, too, not only &random(...)
-	private final boolean SUPPORT_OLD_CAPA_FUNCTIONS_WITHOUT_AMPERSAND=true;
 
 	@Override
 	public void consumeNode(){
@@ -131,7 +129,7 @@ public class PerlScript extends ProblemElement{
 		}
 		if(Arrays.stream(count).sum()>0){
 //			log.warning("--found special chars. $:"+count[0]+", @: "+count[1]+", &: "+count[2]+", {: "+count[3]+", }: "+count[4]);
-			addConvertWarning("--found special chars. $:"+count[0]+", @: "+count[1]+", &: "+count[2]+", {: "+count[3]+", }: "+count[4]);
+			addConvertWarning("--found special chars. $: "+count[0]+", @: "+count[1]+", &: "+count[2]+", {: "+count[3]+", }: "+count[4]);
 		}
 	}
 
@@ -152,7 +150,6 @@ public class PerlScript extends ProblemElement{
 			script=script.replace(block,newBlock);
 			matcher=Pattern.compile(blockPat).matcher(script);
 		}
-
 	}
 
 	private String replaceSyntaxInBlock(String block){
@@ -162,8 +159,11 @@ public class PerlScript extends ProblemElement{
 		replacements.put("(?<![!=<>])=(?!=)(?=([^\"]*\"[^\"]*\")*[^\"]*;)",": ");
 		replacements.put("\\{","(");
 		replacements.put("\\}",")");
-		replacements.put("[\\r\\n]+"," ");
-		replacements.put(";[\\r\\n]*",", ");
+		//TODO dependent of Prefs.ALLOW_MULTILINE_BLOCKS
+		if(!Prefs.ALLOW_MULTILINE_BLOCKS){
+			replacements.put("[\\r\\n]+"," ");
+			replacements.put(";[\\r\\n]*",", ");
+		}
 		replacements.put(";(?=([^\"]*\"[^\"]*\")*[^\"]*;)",", ");
 		replacements.put(",\\s+\\)"," )");
 //		replacements.put("\\s+"," ");		
@@ -250,6 +250,9 @@ public class PerlScript extends ProblemElement{
 
 		log.finer("--remove multiple commata");
 		script=script.replaceAll("(, {0,}){2,}",", ");
+		
+		log.finer("--remove whitespaces at line beginning");
+		script=script.replaceAll("(?<=[\\r\\n]) (?=\\S)","");
 
 		// Operator-Replacement moved to class PerlControlStructuresReplacer
 	}
@@ -296,7 +299,7 @@ public class PerlScript extends ProblemElement{
 		functionReplacements.put("&to_string\\(","sconcat(");
 		functionReplacements.put("&sub_string\\(","substring("); // both with 2 or three parameters
 
-		if(SUPPORT_OLD_CAPA_FUNCTIONS_WITHOUT_AMPERSAND){
+		if(Prefs.SUPPORT_OLD_CAPA_FUNCTIONS_WITHOUT_AMPERSAND){
 			HashMap<String,String> additionalFunctionsWithoutAmpersand=new LinkedHashMap<String,String>();
 			for(String key:functionReplacements.keySet()){
 				if(key.charAt(0)=='&'){
@@ -317,7 +320,7 @@ public class PerlScript extends ProblemElement{
 		HashMap<String,String> functionStringReplacements=new LinkedHashMap<>();
 		String functionBeginPat;
 		// optional &-sign (ampersand)
-		if(SUPPORT_OLD_CAPA_FUNCTIONS_WITHOUT_AMPERSAND) functionBeginPat="\\&?\\w+\\(";
+		if(Prefs.SUPPORT_OLD_CAPA_FUNCTIONS_WITHOUT_AMPERSAND) functionBeginPat="\\&?\\w+\\(";
 		else functionBeginPat="\\&\\w+\\(";
 		Matcher functionMatcher=Pattern.compile(functionBeginPat).matcher(script);
 		while(functionMatcher.find()){
