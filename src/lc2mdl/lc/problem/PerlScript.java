@@ -583,9 +583,17 @@ public class PerlScript extends ProblemElement{
 				// Break if there aren't any quotes
 				if(stringStart==-1) break;
 
-				// Continue if escaped quotation mark  
+				// Continue, if...
 				if(stringStart>0){
+					//...if escaped quotation mark
 					if(script.charAt(stringStart-1)==escape){
+						// start over again with next quotes
+						lastStart=stringStart+1;
+						continue;
+					}
+					
+					//...if it's meant to be an apostrophe 
+					if(script.substring(stringStart-1,stringStart+1).matches("\\w\\'")){
 						// start over again with next quotes
 						lastStart=stringStart+1;
 						continue;
