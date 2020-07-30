@@ -75,8 +75,8 @@ public class PreParser {
 		xmlReplacements.put("&ge;","\\(\\ge\\)");
  		xmlReplacements.put("&lt;","\\(\\lt\\)");
 		xmlReplacements.put("&gt;","\\(\\gt\\)");
-       	xmlReplacements.put("&infin;", "\\( \\infty \\)");
-       	xmlReplacements.put("&epsilon;","\\( \\varepsion \\)");
+       	xmlReplacements.put("&infin;", "\\(\\infty\\)");
+       	xmlReplacements.put("&epsilon;","\\(\\varepsion\\)");
        	xmlReplacements.put("<sub>","\\(_");
        	xmlReplacements.put("</sub>","\\)");
        	xmlReplacements.put("&ne;","\\(\\neq\\)");

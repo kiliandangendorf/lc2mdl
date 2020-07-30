@@ -12,6 +12,7 @@ import org.w3c.dom.NodeList;
 
 import java.util.*;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class OptionResponse extends ChoiceResponse {
 
@@ -257,20 +258,20 @@ public class OptionResponse extends ChoiceResponse {
     protected String replaceMathSymbols(String text){
         HashMap<String, String> mathStuff=new LinkedHashMap<>();
 
-		mathStuff.put("\\\\(\\\\le\\\\)","&le;");
-        mathStuff.put("\\\\(\\\\ge\\\\)","&ge;");
-        mathStuff.put("\\\\(\\\\lt\\\\)","&lt;");
-        mathStuff.put("\\\\(\\\\gt\\\\)","&gt;");
-        mathStuff.put("\\\\( \\\\infty \\\\)","&infin;");
-        mathStuff.put("\\\\( \\\\varepsion \\\\)","&epsilon;");
-        mathStuff.put("\\\\(\\neq\\\\)","&ne;");
-        mathStuff.put("\\\\(\\neg\\\\)","&not;");
-        mathStuff.put("\\\\(\\forall\\\\)","&forall;");
-        mathStuff.put("\\\\(\\exists\\\\)","&exist;");
+		mathStuff.put("\\(\\le\\)","&le;");
+        mathStuff.put("\\(\\ge\\)","&ge;");
+        mathStuff.put("\\(\\lt\\)","&lt;");
+        mathStuff.put("\\(\\gt\\)","&gt;");
+        mathStuff.put("\\(\\infty\\)","&infin;");
+        mathStuff.put("\\(\\varepsion\\)","&epsilon;");
+        mathStuff.put("\\(\\neq\\)","&ne;");
+        mathStuff.put("\\(\\neg\\)","&not;");
+        mathStuff.put("\\(\\forall\\)","&forall;");
+        mathStuff.put("\\(\\exists\\)","&exist;");
 
         String buf;
 		for(HashMap.Entry<String, String> item : mathStuff.entrySet()) {
-			buf=text.replaceAll(item.getKey(), Matcher.quoteReplacement(item.getValue()));
+			buf=text.replaceAll(Pattern.quote(item.getKey()), Matcher.quoteReplacement(item.getValue()));
 			if(!buf.equals(text))log.finer("options : replaced "+item.getKey()+" with "+item.getValue());
 			text=buf;
 	    }
