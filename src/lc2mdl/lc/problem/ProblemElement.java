@@ -256,12 +256,17 @@ public abstract class ProblemElement {
 	private String replaceGnuPlot(String text) {
 		String gnuplotPat = "< {0,}gnuplot[\\s\\S]*?\\/ {0,}gnuplot {0,}>";
 		Matcher matcher = Pattern.compile(gnuplotPat).matcher(text);
+		StringBuffer sb=new StringBuffer();
 		while (matcher.find()) {
 			String gnuString = matcher.group();
 			Gnuplot gnuplotEl = new Gnuplot(problem, node, gnuString);
 			gnuplotEl.consumeNode();
-			text.replace(gnuString, gnuplotEl.getPlotString());
+			String repalcement=gnuplotEl.getPlotString();
+			matcher.appendReplacement(sb,Matcher.quoteReplacement(repalcement));
+//			text=text.replace(gnuString, gnuplotEl.getPlotString());
 		}
+		matcher.appendTail(sb);
+		text=sb.toString();
 		return text;
 	}
 
