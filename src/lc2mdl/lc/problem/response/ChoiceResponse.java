@@ -20,6 +20,7 @@ public abstract class ChoiceResponse extends Response {
     protected ArrayList<InputFoil> foilsList = new ArrayList<InputFoil>();
     protected boolean random = true;
     protected boolean isMatch = false;
+    //only used in MatchedResponse
     protected HashMap<String,String> matchOptions = new HashMap<String,String>();
 
     public ChoiceResponse(Problem problem, Node node) {

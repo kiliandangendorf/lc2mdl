@@ -28,7 +28,7 @@ public abstract class DisplayFeedback extends ProblemElement {
      public void addToMdlQuestion(Question question) {
         question.addComment(comment);
         String oldFeedback = question.getGeneralfeedback();
-        feedbackText = oldFeedback + System.lineSeparator() + feedbackText;
+        if(!oldFeedback.equals(""))feedbackText = oldFeedback + System.lineSeparator() + feedbackText;
         question.setGeneralfeedback(feedbackText);
     }
 
