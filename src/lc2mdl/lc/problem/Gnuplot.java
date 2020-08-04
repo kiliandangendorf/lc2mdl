@@ -205,7 +205,7 @@ public class Gnuplot extends ProblemElement {
              }
         if (list.getLength()>=1) {
             Element e = (Element)list.item(0);
-            title = "[legend,"+e.getNodeValue()+"],";
+            title = ",[legend,\""+e.getNodeValue()+"\"],";
             removeNodeFromDOM(e);
         }
 
