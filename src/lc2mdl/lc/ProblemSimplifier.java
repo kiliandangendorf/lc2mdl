@@ -1,6 +1,7 @@
 package lc2mdl.lc;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.logging.Logger;
 
 import org.w3c.dom.Node;
@@ -37,7 +38,9 @@ public class ProblemSimplifier {
 			case Node.ELEMENT_NODE:
 				if(!node.hasChildNodes()){
 					if(!node.hasAttributes()){
-						removeNode(node);
+						if(!isHTML(node)){
+							removeNode(node);
+						}
 					}
 				}
 				break;
@@ -53,5 +56,11 @@ public class ProblemSimplifier {
 	private void removeNode(Node n){
 		log.finer("remove empty "+n.getNodeName()+" in "+n.getParentNode().getNodeName());
 		n.getParentNode().removeChild(n);
+	}
+	private boolean isHTML(Node n){
+		ArrayList<String> htmlTagsToBePreventedBySimplifying=new ArrayList<>(
+				Arrays.asList("table","tr","td","ol","ul","li","center","br","hr","div","p","b"));
+		if(htmlTagsToBePreventedBySimplifying.contains(n.getNodeName()))return true;
+		return false;
 	}
 }
