@@ -164,7 +164,7 @@ public class PerlScript extends ProblemElement{
 			replacements.put("[\\r\\n]+"," ");
 			replacements.put(";[\\r\\n]*",", ");
 		}
-		replacements.put(";(?=([^\"]*\"[^\"]*\")*[^\"]*;)",", ");
+		replacements.put(";\\s*",", ");
 		replacements.put(",\\s+\\)"," )");
 //		replacements.put("\\s+"," ");		
 		Pattern pattern;
@@ -587,9 +587,13 @@ public class PerlScript extends ProblemElement{
 				if(stringStart>0){
 					//...if escaped quotation mark
 					if(script.charAt(stringStart-1)==escape){
-						// start over again with next quotes
-						lastStart=stringStart+1;
-						continue;
+						
+						//only if it's not an escaped backslash, e.g in 
+						if(!(stringStart>1 && script.charAt(stringStart-1)==escape)){
+							// start over again with next quotes
+							lastStart=stringStart+1;
+							continue;
+						}
 					}
 					
 					//...if it's meant to be an apostrophe 
@@ -616,6 +620,14 @@ public class PerlScript extends ProblemElement{
 						if(script.charAt(stringEnd-1)!=escape){
 							//end found
 							break;
+						}
+						if(script.charAt(stringEnd-1)==escape){
+							if(stringEnd>stringStart+1){
+								if(script.charAt(stringEnd-2)==escape){
+									//end found because of escaped backslash
+									break;
+								}
+							}
 						}
 					}
 				}
