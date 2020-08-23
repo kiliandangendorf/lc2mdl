@@ -1,9 +1,13 @@
 package lc2mdl.lc.problem;
 
-import lc2mdl.mdl.quiz.Question;
-import lc2mdl.mdl.quiz.QuestionStack;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+
+import lc2mdl.mdl.quiz.Question;
+import lc2mdl.mdl.quiz.QuestionStack;
 
 public class Meta extends ProblemElement {
 
@@ -25,9 +29,16 @@ public class Meta extends ProblemElement {
             if (name.equals("isbasedonres")){
                 if (e.hasAttribute("content")){
                     basedOn =  e.getAttribute("content");
-                    basedOn = basedOn.replaceAll("\\\\%2f","/");
-                    basedOn = basedOn.replaceAll("\\\\%2d"," ");
-                    basedOn = basedOn.replaceAll("\\\\%2e",".");
+                    
+                    //remove backslash in front of reference
+                    basedOn=basedOn.replace("\\%","%");
+                    //use java to decode URL references like "\%2d" to "-" etc.
+                    try{
+						basedOn=URLDecoder.decode(basedOn, "UTF-8");
+					}catch(UnsupportedEncodingException ex){
+						// worst case, it will stay with references 
+					}
+                    					
                     isBasedOn = true;
                 }
             else {
