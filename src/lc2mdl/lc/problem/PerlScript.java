@@ -318,19 +318,28 @@ public class PerlScript extends ProblemElement{
 
 		// DIFFERENT SYNTAX CONVERSION (different parameters)
 		// regex was not possible for balanced parentheses
-
-		//		String scriptOriginal=script;
-		HashMap<String,String> functionStringReplacements=new LinkedHashMap<>();
 		String functionBeginPat;
 		// optional &-sign (ampersand)
-		if(Prefs.SUPPORT_OLD_CAPA_FUNCTIONS_WITHOUT_AMPERSAND) functionBeginPat="\\&?\\w+\\(";
-		else functionBeginPat="\\&\\w+\\(";
+		if(Prefs.SUPPORT_OLD_CAPA_FUNCTIONS_WITHOUT_AMPERSAND){
+			//only if there is a word boundary in front of function name
+			functionBeginPat="\\&?(?:\\b)\\w+\\(";
+		}
+		else{
+			functionBeginPat="\\&\\w+\\(";
+		}
 		Matcher functionMatcher=Pattern.compile(functionBeginPat).matcher(script);
-		while(functionMatcher.find()){
+		int lastIndex=0;
+		while(functionMatcher.find(lastIndex)){
 			String functionName=functionMatcher.group();
 			int start=functionMatcher.start();
+			//for not matching same function multiple times
+			lastIndex=start+1;
 			//char-position in script BEHIND opening bracket
 			int pos=functionMatcher.end();
+			
+			//skip if name matches known CS
+			ArrayList<String> misunderstandableCS=new ArrayList<>(Arrays.asList("if","elsif","unless","while","until","for","foreach"));
+			if(misunderstandableCS.contains(functionName.substring(0,functionName.length()-1)))continue;
 
 			ArrayList<String> params=new ArrayList<>();
 
@@ -426,8 +435,7 @@ public class PerlScript extends ProblemElement{
 					String newStatement=arrayDefinition.toString()+leftStatement+assignArrayValue;
 
 					log.finer("--replace \""+wholeStatement+"\" with \""+newStatement+"\"");
-					functionStringReplacements.put(wholeStatement,newStatement);
-					//					script=script.replace(wholeStatement,newStatement);
+					script=script.replace(wholeStatement,newStatement);
 					break;
 
 				case "&cas(":
@@ -436,8 +444,7 @@ public class PerlScript extends ProblemElement{
 					String maxima=params.get(1);
 					if(cas.equals("\"maxima\"")||cas.equals("'maxima'")){
 						log.finer("--replaced \""+completeFunction+"\" with \""+maxima+"\"");
-						functionStringReplacements.put(completeFunction,params.get(1));
-						//						script=script.replace(completeFunction,params.get(1));
+						script=script.replace(completeFunction,params.get(1));
 					}else{
 						log.warning("--found &cas for unknown cas: "+cas);
 					}
@@ -447,8 +454,7 @@ public class PerlScript extends ProblemElement{
 				case "pow(":
 					String pow="("+params.get(0)+")"+"^"+"("+params.get(1)+")";
 					log.finer("--replace \""+completeFunction+"\" with \""+pow+"\"");
-					functionStringReplacements.put(completeFunction,pow);
-					//					script=script.replace(completeFunction,pow);
+					script=script.replace(completeFunction,pow);
 					break;
 
 				case "&random_permutation(":
@@ -459,8 +465,7 @@ public class PerlScript extends ProblemElement{
 					else permutation+=params.get(0)+")";
 					log.finer("--replace \""+completeFunction+"\" with \""+permutation+"\"");
 					if(params.size()>1) log.finer("---seed "+params.get(0)+" was ignored");
-					functionStringReplacements.put(completeFunction,permutation);
-					//					script=script.replace(completeFunction,permutation);
+					script=script.replace(completeFunction,permutation);
 					break;
 
 				case "&random(":
@@ -470,17 +475,16 @@ public class PerlScript extends ProblemElement{
 					String step=(params.size()<3)?"1":params.get(2);
 					String random="rand_with_step("+lower+", "+upper+", "+step+")";
 					log.finer("--replace \""+completeFunction+"\" with \""+random+"\"");
-					functionStringReplacements.put(completeFunction,random);
-					//					script=script.replace(completeFunction,random);					
+					script=script.replace(completeFunction,random);					
 					break;
 
 				default:
 					if(!functionReplacements.containsValue(functionName)) log.warning("--unknown function: "+functionName);
 			}
+			
+			//refresh matcher on modified script
+			functionMatcher=Pattern.compile(functionBeginPat).matcher(script);
 		}
-
-		//now replace all collected function-Strings in script
-		replaceStringKeysByValues(functionStringReplacements);
 
 		HashMap<String,String> paramReplacement=new LinkedHashMap<>();
 		paramReplacement.put("parameter_setting(\"([a-zA-Z][a-zA-Z0-9_]*?)\")","lcparam_$1");
