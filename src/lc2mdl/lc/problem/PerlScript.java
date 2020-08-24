@@ -442,7 +442,7 @@ public class PerlScript extends ProblemElement{
 
 				case "&pow(":
 				case "pow(":
-					String pow=params.get(0)+"^"+params.get(1);
+					String pow="("+params.get(0)+")"+"^"+"("+params.get(1)+")";
 					log.finer("--replace \""+completeFunction+"\" with \""+pow+"\"");
 					functionStringReplacements.put(completeFunction,pow);
 					//					script=script.replace(completeFunction,pow);
