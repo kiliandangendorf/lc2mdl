@@ -293,7 +293,7 @@ public abstract class ProblemElement {
 		List<String> rightPat = new ArrayList<String>();
 
 		String addbackslashes ="";
-//		if (isVariable) { addbackslashes ="\\\\"; }
+//		if (isVariable) { addbackslashes ="\\\\"; } //doubling below
 
 		//Note: one backslash (literal) in text means 4 in java-regex (1. and 3. for escaping the following backslash. It remains one literal backslash) 
 		
@@ -351,6 +351,8 @@ public abstract class ProblemElement {
 			text=replacePatternWithString(s,addbackslashes+"\\)",text);
 		}
 
+		//double backslashes in maxima string
+		if (isVariable)text=text.replace("\\","\\\\");
 		return text;
 	}
 
