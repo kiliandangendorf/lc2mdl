@@ -60,7 +60,7 @@ public class PerlControlStructuresReplacer{
 				valid=true;
 				//substring incl. closeBrace
 				blockStringWithBraces=script.substring(openBrace,closeBrace+1);
-				if(!Prefs.ALLOW_MULTILINE_BLOCKS) blockStringWithBraces=makeBlockOneLine(blockStringWithBraces);				
+				//cleanup in blocks will be done later...
 			}
 		}
 		public String toString(){return blockStringWithBraces;}
@@ -313,7 +313,7 @@ public class PerlControlStructuresReplacer{
 
 	private void replaceForEachLoops(){
 		// foreach [$var] (ARRAY) {...}
-		String forBeginPat="(?<=\\b)"+Pattern.quote("foreach")+" {0,}\\(";
+		String forBeginPat="(?<=\\b)"+Pattern.quote("foreach")+"\\s*\\(";
 
 		int stmtStart;
 		int curIndex=0;
@@ -458,10 +458,10 @@ public class PerlControlStructuresReplacer{
 	private void replaceForLoops(){
 		// for (...; ...; ...) {...}
 		// for (ARRAY) {...}
-		String forBeginPat="(?<=\\b)"+Pattern.quote("for")+" {0,}\\(";
+		String forBeginPat="(?<=\\b)"+Pattern.quote("for")+"\\s*\\(";
 		
 		//Vars are already replaced, so there is no $ in front
-		String forWithVarBeginPat="(?<=\\b)"+Pattern.quote("for")+"( {0,}\\(| {1,}((\\$)?[\\w]+ {0,})?\\()";
+		String forWithVarBeginPat="(?<=\\b)"+Pattern.quote("for")+"(\\s*\\(| {1,}((\\$)?[\\w]+\\s*)?\\()";
 		forBeginPat=forWithVarBeginPat;
 		
 		int stmtStart,stmtEnd;
@@ -508,14 +508,14 @@ public class PerlControlStructuresReplacer{
 				}
 			}else if(forParams.length==3){
 				//for (INIT ; CONDITION ; COMMAND) {BLOCK}
-				String init=forParams[0];
-				String condition=forParams[1];
-				String command=forParams[2];
+				String init=forParams[0].trim();
+				String condition=forParams[1].trim();
+				String command=forParams[2].trim();
 		
 				//build new maxima statement string
 				//for INIT next COMMAND while (CONDITION) do {BLOCK}
 				String maximaStmtText=" "+csDict.get("for")+" ";
-				maximaStmtText+=init+" "+csDict.get("next")+" "+command+" "+csDict.get("while")+" ("+condition+") ";
+				maximaStmtText+="("+init+") "+csDict.get("next")+" ("+command+") "+csDict.get("while")+" ("+condition+") ";
 				//TODO: is NEXT still correct, if I replace ++ Operator?
 				
 				maximaStmtText+=csDict.get("do")+" "+forBlock+" ";
@@ -545,7 +545,7 @@ public class PerlControlStructuresReplacer{
 		// until (...) {...}
 		for(String loopType:Arrays.asList("while","until")){
 			//FIND \b if {0,}(
-			String whileBeginPat="(?<=\\b)"+Pattern.quote(loopType)+" {0,}\\(";
+			String whileBeginPat="(?<=\\b)"+Pattern.quote(loopType)+"\\s*\\(";
 
 			int stmtStart,stmtEnd;
 			int curIndex=0;
@@ -608,7 +608,7 @@ public class PerlControlStructuresReplacer{
 		do{
 	
 			Block doBlock=null;
-			String doLoopBeginPat="(?<=\\b)do {0,}\\{";
+			String doLoopBeginPat="(?<=\\b)do\\s*\\{";
 			
 			int[] doMatch=ConvertAndFormatMethods.getRegexStartAndEndIndexInText(doLoopBeginPat,script,curIndex);
 			doStart=doMatch[0];
@@ -624,7 +624,7 @@ public class PerlControlStructuresReplacer{
 			}
 			
 			//now find DO condition (while|until) (...)			
-			String loopConditionPattern="(?<=\\b)(while|until) {0,}\\(";
+			String loopConditionPattern="(?<=\\b)(while|until)\\s*\\(";
 			int[] loopConditionMatch=ConvertAndFormatMethods.getRegexStartAndEndIndexInText(loopConditionPattern,script,doBlock.closeBrace);
 			int loopConditionStart=loopConditionMatch[0];
 			
@@ -698,7 +698,7 @@ public class PerlControlStructuresReplacer{
 
 		for(String conditionType:Arrays.asList("if","unless")){
 			//FIND \b if {0,}(
-			String ifBeginPat="(?<=\\b)"+Pattern.quote(conditionType)+" {0,}\\(";
+			String ifBeginPat="(?<=\\b)"+Pattern.quote(conditionType)+"\\s*\\(";
 
 			int stmtStart,stmtEnd;
 			int curIndex=0;
@@ -732,7 +732,7 @@ public class PerlControlStructuresReplacer{
 				//n-times
 				do{
 					//look from lastBlockIndices[1] on for literal ELSIF
-					int[] optionalElsifMatch=ConvertAndFormatMethods.getRegexStartAndEndIndexInText("(?<=\\b)elsif {0,}\\(",script,lastBlockEnd);
+					int[] optionalElsifMatch=ConvertAndFormatMethods.getRegexStartAndEndIndexInText("(?<=\\b)elsif\\s*\\(",script,lastBlockEnd);
 					optionalElsifStart=optionalElsifMatch[0];
 					if(optionalElsifStart==-1) break;
 
@@ -766,7 +766,7 @@ public class PerlControlStructuresReplacer{
 				//one time
 				//look from lastBlockIndices[1] on for literal ELSE (no condition here, so only look BEFORE "{")
 				Block elseBlock=null;
-				int[] optionalElseMatch=ConvertAndFormatMethods.getRegexStartAndEndIndexInText("(?<=\\b)else {0,}(?=\\{)",script,lastBlockEnd);
+				int[] optionalElseMatch=ConvertAndFormatMethods.getRegexStartAndEndIndexInText("(?<=\\b)else\\s*(?=\\{)",script,lastBlockEnd);
 				int optionalElseStart=optionalElseMatch[0];
 
 				if(optionalElseStart!=-1){
@@ -877,10 +877,6 @@ public class PerlControlStructuresReplacer{
 		return new int[]{openBlockParen,closeBlockParen};
 	}
 	
-	private String makeBlockOneLine(String text){
-		return ConvertAndFormatMethods.removeCR(text);
-	}
-
 	private void addConvertWarningToScript(String warning){
 		perlScript.addConvertWarning(warning);
 	}

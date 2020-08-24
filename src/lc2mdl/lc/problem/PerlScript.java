@@ -152,30 +152,32 @@ public class PerlScript extends ProblemElement{
 		}
 	}
 
-	private String replaceSyntaxInBlock(String block){
+	private String replaceSyntaxInBlock(String blockStringWithBraces){
 		HashMap<String,String> replacements=new LinkedHashMap<>();
-		String newBlock=block;
+		String newBlock=blockStringWithBraces;
 
-		replacements.put("(?<![!=<>])=(?!=)(?=([^\"]*\"[^\"]*\")*[^\"]*;)",": ");
+		//changing braces 
 		replacements.put("\\{","(");
 		replacements.put("\\}",")");
-		//TODO dependent of Prefs.ALLOW_MULTILINE_BLOCKS
+
+		//replace semicolons by comma
+		replacements.put("; {0,}",", ");
+		//remove last comma in block
+		replacements.put(",(\\s+)\\)","$1)");
+		 
 		if(!Prefs.ALLOW_MULTILINE_BLOCKS){
+			//remove CR & LF
 			replacements.put("[\\r\\n]+"," ");
-			replacements.put(";[\\r\\n]*",", ");
+			//remove everything after comma
+			replacements.put(",\\s*",", ");
+			//remove tabs
+			replacements.put("\\t"," ");
+			//cleanup multiple generated whitespace
+			replacements.put(" {2,}"," ");
 		}
-		replacements.put(";\\s*",", ");
-		replacements.put(",\\s+\\)"," )");
-//		replacements.put("\\s+"," ");		
-		Pattern pattern;
-		Matcher matcher;
+
 		for(String key:replacements.keySet()){
-			pattern=Pattern.compile(key);
-			matcher=pattern.matcher(newBlock);
-			while(matcher.find()){
-				newBlock=newBlock.replaceFirst(key,replacements.get(key));
-//				newBlock=newBlock.replaceAll(key,replacements.get(key));
-			}
+			newBlock=newBlock.replaceAll(key,replacements.get(key));
 		}
 		return(newBlock);
 	}
@@ -243,8 +245,8 @@ public class PerlScript extends ProblemElement{
 		// newline or return at the end of line
 		script=script.replaceAll(";[\\r\\n]{2,}",";"+System.lineSeparator()+System.lineSeparator());
 
-		log.finer("--remove multiple spaces");
-		script=script.replaceAll(" {2,}"," ");
+//		log.finer("--remove multiple spaces");
+//		script=script.replaceAll(" {2,}"," ");
 
 		log.finer("--remove multiple semicola");
 		script=script.replaceAll("(; {0,}){2,}","; ");
