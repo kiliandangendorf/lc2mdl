@@ -47,5 +47,7 @@ public class Prefs {
 	public static final boolean ALLOW_MULTILINE_BLOCKS=true;
 	// add semicolon at end of new added statements
 	public static final boolean ADD_SEMICOLON_AT_END_OF_STMT=true;
+	
+	public static final boolean ALLOW_MULTILINE_MAXIMA_STRINGS=true;	
 
 }

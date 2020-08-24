@@ -203,11 +203,11 @@ public abstract class ChoiceResponse extends Response {
             NodeList nlist=e.getChildNodes();
             description = "";
             for (int i=0; i<nlist.getLength();i++){
-                Element el = (Element)nlist.item(i);
-                if (el.getTagName().equals("outtext")){
-                    description += el.getTextContent();
+            	Node n=nlist.item(i);
+                if (n.getNodeName().equals("outtext")){
+                    description += n.getTextContent();
                 }else{
-                    log.warning("found foil content of type "+el.getTagName());
+                    log.warning("found foil content of type \""+n.getNodeName()+"\" (will not work on)");
                 }
             }
             description = transformFoil(description);

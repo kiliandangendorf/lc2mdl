@@ -459,6 +459,7 @@ public class PerlScript extends ProblemElement{
 
 				case "&random_permutation(":
 				case "random_permutation(":
+					//TODO: permutation for arrays
 					String permutation="random_permutation(";
 					//only second parameter is list, seed will be ignored
 					if(params.size()>1) permutation+=params.get(1)+")";
@@ -479,6 +480,7 @@ public class PerlScript extends ProblemElement{
 					break;
 
 				default:
+					//TODO: for these above also no warning :/
 					if(!functionReplacements.containsValue(functionName)) log.warning("--unknown function: "+functionName);
 			}
 			
@@ -596,7 +598,7 @@ public class PerlScript extends ProblemElement{
 					if(script.charAt(stringStart-1)==escape){
 						
 						//only if it's not an escaped backslash, e.g in 
-						if(!(stringStart>1 && script.charAt(stringStart-1)==escape)){
+						if(!(stringStart>1 && script.charAt(stringStart-2)==escape)){
 							// start over again with next quotes
 							lastStart=stringStart+1;
 							continue;

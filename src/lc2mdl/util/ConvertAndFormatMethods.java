@@ -38,16 +38,28 @@ public class ConvertAndFormatMethods{
 	 * @return       int end position (or -1 if nothing found)
 	 */
 	public static int findMatchingParentheses(String text,int start,boolean round){
-
+		if(round)return findMatchingParentheses(text,start,'(',')');
+		else return findMatchingParentheses(text,start,'{','}');
+	}
+	
+	/**
+	 * @param text   String with parentheses
+	 * @param start  start position
+	 * @param charOpen e.g. '('
+	 * @param charClose e.g. ')'
+	 *
+	 * @return       int end position (or -1 if nothing found)
+	 */
+	public static int findMatchingParentheses(String text,int start,char charOpen, char charClose){		
 		int end=start;
-		char charOpen,charClose;
-		if(round){
-			charOpen='(';
-			charClose=')';
-		}else{
-			charOpen='{';
-			charClose='}';
-		}
+//		char charOpen,charClose;
+//		if(round){
+//			charOpen='(';
+//			charClose=')';
+//		}else{
+//			charOpen='{';
+//			charClose='}';
+//		}
 
 		int bracketCount=1;
 		while(end<text.length()){
