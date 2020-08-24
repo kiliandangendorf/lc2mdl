@@ -44,10 +44,11 @@ public class Prefs {
 	// determines if e.g. random(...) will be converted, too, not only &random(...)
 	public static final boolean SUPPORT_OLD_CAPA_FUNCTIONS_WITHOUT_AMPERSAND=true;
 
-	public static final boolean ALLOW_MULTILINE_BLOCKS=true;
 	// add semicolon at end of new added statements
 	public static final boolean ADD_SEMICOLON_AT_END_OF_STMT=true;
-	
-	public static final boolean ALLOW_MULTILINE_MAXIMA_STRINGS=true;	
+
+	//Formatting / Syntax
+	public static final boolean ALLOW_MULTILINE_BLOCKS=true;
+	public static final boolean ALLOW_MULTILINE_MAXIMA_STRINGS=false;	
 
 }

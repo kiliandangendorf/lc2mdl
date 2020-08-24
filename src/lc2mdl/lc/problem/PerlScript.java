@@ -699,7 +699,7 @@ public class PerlScript extends ProblemElement{
 
 			//prevent to match lc2mdltext10 with lc2mdltext1
 //			buf=buf.replaceFirst("(?<=\\W)lc2mdltext"+i+"(?=\\W)",stringText);
-			buf=buf.replaceAll("(?<=\\W)lc2mdltext"+i+"(?=\\W)",Matcher.quoteReplacement(stringText));
+			buf=buf.replaceAll("(?<=\\b)lc2mdltext"+i+"(?=\\b)",Matcher.quoteReplacement(stringText));
 		}
 
 		script=buf;
