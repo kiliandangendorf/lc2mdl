@@ -36,7 +36,23 @@ TOFILE:   Moodle-STACK xml-file or folder.
 FROMFILE and TOFILE must be both files or folders.
 -h, --help 				shows usage
 -v, --verbose			verbose output
--r, --recursive		find files recursively in folder
+-r, --recursive			find files recursively in folder
+-R, --recnocon			find files recursively in folder (starts converting without confirmation)
 -t, --rmtmp				remove tmp-files (automatically done if empty)
 -T, --rmlog				remove log-files (NOT RECOMMENDED)
 ```
+# Prefs class
+In `Prefs.java` there are two booleans for formatting / syntax:
+```
+ALLOW_MULTILINE_BLOCKS=true;
+```
+In older versions of Stack multiline blocks were not allowed. 
+Switch this to remove all CR/LF and whitespaces within blocks.
+
+```
+ALLOW_MULTILINE_MAXIMA_STRINGS=false;
+```
+Basically Maxima supports multiline strings. 
+But currently we could not use it in Stack.
+So everything between quotation marks will be squeezed also.
+Someday in future I will switch this one too ;)
