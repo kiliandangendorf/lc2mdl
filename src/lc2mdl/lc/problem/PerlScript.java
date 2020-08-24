@@ -461,9 +461,27 @@ public class PerlScript extends ProblemElement{
 				case "random_permutation(":
 					//TODO: permutation for arrays
 					String permutation="random_permutation(";
-					//only second parameter is list, seed will be ignored
-					if(params.size()>1) permutation+=params.get(1)+")";
-					else permutation+=params.get(0)+")";
+					//first parameter is seed, will be ignored
+					if(params.size()>1){
+						//only second parameter is list, seed will be ignored
+						if(params.size()==2){
+							//array as parameter
+							permutation+=params.get(1)+")";	
+						}else{
+							//items as parameter
+							permutation+="[";
+							for(int i=1;i<params.size();i++){
+								permutation+=params.get(i)+", ";
+							}
+							//remove first comma
+							permutation=permutation.substring(0,permutation.length()-2);
+							permutation+="])";
+						}						
+					}
+					else{
+						//only array as parameter
+						permutation+=params.get(0)+")";
+					}
 					log.finer("--replace \""+completeFunction+"\" with \""+permutation+"\"");
 					if(params.size()>1) log.finer("---seed "+params.get(0)+" was ignored");
 					script=script.replace(completeFunction,permutation);
@@ -480,8 +498,10 @@ public class PerlScript extends ProblemElement{
 					break;
 
 				default:
-					//TODO: for these above also no warning :/
-					if(!functionReplacements.containsValue(functionName)) log.warning("--unknown function: "+functionName);
+					ArrayList<String> knownFunctions=new ArrayList<>();
+					knownFunctions.addAll(functionReplacements.values());
+					knownFunctions.add("rand_with_step(");
+					if(!knownFunctions.contains(functionName)) log.warning("--unknown function: "+functionName);
 			}
 			
 			//refresh matcher on modified script
