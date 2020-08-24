@@ -3,6 +3,7 @@ package lc2mdl.lc.problem;
 import lc2mdl.Prefs;
 import lc2mdl.mdl.quiz.Question;
 import lc2mdl.mdl.quiz.QuestionStack;
+import lc2mdl.util.ConvertAndFormatMethods;
 import lc2mdl.xml.XMLParser;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -65,35 +66,7 @@ public abstract class ProblemElement {
 	 */
 	protected String transformTextElement(String text){
 		log.finer("-transform text");
-
-		//gnuplot
-		text=replaceGnuPlot(text);
-		
-		// image tags
-		text = replaceImages(text);
-
-		//VARS in {@ ... @}
-		text=replaceVariables(text);
-
-		//LATEX / MATH-EXPRESSION: <m>...</m> into \( ... \)  (<m eval="on">)
-		text=replaceMathTags(text);
-
-		//HTML-ELEMENTSs
-		text=replaceHTMLTags(text);
-		
-		//LANGUAGEBLOCKS
-		text=chooseOneLanguageBlock(text,Prefs.DEFAULT_LANG);
-
-		//TRANSLATED
-		text=chooseOneTranslated(text,Prefs.DEFAULT_LANG);
-
-		//ESCAPE LEFT DOLLAR SIGNS
-		if(text.contains("$")){
-			log.warning("--still Dollar-signs in text. Replaced them by the String \"[DOLLAR-SIGN]\" (because Moodle doesn't like them)");
-			text=text.replaceAll("\\$","[DOLLAR-SIGN]");
-		}
-			
-		return text;
+		return transformText(text,false);
 	}
 
 	/**
@@ -103,17 +76,22 @@ public abstract class ProblemElement {
 	 */
 	protected String transformTextVariable(String text){
 		log.finer("-transfom text variable");
+		return transformText(text,true);
+	}
+	
+	protected String transformText(String text, boolean isVariable){
+		log.finer("-transfom text variable");
 		//gnuplot
 		text=replaceGnuPlot(text);
 
 		// img tags
 		text = replaceImages(text);
 
+		//LATEX / MATH-EXPRESSION: <m>...</m> into \( ... \)  (<m eval="on">)
+		text=replaceMathTags(text,isVariable);
+
 		//HTML-ELEMENTSs
 		text=replaceHTMLTags(text);
-
-		//LATEX / MATH-EXPRESSION: <m>...</m> into \( ... \)  (<m eval="on">)
-		text=replaceMathTags(text,true);
 
 		//LANGUAGEBLOCKS
 		text=chooseOneLanguageBlock(text,Prefs.DEFAULT_LANG);
@@ -121,12 +99,21 @@ public abstract class ProblemElement {
 		//TRANSLATED
 		text=chooseOneTranslated(text,Prefs.DEFAULT_LANG);
 
-		text = replacePatternWithString("\\{@","",text);
-		text = replacePatternWithString("@\\}","",text);
-
-		//VARS use sconcat
-		text=replacesVariablesInTextVariables(text);
-
+		//VARS 
+		if(isVariable){
+			//TEXT-VARIABLES
+			//remove {@ and @} from transformed variables
+			text = replacePatternWithString("\\{@","",text);
+			text = replacePatternWithString("@\\}","",text);
+	
+			//VARS use sconcat(
+			text=replacesVariablesInTextVariables(text);
+			//remove CR/LF in maxima strings 
+			if(!Prefs.ALLOW_MULTILINE_MAXIMA_STRINGS)text=ConvertAndFormatMethods.removeCR(text);
+		}else{
+			//VARS in {@ ... @}
+			text=replaceVariables(text);			
+		}
 
 		//ESCAPE LEFT DOLLAR SIGNS
 		if(text.contains("$")){
@@ -136,7 +123,6 @@ public abstract class ProblemElement {
 
 		return text;
 	}
-	
 	/**
 	 * Searches string for first match with given regEx and return matching substring o string
 	 * If there is no match this will return null 
@@ -212,43 +198,66 @@ public abstract class ProblemElement {
 
 	private String replaceVariables(String text){
 		//VARS in {@ ... @}
+		
+		//ARRAYS
 		for(String var:problem.getPerlVars()){
 			//make sure it's exactly same name
 			
 			//arrays $a[...] -->{@ a[...] @}
-			String arrayVarPat="\\$"+var+"\\[ {0,}(([\\$a-zA-Z0-9])*?) {0,}\\]";
-			Matcher matcher=Pattern.compile(arrayVarPat).matcher(text);
+			String arrayBeginPat="\\$"+var+"\\[";
+			Matcher matcher=Pattern.compile(arrayBeginPat).matcher(text);
 			while(matcher.find()){
-				String varString=matcher.group();
-				String replacement = varString.substring(1);
+				int openBrace=matcher.end()-1;
+				int closingBrace=ConvertAndFormatMethods.findMatchingParentheses(text,openBrace,'[',']')-1;
+				if(closingBrace<0){
+					log.warning("--found array access without closing parenthesis");
+					continue;
+				}
 				
+				String varString=text.substring(matcher.start(),closingBrace+1);
+				//remove first $-sign
+				String replacement=varString.substring(1);
+								
 				//replace vars within array-index
-				//$a[$i] -->{@ a[i] @}
+				//{@ a[$i] @} -->{@ a[i] @}
 				if(replacement.contains("$")){
 					for(String innerVar:problem.getPerlVars()){
-						String innerVarPat="\\$"+innerVar+"(?![a-zA-Z0-9])";
+						String innerVarPat="\\$"+innerVar+"(?=\\b)";
 						Matcher innerMatcher=Pattern.compile(innerVarPat).matcher(replacement);
+						StringBuffer sb=new StringBuffer();
 						while(innerMatcher.find()){
 							String innerString=innerMatcher.group();
+							//remove $
 							String innerReplacement = innerString.substring(1);
-							replacement=replacement.replace(innerString,innerReplacement);
+//							log.finer("--replace "+innerString+" with "+innerReplacement);
+							innerMatcher.appendReplacement(sb,innerReplacement);
 						}
+						innerMatcher.appendTail(sb);
+						replacement=sb.toString();
 					}
 				}
-				log.finer("--replace "+varString+" with {@"+replacement+"@}");
-				text=text.replace(varString,"{@"+replacement+"@}");
+				
+				replacement="{@ "+replacement+" @}";
+				log.finer("--replace "+varString+" with "+replacement);
+				text=text.replaceFirst(Pattern.quote(varString),Matcher.quoteReplacement(replacement));
+				matcher=Pattern.compile(arrayBeginPat).matcher(text);
 			}
-			
-			//vars $a --> {@ a @} (but no arrays)
-			String varPat="\\$"+var+"(?![a-zA-Z0-9])";
-//			String varPat="\\$"+var+"(?![(\\[ {0,})( {0,}\\])a-zA-Z0-9])";
-			matcher=Pattern.compile(varPat).matcher(text);
+		}
+
+		//vars $a --> {@ a @} (but no arrays)
+		for(String var:problem.getPerlVars()){
+			String varPat="\\$"+var+"(?=\\b)";
+			Matcher matcher=Pattern.compile(varPat).matcher(text);
+			StringBuffer sb=new StringBuffer();			
 			while(matcher.find()){
 				String varString=matcher.group();
 				String replacement = varString.substring(1);
-				log.finer("--replace "+varString+" with {@"+replacement+"@}");
-				text=text.replace(varString,"{@"+replacement+"@}");
+				replacement="{@ "+replacement+" @}";
+				log.finer("--replace "+varString+" with "+replacement);
+				matcher.appendReplacement(sb,replacement);				
 			}
+			matcher.appendTail(sb);
+			text=sb.toString();
 		}
 		return text;
 	}
@@ -281,10 +290,6 @@ public abstract class ProblemElement {
 		}
 		return text;
 
-	}
-
-	private String replaceMathTags(String text){
-		return replaceMathTags(text, false);
 	}
 
 	private String replaceMathTags(String text, boolean isVariable){
