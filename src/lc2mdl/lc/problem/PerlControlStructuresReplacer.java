@@ -244,41 +244,48 @@ public class PerlControlStructuresReplacer{
 
 		
 		//x%y -> mod(x,y) 
-		log.finer("--replace all \"x%y\" with \" mod(x, y)  \"");
+		log.finer("--replace all \"x%y\" with \" mod(x, y) \"");
 		script=script.replaceAll("([\\w]+) {0,}\\% {0,}([\\w]+)","mod($1, $2)");
 
 		//x**y -> x^y 
-		log.finer("--replace all \"x**y\" with \" x ^ y  \"");
+		log.finer("--replace all \"x**y\" with \" x ^ y \"");
 		script=script.replaceAll("([\\w]+) {0,}\\*\\* {0,}([\\w]+)","$1 ^ $2");
 
 		
 		//BEFORE equals signs ("=") are replaced
 		
 		//x+=y -> x: x+y 
-		log.finer("--replace all \"x+=y\" with \" x: x + y  \"");
+		log.finer("--replace all \"x+=y\" with \" x: x + y \"");
 		script=script.replaceAll("([\\w]+) {0,}\\+= {0,}([\\w]+)","$1: $1 + $2");
 		
 		//x-=y -> x: x-y 
-		log.finer("--replace all \"x-=y\" with \" x: x - y  \"");
+		log.finer("--replace all \"x-=y\" with \" x: x - y \"");
 		script=script.replaceAll("([\\w]+) {0,}\\-= {0,}([\\w]+)","$1: $1 - $2");
 		
 		//x*=y -> x: x*y 
-		log.finer("--replace all \"x*=y\" with \" x: x * y  \"");
+		log.finer("--replace all \"x*=y\" with \" x: x * y \"");
 		script=script.replaceAll("([\\w]+) {0,}\\*= {0,}([\\w]+)","$1: $1 * $2");
 		
 		//x/=y -> x: x/y 
-		log.finer("--replace all \"x/=y\" with \" x: x / y  \"");
+		log.finer("--replace all \"x/=y\" with \" x: x / y \"");
 		script=script.replaceAll("([\\w]+) {0,}\\/= {0,}([\\w]+)","$1: $1 / $2");
 		
 		//x%=y -> x: mod(x,y) 
-		log.finer("--replace all \"x%=y\" with \" x: mod(x, y)  \"");
+		log.finer("--replace all \"x%=y\" with \" x: mod(x, y) \"");
 		script=script.replaceAll("([\\w]+) {0,}\\%= {0,}([\\w]+)","$1: mod($1, $2)");
 		
 		//x**=y -> x: x^y 
-		log.finer("--replace all \"x**=y\" with \" x: x^y  \"");
+		log.finer("--replace all \"x**=y\" with \" x: x^y \"");
 		script=script.replaceAll("([\\w]+) {0,}\\*\\*= {0,}([\\w]+)","$1: $1 ^ $2");
 
 		//TODO: Consider calculation rules! E.g. "a*=b+c" should be "a:a*(b+c)" but actually it is "a:a*b+c" :/
+		
+		
+		//Strings are still replaced by "lc2mdltext#" so we can handle it as variable
+		//x.=y -> x: sconcat(x, y) 
+		log.finer("--replace all \"x.=y\" with \" x: sconcat(x, y) \"");
+		script=script.replaceAll("([\\w]+) {0,}\\.= {0,}([\\w]+)","$1: sconcat($1, $2)");
+		//TODO "." operator
 		
 		// = -> :
 		log.finer("--replace all \"=\" with \": \"");
