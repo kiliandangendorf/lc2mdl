@@ -231,7 +231,8 @@ public class PerlScript extends ProblemElement{
 		for(int i=commentNo-1;i>=0;i--){
 			String commentText=commentsInScript.get(i);
 			//prevent to match lc2mdl_comment10 with lc2mdl_comment1
-			buf=buf.replaceAll("(?<=\\W)lc2mdl_comment"+i+"(?=\\W)",Matcher.quoteReplacement(commentText));
+//			buf=buf.replaceAll("(?<=\\W)lc2mdl_comment"+i+"(?=\\W)",Matcher.quoteReplacement(commentText));
+			buf=buf.replaceAll("(?<=\\b)lc2mdl_comment"+i+"(?=\\b)",Matcher.quoteReplacement(commentText));
 		}
 		script=buf;
 	}
