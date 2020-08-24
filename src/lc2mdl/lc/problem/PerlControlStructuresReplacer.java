@@ -274,10 +274,11 @@ public class PerlControlStructuresReplacer{
 		log.finer("--replace all \"x%=y\" with \" x: mod(x, y)  \"");
 		script=script.replaceAll("([\\w]+) {0,}\\%= {0,}([\\w]+)","$1: mod($1, $2)");
 		
-		//x**=y -> x^y 
+		//x**=y -> x: x^y 
 		log.finer("--replace all \"x**=y\" with \" x: x^y  \"");
 		script=script.replaceAll("([\\w]+) {0,}\\*\\*= {0,}([\\w]+)","$1: $1 ^ $2");
 
+		//TODO: Consider calculation rules! E.g. "a*=b+c" should be "a:a*(b+c)" but actually it is "a:a*b+c" :/
 		
 		// = -> :
 		log.finer("--replace all \"=\" with \": \"");
