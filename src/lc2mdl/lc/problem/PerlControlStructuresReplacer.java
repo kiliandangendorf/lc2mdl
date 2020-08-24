@@ -348,7 +348,7 @@ public class PerlControlStructuresReplacer{
 					continue findingForEachStatements;					
 				}else{
 					//everything's fine
-					curIndex=nextIndex;
+					curIndex=stmtStart+1;//nextIndex;
 				}
 			}while(stmtStart!=-1);
 	}
@@ -504,7 +504,7 @@ public class PerlControlStructuresReplacer{
 					continue findingForStatements;					
 				}else{
 					//everything's fine
-					curIndex=nextIndex;
+					curIndex=stmtStart+1;//nextIndex;
 				}
 			}else if(forParams.length==3){
 				//for (INIT ; CONDITION ; COMMAND) {BLOCK}
@@ -528,8 +528,8 @@ public class PerlControlStructuresReplacer{
 	
 				log.info("---found control structure \""+"for"+"\", try to replace and reorder, please check result");
 	
-				// start over again from last match (prevents loop on IF replaced by IF)
-				curIndex=stmtStart+maximaStmtText.length();
+				// start over again from last match (prevents loop on replacement)
+				curIndex=stmtStart+1;
 			}else{
 				//for with 0, 2 or more than 3 Parts in (...)
 				addConvertWarningToScript("---found \""+"for"+"\" with unexpected parameters (will not work on)");
@@ -591,8 +591,8 @@ public class PerlControlStructuresReplacer{
 
 				log.info("---found control structure \""+loopType+"\", try to replace and reorder, please check result");
 
-				// start over again from last match (prevents loop on IF replaced by IF)
-				curIndex=stmtStart+maximaStmtText.length();
+				// start over again from last match (prevents loop on replacement)
+				curIndex=stmtStart+1;
 			}while(stmtStart!=-1);
 		}
 		
@@ -685,8 +685,8 @@ public class PerlControlStructuresReplacer{
 	
 			addConvertWarningToScript("---found \"do\" statement with closing \""+conditionType+"\", try to replace and reorder with helper var \""+boolName+"\" -- please check condition.  ");
 	
-			// start over again from last match (prevents loop on IF replaced by IF)
-			curIndex=doStart+maximaStmtText.length();
+			// start over again from last match (prevents loop on replacement)
+			curIndex=doStart+1;
 			
 		}while(doStart!=-1);
 
@@ -815,8 +815,8 @@ public class PerlControlStructuresReplacer{
 
 				log.info("---found control structure \""+conditionType+"\", try to replace and reorder, please check result");
 
-				// start over again from last match (prevents loop on IF replaced by IF)
-				curIndex=stmtStart+maximaStmtText.length();
+				// start over again from last match (prevents loop on replacement)
+				curIndex=stmtStart+1;
 			}while(stmtStart!=-1);
 		}
 	}
