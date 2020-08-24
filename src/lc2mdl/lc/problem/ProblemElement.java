@@ -297,8 +297,11 @@ public abstract class ProblemElement {
 
 		//Note: one backslash (literal) in text means 4 in java-regex (1. and 3. for escaping the following backslash. It remains one literal backslash) 
 		
+		//"on" and "off" should be already replaced by lc2mdltext#
+		String mathBeginTag="<m(\\s+eval=(\"on\"|\"off\"|lc2mdltext\\d+))?\\s*>";
+		
 		// TEX all with begin / end e.g. eqnarray*,equation*
-		leftPat.add("<m {0,}(eval=\"on\"){0,1}(eval=\"off\"){0,1} {0,}>\\s{0,}\\\\begin");
+		leftPat.add(mathBeginTag+"\\s{0,}\\\\begin");
 		rightPat.add("\\*\\}\\s{0,}<\\/\\s{0,}m>");
 
 		for (String s: leftPat){
@@ -313,11 +316,11 @@ public abstract class ProblemElement {
 		rightPat.clear();
 
 		//TEX all displaymath e.g.<m>$$ ... $$</m> into \[ ... \]
-		leftPat.add("<m\\s{0,}(eval=\"on\"){0,1}(eval=\"off\"){0,1}\\s{0,}>\\s{0,}\\$\\$");
+		leftPat.add(mathBeginTag+"\\s{0,}\\$\\$");
 		rightPat.add("\\$\\$\\s{0,}<\\/\\s{0,}m>");
 
 		//Yes, 6 backslashes. 4 for the one literal and two for the [
-		leftPat.add("<m\\s{0,}(eval=\"on\"){0,1}(eval=\"off\"){0,1}\\s{0,}>\\s{0,}\\\\\\[");
+		leftPat.add(mathBeginTag+"\\s{0,}\\\\\\[");
 		rightPat.add("\\\\\\]\\s{0,}<\\/\\s{0,}m>");
 
 		for (String s: leftPat){
@@ -333,7 +336,7 @@ public abstract class ProblemElement {
 		rightPat.clear();
 
 		//LaTeX all other math into \( ... \)
-		leftPat.add("<m\\s{0,}(eval=\"on\"){0,1}(eval=\"off\"){0,1}\\s{0,}>\\${0,1}");
+		leftPat.add(mathBeginTag+"\\${0,1}");
 		rightPat.add("\\${0,1}\\s{0,}<\\/\\s{0,}m>");
 
 		leftPat.add("<algebra\\s{0,}>\\s{0,}\\${0,1}");
