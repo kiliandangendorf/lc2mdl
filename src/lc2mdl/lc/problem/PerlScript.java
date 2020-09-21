@@ -1,5 +1,6 @@
 package lc2mdl.lc.problem;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -13,7 +14,6 @@ import org.w3c.dom.Node;
 import lc2mdl.Prefs;
 import lc2mdl.mdl.quiz.QuestionStack;
 import lc2mdl.util.ConvertAndFormatMethods;
-import lc2mdl.util.FileFinder;
 
 public class PerlScript extends ProblemElement{
 	/* HINT:
@@ -442,6 +442,12 @@ public class PerlScript extends ProblemElement{
 				case "cas(":
 					String cas=params.get(0);
 					String maxima=params.get(1);
+					
+					//TODO: lookup in stringsInScript
+					//TODO: maxima-stmt needs to ALL params after another (not only first)
+					//TODO: Warning if contains defined variables without $-sign (maxima could interpret as string or var)
+					//TODO: Put maxima stmt in own block. So changes on existing vars won't affect
+					
 					if(cas.equals("\"maxima\"")||cas.equals("'maxima'")){
 						log.finer("--replaced \""+completeFunction+"\" with \""+maxima+"\"");
 						script=script.replace(completeFunction,params.get(1));
@@ -686,51 +692,56 @@ public class PerlScript extends ProblemElement{
 	}
 
 	private void replaceStrings(){
-		log.finer("--replace variables in strings ");
+		log.finer("--replace strings again");
 		String buf=script;
 		//going inverse direction to replace nested string-replacements
 		for(int i=stringNo-1;i>=0;i--){
 			String stringText=stringsInScript.get(i);
 			// remove " or '
 			stringText=stringText.substring(1,stringText.length()-1);
-			stringText=transformTextVariable(stringText);
-			stringText=replaceImagePathBySVG(stringText);
-			// log.finer("replace text" + stringText);
 
+			//in case of imagePath-String convert into svg (needs to be done BEFORE transformTextVariables, because of quoting)
+			stringText=replaceImagePathBySVG(stringText);
+			
+			//puts quotes around if there are none
+			stringText=transformTextVariable(stringText);
+			
 			//prevent to match lc2mdltext10 with lc2mdltext1
-//			buf=buf.replaceFirst("(?<=\\W)lc2mdltext"+i+"(?=\\W)",stringText);
 			buf=buf.replaceAll("(?<=\\b)lc2mdltext"+i+"(?=\\b)",Matcher.quoteReplacement(stringText));
 		}
 
 		script=buf;
 	}
-
 	private String replaceImagePathBySVG(String pathString){
-		String svgString=pathString;
-		pathString=pathString.substring(1,pathString.length()-1); // remove " "
-		if(pathString.endsWith(".png")||pathString.endsWith(".jpg")||pathString.endsWith("gif")||pathString.endsWith(".PNG")||pathString.endsWith(".JPG")
-				||pathString.endsWith("GIF")){
-			svgString=FileFinder.extractFileName(pathString);
-			log.finer("pathname = "+pathString+" , filename = "+svgString);
-			svgString=problem.getImagesSVG().get(svgString);
-			if(svgString==null){
-				log.warning("did not find svg for image "+pathString);
-				svgString=pathString;
-			}
+		String imagePath=problem.getAbsImagePathFromLcPath(pathString);
+		if(!ConvertAndFormatMethods.isImagePath(imagePath)){
+			//return if no image-path
+			return pathString;
+		}
+
+		//already sure it's an imagePath
+		String svgString;
+		try{
+			svgString=ConvertAndFormatMethods.convertImagePathIntoSvgString(imagePath);
+		}catch(IOException e){
+			log.warning("could not find image: "+imagePath+" (leave unchanged)");
+			return pathString;			
 		}
 		return svgString;
 	}
 
-	private void replaceStringKeysByValues(HashMap<String,String> replacements){
-		replaceStringKeysByValues(replacements,false);
-	}
+//  obsolete?
+//	private void replaceStringKeysByValues(HashMap<String,String> replacements){
+//		replaceStringKeysByValues(replacements,false);
+//	}
 
-	private void replaceStringKeysByValues(HashMap<String,String> replacements,boolean silent){
-		for(String key:replacements.keySet()){
-			//no log here; it was done before
-			script=script.replace(key,replacements.get(key));
-		}
-	}
+//  obsolete?
+//	private void replaceStringKeysByValues(HashMap<String,String> replacements,boolean silent){
+//		for(String key:replacements.keySet()){
+//			//no log here; it was done before
+//			script=script.replace(key,replacements.get(key));
+//		}
+//	}
 
 	private void replaceRegExKeysByValues(HashMap<String,String> replacements){
 		replaceRegExKeysByValues(replacements,false);

@@ -1,13 +1,16 @@
 package lc2mdl.lc.problem;
 
-import lc2mdl.mdl.quiz.Question;
-import lc2mdl.mdl.quiz.QuestionStack;
-import lc2mdl.util.FileFinder;
-import lc2mdl.xml.XMLParser;
+import java.io.IOException;
+
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+
+import lc2mdl.mdl.quiz.Question;
+import lc2mdl.mdl.quiz.QuestionStack;
+import lc2mdl.util.ConvertAndFormatMethods;
+import lc2mdl.xml.XMLParser;
 
 public class Image extends ProblemElement {
 
@@ -44,15 +47,23 @@ public class Image extends ProblemElement {
          // attributes
         if (img.hasAttribute("src")) {
             String src = img.getAttribute("src");
+            
+            //var-image
             if (src.charAt(0) == '$') {
                 imgString = "{@ " + src.substring(1) + " @}";
-            } else {
-                String key = FileFinder.extractFileName(src);
-                String svgString = problem.getImagesSVG().get(key);
-                if (svgString==null){
-                    log.warning("--did not find svg for image "+key);
-                    svgString="";
-                }
+            } 
+            //HTML-image
+            else {
+            	//absolute path
+            	String imagePath=problem.getAbsImagePathFromLcPath(src);
+                String svgString;
+				try{
+					svgString=ConvertAndFormatMethods.convertImagePathIntoSvgString(imagePath);
+				}catch(IOException e){
+					log.warning("--could not find image: "+imagePath+" (leave unchanged)");
+					//Leave "old" image Info here
+					svgString=ConvertAndFormatMethods.getNodeString(img);
+				}
                 imgString = svgString;
             }
             img.removeAttribute("src");
@@ -60,6 +71,8 @@ public class Image extends ProblemElement {
             log.warning("no src in image");
         }
 
+        //recover width and height
+        //TODO: works for SVG-String with "viewBox" and "enable-background"?
         if (img.hasAttribute("width")){
             width=img.getAttribute("width");
             img.removeAttribute("width");
@@ -70,6 +83,8 @@ public class Image extends ProblemElement {
             img.removeAttribute("height");
             imgString = imgString.replaceFirst("height=\"[0-9]*px\"","height=\""+height+"px\"");
         }
+        
+        //remove known attributes for simplifier
         removeAttributeIfExist(img,"TeXwrap");
         removeAttributeIfExist(img,"TeXwidth");
         removeAttributeIfExist(img,"TeXheight");
