@@ -204,7 +204,10 @@ public class PreParser {
 		{
 			log.severe(e.getMessage());
 			throw e;
+		}finally{
+			br.close();
 		}
+		
 		log.fine("-- "+countlibs+" libraries and "+countims+" images found.");
 	}
 

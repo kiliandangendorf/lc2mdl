@@ -70,7 +70,8 @@ public abstract class ProblemElement {
 	}
 
 	/**
-	 * transforms LON-CAPA Outtext-elements (from any parent Element) into Moodle-STACK CAS-Textvariables
+	 * transforms LON-CAPA Outtext-elements (from any parent Element) into Moodle-STACK CAS-Textvariables.
+	 * Makes also sure that text is in quotes
 	 * @param text (LON-CAPA Outtext)
 	 * @return converted CAS-Text
 	 */
@@ -80,7 +81,6 @@ public abstract class ProblemElement {
 	}
 	
 	protected String transformText(String text, boolean isVariable){
-		log.finer("-transfom text variable");
 		//gnuplot
 		text=replaceGnuPlot(text);
 
@@ -107,6 +107,7 @@ public abstract class ProblemElement {
 			text = replacePatternWithString("@\\}","",text);
 	
 			//VARS use sconcat(
+			//puts quotes around if there are none
 			text=replacesVariablesInTextVariables(text);
 			//remove CR/LF in maxima strings 
 			if(!Prefs.ALLOW_MULTILINE_MAXIMA_STRINGS)text=ConvertAndFormatMethods.removeCR(text);
@@ -135,6 +136,9 @@ public abstract class ProblemElement {
 		return null;
 	}
 
+	/**
+	 * makes also sure that text is in quotes
+	 */
 	private String replacesVariablesInTextVariables(String text){
 
 		String buf = text;
