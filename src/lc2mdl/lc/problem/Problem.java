@@ -1,13 +1,11 @@
 package lc2mdl.lc.problem;
 
-import lc2mdl.Prefs;
-import lc2mdl.lc.problem.response.Response;
-import lc2mdl.util.ConvertAndFormatMethods;
-
-import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.logging.Logger;
+
+import lc2mdl.lc.problem.response.Response;
+import lc2mdl.util.FileFinder;
 
 public class Problem {
 	public static Logger log = Logger.getLogger(ProblemElement.class.getName());
@@ -20,10 +18,8 @@ public class Problem {
 
 	private ArrayList<String> questiontypes = new ArrayList<>();
 
-	// key: filename, value: full path of the images
+	// key: filename, value: absolute path of the images
 	private HashMap<String,String> images=new HashMap<String, String>();
-	// key: filename, value: svgstring ot the image
-	private HashMap<String,String> imagesSVG=new HashMap<String, String>();
 
 	// tags: got from the relative path of the problem
 	private ArrayList<String> tags = new ArrayList<>();
@@ -38,24 +34,11 @@ public class Problem {
 		vars=new ArrayList<>();
 		vars.add("pi");
 		this.images=images;
-		if (!images.isEmpty()) {
-			imagesToSvg();
-		}
 	}
 
 	public Problem(String problemName, HashMap<String,String> images, String pathString){
-		this.problemName=problemName;
-		log.finer("start with problem "+problemName);
-		elements=new ArrayList<>();
-		vars=new ArrayList<>();
-		vars.add("pi");
-		this.images=images;
-		if (!images.isEmpty()) {
-			imagesToSvg();
-		}
-
+		this(problemName, images);
 		getCategoryAndTagsFromPath(pathString);
-
 	}
 
 	/**
@@ -144,53 +127,29 @@ public class Problem {
 		}
 	}
 
-	private void imagesToSvg()  {
-		log.finer("--convert images to svg");
-		for (String key : images.keySet()) {
-			String svgString = "";
-			String imagePath = images.get(key);
-			String svgPath = imagePath.substring(0,imagePath.lastIndexOf("."))+".svg";
-			ProcessBuilder pb = new ProcessBuilder();
-			pb.command(Prefs.BIN_DIR + "convert", imagePath, svgPath);
-			pb.redirectErrorStream(true);
-			Process convert;
-
-			try {
-				convert = pb.start();
-				convert.waitFor();
-
-				FileReader fr = new FileReader(svgPath);
-			    BufferedReader br = new BufferedReader(fr);
-
-				String line;
-				while ((line = br.readLine()) != null) {
-					svgString += line;
-				}
-
-
-			} catch (IOException e) {
-				log.warning("ERROR - Problems with reading the svg file "+svgPath+" " + e.getMessage());
-			} catch (InterruptedException e) {
-				log.warning("ERROR - Problems with converting the image " + imagePath+" " + e.getMessage());
-			}
-
-			svgString = ConvertAndFormatMethods.removeCR(svgString);
-			imagesSVG.put(key, svgString);
-		}
-
+	/**
+	 * Gives absolute path to image filename 
+	 * @param filename: eg. "rechtwinkligesDreieck.png"
+	 * @return absolute path to image file
+	 */
+	public String getAbsImagePathFromFilename(String filename){
+		return images.get(filename);
 	}
-
-
+	/**
+	 * Gives absolute path to LC-image-path
+	 * @param lcPath: eg. "/res/fhwf/riegler/TWW-Vorkurs/images/rechtwinkligesDreieck.png"
+	 * @return absolute path to image file
+	 */
+	public String getAbsImagePathFromLcPath(String lcPath){
+		String filename = FileFinder.extractFileName(lcPath);
+		return getAbsImagePathFromFilename(filename);
+	}
 
 	//================================================================================
     // Getter and Setter
     //================================================================================			
 	public ArrayList<ProblemElement> getElements() {
 		return elements;
-	}
-
-	public HashMap<String, String> getImagesSVG() {
-		return imagesSVG;
 	}
 
 	public ArrayList<String> getPerlVars(){
