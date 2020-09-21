@@ -1,11 +1,110 @@
 package lc2mdl.util;
 
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.StringWriter;
+import java.net.URLConnection;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
+import java.util.Base64;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.imageio.ImageIO;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+
+import org.w3c.dom.Node;
+
 public class ConvertAndFormatMethods{
+	
+	/**
+	 * Converts given image-String for file of kind JPEG, PNG, BMP, WEBMP or GIF into a svg-String. 
+	 * @param imagePath: Path to image-file
+	 * @return SVG-String containing base64-encoded image-data
+	 * @throws IOException 
+	 */
+	public static String convertImagePathIntoSvgString(String imageAbsPath) throws IOException{
+		if(imageAbsPath==null)throw new IOException();
+		
+		String base64DataOfImage=null;
+
+		File file=new File(imageAbsPath);
+		//only for getting measurements of images
+		BufferedImage im=ImageIO.read(file);
+		int width=im.getWidth();
+		int height=im.getHeight();
+		
+		String mimetype=URLConnection.guessContentTypeFromName(file.getName());
+		//TODO: Check Mime-Type for null 
+		
+		FileInputStream fileInputStreamReader = new FileInputStream(file);
+        byte[] bytes = new byte[(int)file.length()];
+        fileInputStreamReader.read(bytes);
+		base64DataOfImage=Base64.getEncoder().encodeToString(bytes);
+		fileInputStreamReader.close();
+		
+		
+		//build svg string
+		String svgHeader="<svg enable-background=\"new 0 0 "+width+" "+height+"\" height=\""+height+"\" viewBox=\"0 0 "+width+" "+height+"\" width=\""+width+"\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\">";
+		String imageHeader="<image height=\""+height+"\" width=\""+width+"\" xlink:href=\"data:"+mimetype+";base64,";
+		String imageFooter="\" />";
+		String svgFooter="</svg>";
+		
+		String imageString=imageHeader+base64DataOfImage+imageFooter;
+		return svgHeader+imageString+svgFooter;
+	}
+	
+	
+	/**
+	 * Determines if giving String is an path to an image file of kind JPEG, PNG, BMP, WEBMP or GIF.
+	 */
+	public static boolean isImagePath(String pathString){
+		if(pathString==null)return false;
+		
+		//at least one "." before image-suffix
+		if(!pathString.contains("."))return false;
+		//try to read as an image
+		File pretendedFile=new File(pathString);
+		try{
+			BufferedImage pretendedImage=ImageIO.read(pretendedFile);
+			if(pretendedImage!=null)return true;
+		}catch(IOException e){
+			//go on with returning false
+		}
+		return false;
+	}
+	
+	/**
+	 * Returns String-representation of given dom.Node.
+	 * @return eg. <img src="..." />
+	 */
+	public static String getNodeString(Node node){
+		//from: https://dzone.com/articles/java-dom-printing-content-node
+		String xmlString=null;
+		try{
+			// Set up the output transformer
+			TransformerFactory transfac=TransformerFactory.newInstance();
+			Transformer trans=transfac.newTransformer();
+			trans.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION,"yes");
+			trans.setOutputProperty(OutputKeys.INDENT,"yes");
+			// Print the DOM node
+			StringWriter sw=new StringWriter();
+			StreamResult result=new StreamResult(sw);
+			DOMSource source=new DOMSource(node);
+			trans.transform(source,result);
+			xmlString=sw.toString();
+		}catch(TransformerException e){
+			//returning null
+		}
+		return xmlString;
+	}
 	
 	/**
 	 * Converts double into String with decimal point (".") as decimal seperator and 7 digits after decimal point. 
