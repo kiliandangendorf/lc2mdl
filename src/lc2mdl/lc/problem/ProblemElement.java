@@ -142,6 +142,10 @@ public abstract class ProblemElement {
 	private String replacesVariablesInTextVariables(String text){
 
 		String buf = text;
+		//in case of single quotes, remove them
+		if(buf.startsWith("'")&&buf.endsWith("'")){
+			buf=buf.substring(1,buf.length()-1);
+		}
 		//make sure this string starts and ends with "
 		if (!buf.startsWith("\"")){ 
 			buf = "\""+buf; 
