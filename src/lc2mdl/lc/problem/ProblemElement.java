@@ -150,25 +150,41 @@ public abstract class ProblemElement {
 			buf += "\"";
 		}
 		text = buf;
+		
 		for(String var:problem.getPerlVars()){
-
-			//only if it's exactly same name
-			String varPat="\\$"+var+"\\[(([\\$a-zA-Z0-9])*?)\\]";
-			Matcher matcher=Pattern.compile(varPat).matcher(buf);
+			//arrays
+			String arrayBeginPat="\\$"+var+"\\[";
+			Matcher matcher=Pattern.compile(arrayBeginPat).matcher(buf);
 			while(matcher.find()){
-				String varString=matcher.group();
-				String replacement = varString.substring(1);
-				log.finer("--replace "+varString+" with \", "+replacement+" ,\"");
-				buf=buf.replace(varString,"\", "+replacement+" ,\"");
+				int openBrace=matcher.end()-1;
+				int closingBrace=ConvertAndFormatMethods.findMatchingParentheses(buf,openBrace,'[',']')-1;
+				if(closingBrace<0){
+					log.warning("--found array access without closing parenthesis");
+					continue;
+				}
+				String varString=buf.substring(matcher.start(),closingBrace+1);
+				//remove first $-sign
+				String replacement=varString.substring(1);
+				replacement="\", "+replacement+" ,\"";
+				log.finer("--replace "+varString+" with "+replacement);				
+				buf=buf.replaceFirst(Pattern.quote(varString),Matcher.quoteReplacement(replacement));
+				matcher=Pattern.compile(arrayBeginPat).matcher(buf);
 			}
-			varPat="\\$"+var+"(?![a-zA-Z0-9])";
+			
+			//vars
+			String varPat="\\$"+var+"(?=\\b)";
 			matcher=Pattern.compile(varPat).matcher(buf);
+			StringBuffer sb=new StringBuffer();			
 			while(matcher.find()){
 				String varString=matcher.group();
 				String replacement = varString.substring(1);
-				log.finer("--replace "+varString+" with \", "+replacement+" ,\"");
-				buf=buf.replace(varString,"\", "+replacement+" ,\"");
-			}
+				replacement="\", "+replacement+" ,\"";
+				log.finer("--replace "+varString+" with "+replacement);
+				matcher.appendReplacement(sb,replacement);				
+			}			
+			matcher.appendTail(sb);
+			buf=sb.toString();
+
 		}
 
 		//add sconcat(...) if there are multiple vars after another (if "," was added above)
@@ -195,7 +211,6 @@ public abstract class ProblemElement {
 			
 			buf = "sconcat(" +buf+ ")";
 		}
-		
 		
 		return buf;
 	}
