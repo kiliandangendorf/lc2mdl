@@ -440,17 +440,54 @@ public class PerlScript extends ProblemElement{
 
 				case "&cas(":
 				case "cas(":
-					String cas=params.get(0);
-					String maxima=params.get(1);
-					
-					//TODO: lookup in stringsInScript
-					//TODO: maxima-stmt needs to ALL params after another (not only first)
-					//TODO: Warning if contains defined variables without $-sign (maxima could interpret as string or var)
-					//TODO: Put maxima stmt in own block. So changes on existing vars won't affect
+					String cas=lookupSavedString(params.get(0));
 					
 					if(cas.equals("\"maxima\"")||cas.equals("'maxima'")){
-						log.finer("--replaced \""+completeFunction+"\" with \""+maxima+"\"");
-						script=script.replace(completeFunction,params.get(1));
+						//should only have two Strings-parameters cas("maxima", "..")  
+						if(params.size()!=2){
+							log.warning("--found &cas for maxima with wrong number of parameters");
+							continue;
+						}
+						
+						String maxima=lookupSavedString(params.get(1));
+						
+						//remove quotes
+						maxima=maxima.substring(1,maxima.length()-1);
+						
+						//find local variables (all vars that are assigned)
+						ArrayList<String> locals=new ArrayList<>();
+						//locals (here) are all variables used before, but protecting them to get overwritten from inside this block
+						//use in [] with self assignment, so there will be a local copy of these vars
+						//eg. block([a:a], ...) for all Perl vars
+						
+						//find Perl vars
+						//locals should be every variable, that came from Perl (beginning $)
+						String varPat="\\$\\w+(?=\\b)";
+						Matcher matcher=Pattern.compile(varPat).matcher(maxima);
+						while(matcher.find()){
+							String localVar=matcher.group();
+							//remove $
+							localVar=localVar.substring(1);
+							locals.add(localVar);
+						}
+						
+						//put maxima stmt in own block (so changes on existing vars won't affect)
+						String replacement="block(";
+						if(locals.size()>0){
+							replacement+="[";
+							String localList="";
+							for(String var:locals){
+								//local self assign
+								localList+=", "+var+": "+var;
+							}
+							//remove first ", "
+							localList=localList.substring(2);
+							replacement+=localList+"], ";
+						}
+						replacement+=maxima+")";
+
+						log.finer("--replaced \""+completeFunction+"\" with \""+replacement+"\"");
+						script=script.replace(completeFunction,replacement);
 					}else{
 						log.warning("--found &cas for unknown cas: "+cas);
 					}
@@ -519,6 +556,27 @@ public class PerlScript extends ProblemElement{
 		replaceRegExKeysByValues(paramReplacement);
 	}
 
+	private String lookupSavedString(String lc2mdltext){
+		//"lc2mdltext"+stringNo
+		final String strPrefix="lc2mdltext";
+		if(lc2mdltext.length()<=strPrefix.length())return null;
+		
+		String stringNoString=lc2mdltext.substring(strPrefix.length());
+		
+		//find stringNo for this String
+		int stringNo;
+		try{
+			stringNo=Integer.parseInt(stringNoString);
+		}catch (NumberFormatException e) {
+			return null;
+		}
+		
+		//return index of
+		String stringInScript=stringsInScript.get(stringNo);
+
+		return stringInScript;
+	}
+	
 	private void findAndReplaceVariables(){
 		ArrayList<String> vars=new ArrayList<>();
 
