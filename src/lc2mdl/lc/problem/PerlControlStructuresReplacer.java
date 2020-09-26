@@ -293,7 +293,7 @@ public class PerlControlStructuresReplacer{
 		// since savestrings() not needed anymore to look for " (2020-04-23)
 		// and not equal signs in quotes: (?<!=)=(?!=)(?=([^"]*"[^"]*")*[^"]*;)
 		// script=script.replaceAll("(?<![!=<>]) {0,}=(?!=) {0,}(?=([^\"]*\"[^\"]*\")*[^\"]*;)",": ");
-		script=script.replaceAll("(?<![=<>])=(?![=<>])",": ");
+		script=script.replaceAll("(?<![=<>:])=(?![=<>])",": ");
 
 		// ** -> ^
 		// replace double ** (only if double occurs, not more or less)
