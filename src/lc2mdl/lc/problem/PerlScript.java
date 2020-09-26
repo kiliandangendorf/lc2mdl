@@ -475,16 +475,20 @@ public class PerlScript extends ProblemElement{
 						String replacement="block(";
 						if(locals.size()>0){
 							replacement+="[";
-							String localList="";
+							String listString="";
 							for(String var:locals){
 								//local self assign
-								localList+=", "+var+": "+var;
+								listString+=", "+var+": "+var;
 							}
-							//remove first ", "
-							localList=localList.substring(2);
-							replacement+=localList+"], ";
+							//remove first ", " of list
+							listString=listString.substring(2);
+							replacement+=listString+"], ";
 						}
 						replacement+=maxima+")";
+						
+						//remove all semicolon (it's not allowed within maxima-blocks)
+						//remove trailing comma (it's not allowed within maxima-blocks)
+						replacement=replaceSyntaxInBlock(replacement);
 
 						log.finer("--replaced \""+completeFunction+"\" with \""+replacement+"\"");
 						script=script.replace(completeFunction,replacement);
