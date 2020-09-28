@@ -51,6 +51,7 @@ public class NumericalResponse extends Response{
 		}
 
 		removeAttributeIfExist(e,"format");
+		removeAttributeIfExist(e,"width");
 
 		consumeIdAndName(e);
 
