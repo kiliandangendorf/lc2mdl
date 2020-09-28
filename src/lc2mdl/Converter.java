@@ -93,7 +93,8 @@ public class Converter{
 
 			// SIMPLIFY
 			ProblemSimplifier ps=new ProblemSimplifier();
-			ps.simplify(dom);
+			//but preserve HTML-tags
+			ps.simplify(dom, true);
 
 			// same for all libraries
 			String libpath= outputfile.getParent()+"/";

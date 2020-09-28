@@ -16,13 +16,20 @@ public class ProblemSimplifier {
 	 * Simplifies given DOM recursively by removing all empty nodes. 
 	 */
 	public void simplify(Node n){
+		simplify(n,false);
+	}
+	/**
+	 * Simplifies given DOM recursively by removing all empty nodes except HTML tags.
+	 * Empty HTML-tags like \<td\> will be preserved.  
+	 */
+	public void simplify(Node n, boolean preserveHtmlTags){
 		log.fine(Prefs.CLI_LINE_SEP);
 		log.fine("Starting simplifying DOM.");
-		simplifiyRecursive(n);
+		simplifiyRecursive(n, preserveHtmlTags);
 		log.fine("Done simplifying DOM.");
 	}
 	
-	private void simplifiyRecursive(Node node){
+	private void simplifiyRecursive(Node node, boolean preserveHtmlTags){
 		if(node.hasChildNodes()){
 			NodeList childNodes=node.getChildNodes();
 			
@@ -31,14 +38,14 @@ public class ProblemSimplifier {
 				tmpNodes.add(childNodes.item(i));
 			}
 			for(Node n2:tmpNodes){				
-				simplifiyRecursive(n2);
+				simplifiyRecursive(n2, preserveHtmlTags);
 			}
 		}
 		switch (node.getNodeType()) {
 			case Node.ELEMENT_NODE:
 				if(!node.hasChildNodes()){
 					if(!node.hasAttributes()){
-						if(!isHTML(node)){
+						if(!preserveHtmlTags || !isHTML(node)){
 							removeNode(node);
 						}
 					}
