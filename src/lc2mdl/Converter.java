@@ -103,7 +103,7 @@ public class Converter{
 				String xmlLibName = libpath + key+ Prefs.XML_SUFFIX;
 				File xmlLibFile = pp.preParse(new File(libfiles.get(key)), xmlLibName);
 				Document domLib = xp.parseXML2DOM(xmlLibFile);
-				ps.simplify(dom);
+				ps.simplify(dom, true);
 				libDoms.put(key,domLib);
 			}
 
