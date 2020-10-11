@@ -5,6 +5,7 @@ import lc2mdl.lc.problem.Problem;
 import lc2mdl.lc.problem.ProblemElement;
 import lc2mdl.lc.problem.response.EssayResponse;
 import lc2mdl.mdl.quiz.*;
+import lc2mdl.multilanguage.Messages;
 
 import java.util.ArrayList;
 import java.util.logging.Logger;
@@ -137,9 +138,9 @@ public class QuestionGenerator{
 			if (e.getQuestionType().equals("essay")){
 				EssayResponse er = (EssayResponse)e;
 				if (er.isFile()){
-					question.addToQuestionText(Prefs.ESSAY_TEXT_FILE_ESSAY);
+					question.addToQuestionText(Messages.getString("EssayResponse.essayTextFileEssay"));
 				}else{
-					question.addToQuestionText(Prefs.ESSAY_TEXT_FIELD_ESSAY);
+					question.addToQuestionText(Messages.getString("EssayResponse.essayTextFieldEssay"));
 				}
 				er.addToMdlQuestionEssay(question);
 

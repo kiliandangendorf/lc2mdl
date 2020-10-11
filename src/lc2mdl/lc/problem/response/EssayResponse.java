@@ -5,6 +5,8 @@ import lc2mdl.lc.problem.Problem;
 import lc2mdl.mdl.quiz.Question;
 import lc2mdl.mdl.quiz.QuestionEssay;
 import lc2mdl.mdl.quiz.QuestionStack;
+import lc2mdl.multilanguage.Messages;
+
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -58,14 +60,14 @@ public class EssayResponse extends Response {
 
         if (file) {
             questionEssay.setParameterForFile();
-            questionEssay.addToQuestionText("<br/>"+Prefs.ESSAY_FILE_EXT+fileExt);
+            questionEssay.addToQuestionText("<br/>"+Messages.getString("EssayResponse.essayFileExt")+fileExt);
         }
     }
 
     public void addToMdlQuestion(Question question){
         String text="";
-        if (file) { text= Prefs.ESSAY_TEXT_FILE_STACK; }
-        else { text = Prefs.ESSAY_TEXT_FIELD_STACK; }
+        if (file) { text= Messages.getString("EssayResponse.essayTextFileStack"); }
+        else { text = Messages.getString("EssayResponse.essayTextFieldStack"); }
         question.addToQuestionText(text);
 
     }

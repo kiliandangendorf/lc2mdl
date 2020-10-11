@@ -6,6 +6,8 @@ import lc2mdl.lc.problem.response.hints.ConditionalHint;
 import lc2mdl.mdl.quiz.Input;
 import lc2mdl.mdl.quiz.NodeMdl;
 import lc2mdl.mdl.quiz.QuestionStack;
+import lc2mdl.multilanguage.Messages;
+
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -19,9 +21,11 @@ public class OptionResponse extends ChoiceResponse {
     protected ArrayList<String> options = new ArrayList<>();
     private int mincheck=0;
     private int maxcheck=0;
-    private String optionText = Prefs.OPTION_TEXT;
-    private String checkboxText= Prefs.CHECKBOX_TEXT;
-    private String checkboxTextEnd= Prefs.CHECKBOX_TEXT_END;
+
+    private String optionText = Messages.getString("OptionResponse.optionText");
+    private String checkboxText= Messages.getString("OptionResponse.checkboxText");
+    private String checkboxTextEnd= Messages.getString("OptionResponse.checkboxTextEnd");
+    
     protected Boolean prefCheckBox = Prefs.PREFER_CHECKBOX;
 
     private String answerbox=responseprefix+"_box";
