@@ -21,6 +21,8 @@ public class Prefs {
 	// misc
 	//**********************
 	
+	public static final String DEFAULT_LANG = "de";
+
 	// Prefer checkbox, if only two options (optionresponse)
 	public static final Boolean PREFER_CHECKBOX = false;
 
@@ -32,7 +34,6 @@ public class Prefs {
 	public static final String LC_XML_SCHEMA = "xsd/old_loncapa.xsd";
 
 	public static final String MDL_XML_SCHEMA = "xsd/quiz_kilian.xsd";
-	public static final String DEFAULT_LANG = "de";
 	
 	public static final String XML_SUFFIX=".lc2mdl.xml.tmp";
 	
