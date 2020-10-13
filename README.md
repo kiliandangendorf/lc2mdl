@@ -26,7 +26,7 @@ It cannot handle:
 # requirements
 Java 8 or higher
 
-~~ImageMagick (not needed anymore)
+~~ImageMagick~~ (not needed anymore)
 
 # usage
 ```
