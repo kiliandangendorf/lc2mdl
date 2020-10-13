@@ -162,7 +162,7 @@ public class QuestionGenerator{
 		QuestionCategory category = new QuestionCategory();
 
 		category.setCategoryWithPrefix(p.getCategory());
-		category.setInfo("Category set by lc2mdl.");
+		//category.setInfo("Category set by lc2mdl.");
 		return category;
 	}
 

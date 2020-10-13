@@ -9,7 +9,7 @@ public class QuestionCategory extends QuizElement{
 	private String category="$course$/top/Default for mdl_test";
 	private String prefix="$course$/top";
 	// text
-	private String info="The default category for questions shared in context 'mdl_test'.";
+	private String info="";//"The default category for questions shared in context 'mdl_test'.";
 
 	
 	@Override
