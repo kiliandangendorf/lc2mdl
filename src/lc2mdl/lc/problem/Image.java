@@ -60,7 +60,7 @@ public class Image extends ProblemElement {
 				try{
 					svgString=ConvertAndFormatMethods.convertImagePathIntoSvgString(imagePath);
 				}catch(IOException e){
-					log.warning("--could not find image: "+imagePath+" (leave unchanged)");
+					log.warning("--could not find or open image: "+imagePath+" (leave unchanged)");
 					//Leave "old" image Info here
 					svgString=ConvertAndFormatMethods.getNodeString(img);
 				}

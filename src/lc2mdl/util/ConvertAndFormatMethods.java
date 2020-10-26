@@ -38,6 +38,7 @@ public class ConvertAndFormatMethods{
 		File file=new File(imageAbsPath);
 		//only for getting measurements of images
 		BufferedImage im=ImageIO.read(file);
+		if(im==null)throw new IOException();
 		int width=im.getWidth();
 		int height=im.getHeight();
 		
