@@ -449,10 +449,15 @@ public class PerlScript extends ProblemElement{
 							continue;
 						}
 						
-						String maxima=lookupSavedString(params.get(1));
+						//check if it is maxima in String
+						String maxima=params.get(1);
+						if(lookupSavedString(maxima)!=null){
+							//resolve replaced String into maxima
+							maxima=lookupSavedString(params.get(1));
 						
-						//remove quotes
-						maxima=maxima.substring(1,maxima.length()-1);
+							//remove quotes
+							maxima=maxima.substring(1,maxima.length()-1);
+						}
 						
 						//find local variables (all vars that are assigned)
 						ArrayList<String> locals=new ArrayList<>();
