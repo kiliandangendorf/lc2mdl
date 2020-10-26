@@ -440,9 +440,14 @@ public class PerlScript extends ProblemElement{
 
 				case "&cas(":
 				case "cas(":
-					String cas=lookupSavedString(params.get(0));
+					String cas=params.get(0);
+					if(lookupSavedString(cas)!=null){
+						lookupSavedString(cas);
+						//remove quotes (if it's a string, they exist)
+						cas=cas.substring(1,cas.length()-1);
+					}
 					
-					if(cas.equals("\"maxima\"")||cas.equals("'maxima'")){
+					if(cas.toLowerCase().equals("maxima")){
 						//should only have two Strings-parameters cas("maxima", "..")  
 						if(params.size()!=2){
 							log.warning("--found &cas for maxima with wrong number of parameters");
