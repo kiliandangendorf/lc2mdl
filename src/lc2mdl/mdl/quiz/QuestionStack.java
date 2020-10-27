@@ -40,7 +40,7 @@ public class QuestionStack extends Question{
 
 	private String prtexample=Messages.getString("QuestionStack.prtexample");
 
-	private String multiplicationsign="dot"; //default dot
+	private String multiplicationsign="none"; //default none - alternative: dot
 	private String sqrtsign="1"; //default 1
 	private String complexno="i"; //default i
 	private String inversetrig="arccos"; //default arccos
