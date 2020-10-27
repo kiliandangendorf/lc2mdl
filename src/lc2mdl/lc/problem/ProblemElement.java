@@ -88,7 +88,7 @@ public abstract class ProblemElement {
 		text = replaceImages(text);
 
 		//LATEX / MATH-EXPRESSION: <m>...</m> into \( ... \)  (<m eval="on">)
-		text=replaceMathTags(text,isVariable);
+		text=replaceMathTags(text);
 
 		//HTML-ELEMENTSs
 		text=replaceHTMLTags(text);
@@ -315,7 +315,7 @@ public abstract class ProblemElement {
 
 	}
 
-	private String replaceMathTags(String text, boolean isVariable){
+	private String replaceMathTags(String text){
 		//LATEX / MATH-EXPRESSION: <m>...</m> into \( ... \)  (<m eval="on">)
 		List<String> leftPat = new ArrayList<String>();
 		List<String> rightPat = new ArrayList<String>();
@@ -382,8 +382,6 @@ public abstract class ProblemElement {
 			text=replacePatternWithString(s,addbackslashes+"\\)",text);
 		}
 
-		//double backslashes in maxima string
-		if (isVariable)text=text.replace("\\","\\\\");
 		return text;
 	}
 

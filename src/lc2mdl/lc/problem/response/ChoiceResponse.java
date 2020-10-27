@@ -224,6 +224,10 @@ public abstract class ChoiceResponse extends Response {
 
         private String transformFoil(String foilString){
             foilString = transformTextVariable(foilString);
+
+            //double backslashes in maxima string (because it's coming from HTML)
+            foilString=foilString.replace("\\","\\\\");
+
             return foilString;
         }
      }
