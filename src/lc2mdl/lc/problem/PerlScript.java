@@ -769,6 +769,15 @@ public class PerlScript extends ProblemElement{
 		//going inverse direction to replace nested string-replacements
 		for(int i=stringNo-1;i>=0;i--){
 			String stringText=stringsInScript.get(i);
+			
+			//Perl and quotation marks 
+			//from: https://www.dummies.com/programming/perl/contrasting-single-and-double-quotes-in-perl/
+			//"Single quotation marks do not interpret, and double quotation marks do."
+			//-->in single quotes we need to double backslashes
+			if(stringText.charAt(0)=='\''){
+				stringText=stringText.replace("\\","\\\\");
+			}
+			
 			// remove " or '
 			stringText=stringText.substring(1,stringText.length()-1);
 
