@@ -18,6 +18,8 @@ public class Prefs {
 
 	public static final boolean ADD_BACKSLASH_FOR_CURLY_BRACE_IN_MAXIMA_STRINGS=true;	
 
+	public static final boolean ADD_COMMENT_INTO_CREATED_MAXIMA_BLOCKS=true;	
+	
 	
 	//**********************
 	// misc

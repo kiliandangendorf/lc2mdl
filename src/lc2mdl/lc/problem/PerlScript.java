@@ -484,6 +484,9 @@ public class PerlScript extends ProblemElement{
 						//put maxima stmt in own block (so changes on existing vars won't affect)
 						String replacement="block(";
 						if(locals.size()>0){
+							if(Prefs.ADD_COMMENT_INTO_CREATED_MAXIMA_BLOCKS){
+								replacement+="/* this block was created by lc2mdl converting LC &cas() function */ "+System.lineSeparator()+"\t";
+							}
 							replacement+="[";
 							String listString="";
 							for(String var:locals){
@@ -492,7 +495,7 @@ public class PerlScript extends ProblemElement{
 							}
 							//remove first ", " of list
 							listString=listString.substring(2);
-							replacement+=listString+"], ";
+							replacement+=listString+"], "+System.lineSeparator()+"\t";
 						}
 						replacement+=maxima+")";
 						
