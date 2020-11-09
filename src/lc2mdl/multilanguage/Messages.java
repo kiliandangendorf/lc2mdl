@@ -4,7 +4,7 @@ import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 
-import lc2mdl.Prefs;
+import lc2mdl.ConvertOptions;
 
 public class Messages{
 	private static final String BUNDLE_NAME="lc2mdl.multilanguage.messages";
@@ -27,7 +27,7 @@ public class Messages{
 	}
 	
 	private static ResourceBundle getDefaultResourceBundle(){
-		Locale defaultLocale=new Locale(Prefs.DEFAULT_LANG);
+		Locale defaultLocale=new Locale(ConvertOptions.getDefaultLang());
 		return ResourceBundle.getBundle(BUNDLE_NAME, defaultLocale);
 	}
 	

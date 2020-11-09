@@ -1,5 +1,6 @@
 package lc2mdl.lc.problem;
 
+import lc2mdl.ConvertOptions;
 import lc2mdl.Prefs;
 import lc2mdl.mdl.quiz.Question;
 import lc2mdl.mdl.quiz.QuestionStack;
@@ -94,10 +95,10 @@ public abstract class ProblemElement {
 		text=replaceHTMLTags(text);
 
 		//LANGUAGEBLOCKS
-		text=chooseOneLanguageBlock(text,Prefs.DEFAULT_LANG);
+		text=chooseOneLanguageBlock(text,ConvertOptions.getDefaultLang());
 
 		//TRANSLATED
-		text=chooseOneTranslated(text,Prefs.DEFAULT_LANG);
+		text=chooseOneTranslated(text,ConvertOptions.getDefaultLang());
 
 		//VARS 
 		if(isVariable){
@@ -465,7 +466,7 @@ public abstract class ProblemElement {
 				Document dom=XMLParser.parseString2DOM(langBlock);
 				Element langElement=(Element)dom.getElementsByTagName("languageblock").item(0);
 				if(langElement.hasAttribute("include")){
-					if(langElement.getAttribute("include").contains(defaultLang)){
+					if(langElement.getAttribute("include").toLowerCase().contains(defaultLang)){
 						//text in defaultLang
 						textInDefaultLang=langElement.getTextContent();
 						log.finer("--found \""+defaultLang+"\"-languageblock");
@@ -475,7 +476,7 @@ public abstract class ProblemElement {
 						log.finer("--found languageblock different to \""+defaultLang+"\". Put in comments.");						
 					}
 				}else{//languageblock has attribute exclude
-					if(!langElement.getAttribute("exclude").contains(defaultLang)){
+					if(!langElement.getAttribute("exclude").toLowerCase().contains(defaultLang)){
 						//text in defaultLang
 						textInDefaultLang=langElement.getTextContent();
 						log.finer("--found \""+defaultLang+"\"-languageblock");
@@ -507,11 +508,11 @@ public abstract class ProblemElement {
 				NodeList langs=dom.getElementsByTagName("lang");
 				for(int i=0;i<langs.getLength();i++) {
 					Element lang = (Element) langs.item(i);
-					if (lang.getAttribute("which").equals(defaultLang)) {
+					if (lang.getAttribute("which").toLowerCase().equals(defaultLang)) {
 						//text in defaultLang
 						textInDefaultLang = lang.getTextContent();
 					}
-					if (lang.getAttribute("which").equals("default")) {
+					if (lang.getAttribute("which").toLowerCase().equals("default")) {
 						defaultText = lang.getTextContent();
 					}
 				}

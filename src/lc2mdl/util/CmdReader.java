@@ -30,7 +30,13 @@ public class CmdReader{
 			new CmdOption("-R","--recnocon",false,"find files recursively in folder (starts converting without confirmation)"),			
 			new CmdOption("-t","--rmtmp",false,"remove tmp-files (automatically done if empty)"),			
 			new CmdOption("-T","--rmlog",false,"remove log-files (NOT RECOMMENDED)"),
-			new CmdOption("-p","--prefercheckbox",false,"prefer checkbox, if only two options (optionresponse)")
+
+			//convert options
+			new CmdOption("-p","--prefercheckbox",false,"prefer checkbox, if only two options (optionresponse)"),
+
+			//languages beta
+			new CmdOption("","--de",false,"choose \"de\" as default language"),
+			new CmdOption("","--en",false,"choose \"en\" as default language")
 			));
 	private String from;
 	private String to;
