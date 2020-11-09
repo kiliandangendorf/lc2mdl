@@ -778,6 +778,12 @@ public class PerlScript extends ProblemElement{
 				stringText=stringText.replace("\\","\\\\");
 			}
 			
+			// escape unescaped curly braces
+			if(Prefs.ADD_BACKSLASH_FOR_CURLY_BRACE_IN_MAXIMA_STRINGS){
+				//fill in one backslash only if its even amount of backslashes before preserving other backslashes
+				stringText=stringText.replaceAll("(?<!\\\\)(\\\\{2})*\\{","$1"+Matcher.quoteReplacement("\\{"));
+			}
+			
 			// remove " or '
 			stringText=stringText.substring(1,stringText.length()-1);
 
