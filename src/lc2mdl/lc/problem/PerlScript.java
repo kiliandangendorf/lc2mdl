@@ -102,14 +102,14 @@ public class PerlScript extends ProblemElement{
 		// = -> :, etc. (needs to be placed BEFORE replaceStrings() )
 		replaceSyntax();
 
+		// SPECIAL CHARS
+		searchForSpecialChars();
+
 		// replace Comments
 		replaceComments();
 
 		// replace Strings
 		replaceStrings();
-
-		// SPECIAL CHARS
-		searchForSpecialChars();
 
 		script=convertWarning+System.lineSeparator()+script;
 	}
@@ -442,7 +442,7 @@ public class PerlScript extends ProblemElement{
 				case "cas(":
 					String cas=params.get(0);
 					if(lookupSavedString(cas)!=null){
-						lookupSavedString(cas);
+						cas=lookupSavedString(cas);
 						//remove quotes (if it's a string, they exist)
 						cas=cas.substring(1,cas.length()-1);
 					}
