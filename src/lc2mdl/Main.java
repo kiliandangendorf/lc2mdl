@@ -31,6 +31,8 @@ public class Main{
 		final boolean verbosity=cmd.optionIsSet("-v");
 		final boolean findRecursively=cmd.optionIsSet("-r") || cmd.optionIsSet("-R");
 		final boolean findRecursivelyForce=cmd.optionIsSet("-R");
+		ConvertOptions.fillWithCmdOptions(cmd);
+		
 		File inputfile=new File(cmd.getFrom());
 		File outputfile=new File(cmd.getTo());
 

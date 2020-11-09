@@ -25,9 +25,6 @@ public class Prefs {
 	
 	public static final String DEFAULT_LANG = "de";
 
-	// Prefer checkbox, if only two options (optionresponse)
-	public static final Boolean PREFER_CHECKBOX = false;
-
 	
 	//**********************
 	// Operating constants

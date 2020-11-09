@@ -1,5 +1,6 @@
 package lc2mdl.lc.problem.response;
 
+import lc2mdl.ConvertOptions;
 import lc2mdl.Prefs;
 import lc2mdl.lc.problem.Problem;
 import lc2mdl.lc.problem.response.hints.ConditionalHint;
@@ -26,7 +27,7 @@ public class OptionResponse extends ChoiceResponse {
     private String checkboxText= Messages.getString("OptionResponse.checkboxText");
     private String checkboxTextEnd= Messages.getString("OptionResponse.checkboxTextEnd");
     
-    protected Boolean prefCheckBox = Prefs.PREFER_CHECKBOX;
+    protected Boolean prefCheckBox = ConvertOptions.isPreferCheckbox();
 
     private String answerbox=responseprefix+"_box";
     protected ArrayList<NodeMdl> nodeMdls = new ArrayList<NodeMdl>();

@@ -29,7 +29,8 @@ public class CmdReader{
 			new CmdOption("-r","--recursive",false,"find files recursively in folder (lists and ask for confirmation before converting)"),			
 			new CmdOption("-R","--recnocon",false,"find files recursively in folder (starts converting without confirmation)"),			
 			new CmdOption("-t","--rmtmp",false,"remove tmp-files (automatically done if empty)"),			
-			new CmdOption("-T","--rmlog",false,"remove log-files (NOT RECOMMENDED)")
+			new CmdOption("-T","--rmlog",false,"remove log-files (NOT RECOMMENDED)"),
+			new CmdOption("-p","--prefercheckbox",false,"prefer checkbox, if only two options (optionresponse)")
 			));
 	private String from;
 	private String to;
