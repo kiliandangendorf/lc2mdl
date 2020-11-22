@@ -40,7 +40,9 @@ public class CmdReader{
 
 			//languages beta
 			new CmdOption("","--de",false,"choose \"de\" as default language"),
-			new CmdOption("","--en",false,"choose \"en\" as default language")
+			new CmdOption("","--en",false,"choose \"en\" as default language"),
+			
+			new CmdOption("-m","--multilang",false,"use Moodle's multilang-Plugin in multilangugae text-output (so far only \"translated\"-tags)")
 			));
 	private String from;
 	private String to;

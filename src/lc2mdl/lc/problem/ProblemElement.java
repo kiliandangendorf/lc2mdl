@@ -13,6 +13,7 @@ import org.w3c.dom.NodeList;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -94,11 +95,8 @@ public abstract class ProblemElement {
 		//HTML-ELEMENTSs
 		text=replaceHTMLTags(text);
 
-		//LANGUAGEBLOCKS
-		text=chooseOneLanguageBlock(text,ConvertOptions.getDefaultLang());
-
-		//TRANSLATED
-		text=chooseOneTranslated(text,ConvertOptions.getDefaultLang());
+		//LANGUAGEBLOCKS & TRANSLATED
+		text=transformMultilanguage(text);
 
 		//VARS 
 		if(isVariable){
@@ -125,6 +123,7 @@ public abstract class ProblemElement {
 
 		return text;
 	}
+
 	/**
 	 * Searches string for first match with given regEx and return matching substring o string
 	 * If there is no match this will return null 
@@ -456,6 +455,23 @@ public abstract class ProblemElement {
 		return text;
 	}
 	
+	
+	private String transformMultilanguage(String text){
+		String defaultLang=ConvertOptions.getDefaultLang();
+		boolean multilang=ConvertOptions.isMultilang();
+		
+		//TRANSLATED
+		text=findLanguagesInTranslated(text, defaultLang, multilang);
+		
+		
+		//TODO: Multilang for Languageblocks
+		
+		//LANGUAGEBLOCKS
+		text=chooseOneLanguageBlock(text,defaultLang);
+
+		return text;
+	}
+
 	private String chooseOneLanguageBlock(String text,String defaultLang){
 		String langBlockPat="< {0,}languageblock[\\s\\S]*?\\/ {0,}languageblock {0,}>";
 		Matcher matcher=Pattern.compile(langBlockPat).matcher(text);
@@ -495,52 +511,85 @@ public abstract class ProblemElement {
 		}
 		return text;
 	}
-
-	private String chooseOneTranslated(String text,String defaultLang){
+	
+	private String findLanguagesInTranslated(String text,String defaultLang, boolean multilang){
 		String translatedBlockPat="< {0,}translated[\\s\\S]*?\\/ {0,}translated {0,}>";
 		Matcher matcher=Pattern.compile(translatedBlockPat).matcher(text);
+		
+		StringBuffer sb=new StringBuffer();
 		while(matcher.find()){
 			String translatedBlock=matcher.group();
-			String textInDefaultLang=null;
-			String defaultText=null;
+			
 			try{
 				Document dom=XMLParser.parseString2DOM(translatedBlock);
 				NodeList langs=dom.getElementsByTagName("lang");
+				
+				HashMap<String,String> translations=new HashMap<>();
+
+				//find translations
 				for(int i=0;i<langs.getLength();i++) {
 					Element lang = (Element) langs.item(i);
-					if (lang.getAttribute("which").toLowerCase().equals(defaultLang)) {
-						//text in defaultLang
-						textInDefaultLang = lang.getTextContent();
-					}
-					if (lang.getAttribute("which").toLowerCase().equals("default")) {
-						defaultText = lang.getTextContent();
-					}
+					translations.put(lang.getAttribute("which").toLowerCase(),lang.getTextContent());
 				}
+
 				String outtext="";
-				if(textInDefaultLang!=null){
-					//text in defaultLang
-					outtext=textInDefaultLang;
-					log.finer("--found \""+defaultLang+"\" in translated-block");
-				}else{
-					//text not in defaultLang
-					if(defaultText!=null){
-						//default text 
-						outtext=defaultText;
-						log.finer("--found default text in translated-block");
-					}else{
-						//no text found
-						log.warning("--found no text to language \""+defaultLang+"\"");						
+				
+				//IF MULTILANG
+				if(multilang){
+					LinkedHashMap<String,String> sortedTranslations=new LinkedHashMap<>();
+					
+					//sort, first is "default"
+					if(translations.containsKey("default")){
+						sortedTranslations.put("default",translations.get("default"));
+						translations.remove("default");
+					}
+					//then defaultLang
+					if(translations.containsKey(defaultLang)){
+						sortedTranslations.put(defaultLang,translations.get(defaultLang));
+						translations.remove(defaultLang);
+					}
+					//the rest
+					for(String lang:translations.keySet()){
+						sortedTranslations.put(lang, translations.get(lang));
+					}
+					//generate multilang output
+					for(String lang:sortedTranslations.keySet()){
+						outtext+="<span lang=\""+lang+"\" class=\"multilang\">"+sortedTranslations.get(lang)+"</span>"+System.lineSeparator();
 					}
 				}
-				outtext="<!-- lc2mdl: chose best match in translated-block: "+translatedBlock+" -->"+outtext;
-				text=text.replace(translatedBlock,outtext);
+				
+				//IF NOT MULTILANG: CHOOSE ONE
+				if(!multilang){
+					if(translations.containsKey(defaultLang)){
+						//text in defaultLang
+						outtext=translations.get(defaultLang);
+						log.finer("--found \""+defaultLang+"\" in translated-block");
+					}else{
+						//text not in defaultLang
+						if(translations.containsKey("default")){
+							//default text 
+							outtext=translations.get("default");
+							log.finer("--found default text in translated-block");
+						}else{
+							//no text found
+							log.warning("--found no text to language \""+defaultLang+"\"");
+						}
+					}
+					outtext="<!-- lc2mdl: chose best match in translated-block: "+translatedBlock+" -->"+outtext;
+				}
+				
+				matcher.appendReplacement(sb,Matcher.quoteReplacement(outtext));
+				
 			}catch(Exception e){
 				log.warning("--unable to read translated-block.");
-				e.printStackTrace();
+				log.warning(e.getLocalizedMessage());
 			}
-		}
+		}			
+		matcher.appendTail(sb);
+		text=sb.toString();
 		return text;
 	}
+	
 	
 	//================================================================================
     // Getter and Setter
