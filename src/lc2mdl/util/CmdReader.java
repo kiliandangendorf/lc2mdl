@@ -18,7 +18,11 @@ public class CmdReader{
 		}
 
 		public String toString(){
-			return option+", "+shortOption+"\t"+usage;
+			String string="";
+			if(!option.equals(""))string+=option+",";
+			else string+="   ";
+			string+=shortOption+"\t"+usage;
+			return string;
 		}
 	}
 
