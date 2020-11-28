@@ -1,7 +1,18 @@
 package lc2mdl.lc.problem.response;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
 import lc2mdl.ConvertOptions;
-import lc2mdl.Prefs;
 import lc2mdl.lc.problem.Problem;
 import lc2mdl.lc.problem.response.hints.ConditionalHint;
 import lc2mdl.mdl.quiz.Input;
@@ -9,23 +20,15 @@ import lc2mdl.mdl.quiz.NodeMdl;
 import lc2mdl.mdl.quiz.QuestionStack;
 import lc2mdl.multilanguage.Messages;
 
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 public class OptionResponse extends ChoiceResponse {
 
     protected ArrayList<String> options = new ArrayList<>();
     private int mincheck=0;
     private int maxcheck=0;
 
-    private String optionText = Messages.getString("OptionResponse.optionText");
-    private String checkboxText= Messages.getString("OptionResponse.checkboxText");
-    private String checkboxTextEnd= Messages.getString("OptionResponse.checkboxTextEnd");
+    private String optionText;
+    private String checkboxText;
+    private String checkboxTextEnd;
     
     protected Boolean prefCheckBox = ConvertOptions.isPreferCheckbox();
 
@@ -34,6 +37,10 @@ public class OptionResponse extends ChoiceResponse {
 
     public OptionResponse(Problem problem, Node node) {
         super(problem, node);
+        
+        optionText = Messages.getString("OptionResponse.optionText", this.problem);
+        checkboxText= Messages.getString("OptionResponse.checkboxText", this.problem);
+        checkboxTextEnd= Messages.getString("OptionResponse.checkboxTextEnd", this.problem);
     }
 
 

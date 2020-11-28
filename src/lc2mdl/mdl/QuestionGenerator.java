@@ -78,6 +78,12 @@ public class QuestionGenerator{
 		
 		question.setName(p.getProblemName());
 		question.setTags(p.getTags());
+		
+		question.setPrtcorrect("<span style=\"font-size: 1.5em; color:green;\"><i class=\"fa fa-check\"></i></span> "+Messages.getString("QuestionStack.prtcorrect", p));//Correct answer, well done.
+		question.setPrtpartiallycorrect("<span style=\"font-size: 1.5em; color:orange;\"><i class=\"fa fa-adjust\"></i></span> "+Messages.getString("QuestionStack.prtpartiallycorrect", p));//Your answer is partially correct.
+		question.setPrtincorrect("<span style=\"font-size: 1.5em; color:red;\"><i class=\"fa fa-times\"></i></span> "+Messages.getString("QuestionStack.prtincorrect", p));//Incorrect answer.
+		question.setPrtexample(Messages.getString("QuestionStack.prtexample", p));
+
 
 		log.finer("add converted elements to question");
 		for(ProblemElement e:p.getElements()){
@@ -138,9 +144,9 @@ public class QuestionGenerator{
 			if (e.getQuestionType().equals("essay")){
 				EssayResponse er = (EssayResponse)e;
 				if (er.isFile()){
-					question.addToQuestionText(Messages.getString("EssayResponse.essayTextFileEssay"));
+					question.addToQuestionText(Messages.getString("EssayResponse.essayTextFileEssay", p));
 				}else{
-					question.addToQuestionText(Messages.getString("EssayResponse.essayTextFieldEssay"));
+					question.addToQuestionText(Messages.getString("EssayResponse.essayTextFieldEssay", p));
 				}
 				er.addToMdlQuestionEssay(question);
 

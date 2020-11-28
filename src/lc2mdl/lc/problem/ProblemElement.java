@@ -536,22 +536,9 @@ public abstract class ProblemElement {
 				
 				//IF MULTILANG
 				if(multilang){
-					LinkedHashMap<String,String> sortedTranslations=new LinkedHashMap<>();
-					
-					//sort, first is "default"
-					if(translations.containsKey("default")){
-						sortedTranslations.put("default",translations.get("default"));
-						translations.remove("default");
-					}
-					//then defaultLang
-					if(translations.containsKey(defaultLang)){
-						sortedTranslations.put(defaultLang,translations.get(defaultLang));
-						translations.remove(defaultLang);
-					}
-					//the rest
-					for(String lang:translations.keySet()){
-						sortedTranslations.put(lang, translations.get(lang));
-					}
+					//sort list and give found langugaes to problem
+					LinkedHashMap<String,String> sortedTranslations=problem.sortTranslationsMapAndSaveLanguages(translations, defaultLang);
+
 					//generate multilang output
 					for(String lang:sortedTranslations.keySet()){
 						outtext+="<span lang=\""+lang+"\" class=\"multilang\">"+sortedTranslations.get(lang)+"</span>"+System.lineSeparator();

@@ -32,13 +32,13 @@ public class QuestionStack extends Question{
 	private boolean assumereal=false;
 	
 	// text & ggf. CDATA
-	private String prtcorrect="<span style=\"font-size: 1.5em; color:green;\"><i class=\"fa fa-check\"></i></span> "+Messages.getString("QuestionStack.prtcorrect");//Correct answer, well done.
+	private String prtcorrect="<span style=\"font-size: 1.5em; color:green;\"><i class=\"fa fa-check\"></i></span> "+Messages.getMonoLanguageString("QuestionStack.prtcorrect");//Correct answer, well done.
 	// text & ggf. CDATA
-	private String prtpartiallycorrect="<span style=\"font-size: 1.5em; color:orange;\"><i class=\"fa fa-adjust\"></i></span> "+Messages.getString("QuestionStack.prtpartiallycorrect");//Your answer is partially correct.
+	private String prtpartiallycorrect="<span style=\"font-size: 1.5em; color:orange;\"><i class=\"fa fa-adjust\"></i></span> "+Messages.getMonoLanguageString("QuestionStack.prtpartiallycorrect");//Your answer is partially correct.
 	// text & ggf. CDATA
-	private String prtincorrect="<span style=\"font-size: 1.5em; color:red;\"><i class=\"fa fa-times\"></i></span> "+Messages.getString("QuestionStack.prtincorrect");//Incorrect answer.
+	private String prtincorrect="<span style=\"font-size: 1.5em; color:red;\"><i class=\"fa fa-times\"></i></span> "+Messages.getMonoLanguageString("QuestionStack.prtincorrect");//Incorrect answer.
 
-	private String prtexample=Messages.getString("QuestionStack.prtexample");
+	private String prtexample=Messages.getMonoLanguageString("QuestionStack.prtexample");
 
 	private String multiplicationsign="none"; //default none - alternative: dot
 	private String sqrtsign="1"; //default 1

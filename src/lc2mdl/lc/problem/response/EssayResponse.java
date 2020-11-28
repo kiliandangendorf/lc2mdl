@@ -1,17 +1,16 @@
 package lc2mdl.lc.problem.response;
 
-import lc2mdl.Prefs;
-import lc2mdl.lc.problem.Problem;
-import lc2mdl.mdl.quiz.Question;
-import lc2mdl.mdl.quiz.QuestionEssay;
-import lc2mdl.mdl.quiz.QuestionStack;
-import lc2mdl.multilanguage.Messages;
+import java.util.ArrayList;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import java.util.ArrayList;
+import lc2mdl.lc.problem.Problem;
+import lc2mdl.mdl.quiz.Question;
+import lc2mdl.mdl.quiz.QuestionEssay;
+import lc2mdl.mdl.quiz.QuestionStack;
+import lc2mdl.multilanguage.Messages;
 
 public class EssayResponse extends Response {
 
@@ -60,14 +59,14 @@ public class EssayResponse extends Response {
 
         if (file) {
             questionEssay.setParameterForFile();
-            questionEssay.addToQuestionText("<br/>"+Messages.getString("EssayResponse.essayFileExt")+fileExt);
+            questionEssay.addToQuestionText("<br/>"+Messages.getString("EssayResponse.essayFileExt", this.problem)+fileExt);
         }
     }
 
     public void addToMdlQuestion(Question question){
         String text="";
-        if (file) { text= Messages.getString("EssayResponse.essayTextFileStack"); }
-        else { text = Messages.getString("EssayResponse.essayTextFieldStack"); }
+        if (file) { text= Messages.getString("EssayResponse.essayTextFileStack", this.problem); }
+        else { text = Messages.getString("EssayResponse.essayTextFieldStack", this.problem); }
         question.addToQuestionText(text);
 
     }

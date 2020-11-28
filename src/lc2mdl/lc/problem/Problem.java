@@ -2,6 +2,9 @@ package lc2mdl.lc.problem;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.TreeSet;
 import java.util.logging.Logger;
 
 import lc2mdl.lc.problem.response.Response;
@@ -27,6 +30,8 @@ public class Problem {
 	private String category="";
 	private int numberOfHints=0;
 
+	//list for language-codes found in problem.
+	private LinkedHashSet<String> supportedLangugaes=new LinkedHashSet<>();
 
 	public Problem(String problemName, HashMap<String,String> images){
 		this.problemName=problemName;
@@ -113,6 +118,41 @@ public class Problem {
 		return false;
 	}
 	
+	/**
+	 * Adds given languages to supportedLanguages if not exist
+	 */
+	private void addFoundLanguageCodes(LinkedHashMap<String,String> sortedTranslations){
+		for(String lang:sortedTranslations.keySet()){
+			supportedLangugaes.add(lang);
+		}
+	}
+	
+	/**
+	 * returns sorted Map of translations for "multilang" export
+	 */
+	public LinkedHashMap<String,String> sortTranslationsMapAndSaveLanguages(HashMap<String,String> translations, String defaultLang){
+		LinkedHashMap<String,String> sortedTranslations=new LinkedHashMap<>();
+		
+		//sort, first is "default"
+		if(translations.containsKey("default")){
+			sortedTranslations.put("default",translations.get("default"));
+			translations.remove("default");
+		}
+		//then defaultLang
+		if(translations.containsKey(defaultLang)){
+			sortedTranslations.put(defaultLang,translations.get(defaultLang));
+			translations.remove(defaultLang);
+		}
+		//the rest
+		for(String lang:translations.keySet()){
+			sortedTranslations.put(lang, translations.get(lang));
+		}
+		
+		addFoundLanguageCodes(sortedTranslations);
+		
+		return sortedTranslations;
+	}
+	
 	private void getCategoryAndTagsFromPath(String path){
 
 		category = "";
@@ -178,5 +218,9 @@ public class Problem {
 	public int getNumberOfHints() { return numberOfHints; }
 
 	public void setNumberOfHints(int numberOfHints) { 	this.numberOfHints = numberOfHints; }
+
+	public LinkedHashSet<String> getSupportedLangugaes(){
+		return supportedLangugaes;
+	}
 
 }
