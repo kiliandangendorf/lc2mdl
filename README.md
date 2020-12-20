@@ -43,6 +43,7 @@ FROMFILE and TOFILE must be both files or folders.
 -p, --prefercheckbox prefer checkbox, if only two options (optionresponse)
     --de             choose "de" as default language
     --en             choose "en" as default language
+-m  --multilang      use Moodle's multilang-Plugin in multilangugae text-output (so far only "translated"-tags)
 ```
 # Prefs class
 In `Prefs.java` there are two booleans for formatting / syntax:
