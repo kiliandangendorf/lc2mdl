@@ -120,7 +120,7 @@ public class PerlScript extends ProblemElement{
 	}
 
 	private void searchForSpecialChars(){
-		log.finer("-- search for special characters");
+		log.finer("--search for special characters");
 		ArrayList<String> specialChars=new ArrayList<>(Arrays.asList("\\$","@","&","{","}"));
 		int[] count=new int[specialChars.size()];
 		Arrays.fill(count,0);
