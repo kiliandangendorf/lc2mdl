@@ -1,23 +1,19 @@
 package lc2mdl.lc.problem;
 
-import lc2mdl.ConvertOptions;
-import lc2mdl.Prefs;
-import lc2mdl.mdl.quiz.Question;
-import lc2mdl.mdl.quiz.QuestionStack;
-import lc2mdl.util.ConvertAndFormatMethods;
-import lc2mdl.xml.XMLParser;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+
+import lc2mdl.Prefs;
+import lc2mdl.mdl.quiz.Question;
+import lc2mdl.mdl.quiz.QuestionStack;
+import lc2mdl.util.ConvertAndFormatMethods;
 
 public abstract class ProblemElement {
 	public static Logger log = Logger.getLogger(ProblemElement.class.getName());
@@ -455,128 +451,14 @@ public abstract class ProblemElement {
 		return text;
 	}
 	
-	
-	private String transformMultilanguage(String text){
-		String defaultLang=ConvertOptions.getDefaultLang();
-		boolean multilang=ConvertOptions.isMultilang();
+	private String transformMultilanguage(String text){		
+		//convert <translated> and <languageblock>
+		MultilanguageTextTransformer mltt=new MultilanguageTextTransformer(this.problem);
+		text=mltt.transformMultilanguage(text);
 		
-		//TRANSLATED
-		text=findLanguagesInTranslated(text, defaultLang, multilang);
-		
-		
-		//TODO: Multilang for Languageblocks
-		
-		//LANGUAGEBLOCKS
-		text=chooseOneLanguageBlock(text,defaultLang);
-
 		return text;
 	}
 
-	private String chooseOneLanguageBlock(String text,String defaultLang){
-		String langBlockPat="< {0,}languageblock[\\s\\S]*?\\/ {0,}languageblock {0,}>";
-		Matcher matcher=Pattern.compile(langBlockPat).matcher(text);
-		while(matcher.find()){
-			String langBlock=matcher.group();
-			String textInDefaultLang="";
-			try{
-				Document dom=XMLParser.parseString2DOM(langBlock);
-				Element langElement=(Element)dom.getElementsByTagName("languageblock").item(0);
-				if(langElement.hasAttribute("include")){
-					if(langElement.getAttribute("include").toLowerCase().contains(defaultLang)){
-						//text in defaultLang
-						textInDefaultLang=langElement.getTextContent();
-						log.finer("--found \""+defaultLang+"\"-languageblock");
-					}else{
-						//text in different language
-						textInDefaultLang="<!-- lc2mdl: languageblock for different language found: "+langBlock+" -->";
-						log.finer("--found languageblock different to \""+defaultLang+"\". Put in comments.");						
-					}
-				}else{//languageblock has attribute exclude
-					if(!langElement.getAttribute("exclude").toLowerCase().contains(defaultLang)){
-						//text in defaultLang
-						textInDefaultLang=langElement.getTextContent();
-						log.finer("--found \""+defaultLang+"\"-languageblock");
-						log.finer(textInDefaultLang);
-					}else{
-						//text in different language
-						textInDefaultLang="<!-- lc2mdl: languageblock for different language found: "+langBlock+" -->";
-						log.finer("--found languageblock different to \""+defaultLang+"\". Put in comments.");						
-					}
-				}
-				text=text.replace(langBlock,textInDefaultLang);
-			}catch(Exception e){
-				log.warning("--unable to read languageblock.");
-				log.warning(e.getLocalizedMessage());
-			}
-		}
-		return text;
-	}
-	
-	private String findLanguagesInTranslated(String text,String defaultLang, boolean multilang){
-		String translatedBlockPat="< {0,}translated[\\s\\S]*?\\/ {0,}translated {0,}>";
-		Matcher matcher=Pattern.compile(translatedBlockPat).matcher(text);
-		
-		StringBuffer sb=new StringBuffer();
-		while(matcher.find()){
-			String translatedBlock=matcher.group();
-			
-			try{
-				Document dom=XMLParser.parseString2DOM(translatedBlock);
-				NodeList langs=dom.getElementsByTagName("lang");
-				
-				HashMap<String,String> translations=new HashMap<>();
-
-				//find translations
-				for(int i=0;i<langs.getLength();i++) {
-					Element lang = (Element) langs.item(i);
-					translations.put(lang.getAttribute("which").toLowerCase(),lang.getTextContent());
-				}
-
-				String outtext="";
-				
-				//IF MULTILANG
-				if(multilang){
-					//sort list and give found langugaes to problem
-					LinkedHashMap<String,String> sortedTranslations=problem.sortTranslationsMapAndSaveLanguages(translations, defaultLang);
-
-					//generate multilang output
-					for(String lang:sortedTranslations.keySet()){
-						outtext+="<span lang=\""+lang+"\" class=\"multilang\">"+sortedTranslations.get(lang)+"</span>"+System.lineSeparator();
-					}
-				}
-				
-				//IF NOT MULTILANG: CHOOSE ONE
-				if(!multilang){
-					if(translations.containsKey(defaultLang)){
-						//text in defaultLang
-						outtext=translations.get(defaultLang);
-						log.finer("--found \""+defaultLang+"\" in translated-block");
-					}else{
-						//text not in defaultLang
-						if(translations.containsKey("default")){
-							//default text 
-							outtext=translations.get("default");
-							log.finer("--found default text in translated-block");
-						}else{
-							//no text found
-							log.warning("--found no text to language \""+defaultLang+"\"");
-						}
-					}
-					outtext="<!-- lc2mdl: chose best match in translated-block: "+translatedBlock+" -->"+outtext;
-				}
-				
-				matcher.appendReplacement(sb,Matcher.quoteReplacement(outtext));
-				
-			}catch(Exception e){
-				log.warning("--unable to read translated-block.");
-				log.warning(e.getLocalizedMessage());
-			}
-		}			
-		matcher.appendTail(sb);
-		text=sb.toString();
-		return text;
-	}
-	
 	
 	//================================================================================
     // Getter and Setter

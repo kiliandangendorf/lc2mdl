@@ -1,6 +1,7 @@
 package lc2mdl.xml;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.StringReader;
 import java.net.URL;
 import java.util.logging.Logger;
@@ -8,6 +9,7 @@ import java.util.logging.Logger;
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 
@@ -83,7 +85,7 @@ public class XMLParser {
 		return doc;
 	}
 	
-	public static Document parseString2DOM(String string) throws Exception {
+	public static Document parseString2DOM(String string) throws SAXException, IOException, ParserConfigurationException{
 		DocumentBuilderFactory dbfac = DocumentBuilderFactory.newInstance();
 		DocumentBuilder db = dbfac.newDocumentBuilder();
 		Document doc = db.parse(new InputSource(new StringReader(string)));		
