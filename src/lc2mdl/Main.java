@@ -110,6 +110,7 @@ public class Main{
 					System.out.println("#######################################################");
 					System.out.println("FROMFILE: "+inputfile.getAbsolutePath());
 					System.out.println("TOFILE:   "+outputfile.getAbsolutePath());
+					System.out.println("( "+(converted+convertedFull+abortedFiles.size()+1)+" / "+files.size()+" )");					
 					int c=conv.convertFile(inputfolder,inputfile,outputfile);
 
 					if(c==1) converted++;
