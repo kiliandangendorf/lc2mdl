@@ -70,7 +70,11 @@ public class Converter{
 		log.finer("inputfile: "+inputfile.getName());
 		log.finer("outputfile: "+outputfile.getName());
 		log.finer("logfile: "+logfile.getName());
-
+		
+		log.info("Options:");
+		if(ConvertOptions.isMultilang())log.info(" - Exports multilangugae texts for Moodle's multilang plugin.");
+		log.info(" - Preferred language: \""+ConvertOptions.getDefaultLang()+"\".");
+		if(ConvertOptions.isPreferCheckbox())log.info(" - Prefer checkbox, if only two options in \"optionresponse\".");
 		
 		// PROBLEMS NAME
 		String problemName=inputfile.getName().substring(0,inputfile.getName().lastIndexOf('.'));
