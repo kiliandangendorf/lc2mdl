@@ -1,17 +1,5 @@
 package lc2mdl.lc.problem.response;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-
 import lc2mdl.ConvertOptions;
 import lc2mdl.lc.problem.Problem;
 import lc2mdl.lc.problem.response.hints.ConditionalHint;
@@ -19,6 +7,13 @@ import lc2mdl.mdl.quiz.Input;
 import lc2mdl.mdl.quiz.NodeMdl;
 import lc2mdl.mdl.quiz.QuestionStack;
 import lc2mdl.multilanguage.Messages;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class OptionResponse extends ChoiceResponse {
 
@@ -214,7 +209,8 @@ public class OptionResponse extends ChoiceResponse {
                 isCheckBox = true;
             }
             element.removeAttribute("checkboxvalue");
-        }else{
+        }
+
             if (isCheckBox){
                 checkBoxValue = options.get(0);
                 if (prefCheckBox) {
@@ -223,10 +219,10 @@ public class OptionResponse extends ChoiceResponse {
                     problem.setProblemName(pname);
                 }
             }
-        }
+
 
         if (isCheckBox){
-            checkboxText = optionText+"<br/>"+checkboxText+"\""+checkBoxValue+"\""+checkboxTextEnd;
+            checkboxText = optionText+"<br/>"+checkboxText+"\""+checkBoxValue+"\""+" "+checkboxTextEnd;
         }
 
         if  (element.hasAttribute("maxcheck")){

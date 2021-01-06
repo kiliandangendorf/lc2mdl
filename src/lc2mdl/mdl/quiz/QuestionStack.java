@@ -20,7 +20,7 @@ public class QuestionStack extends Question{
 	private String stackversion="2018080600";
 
 	// text & ggf. CDATA
-	private String questionvariables="";
+	private String questionvariables="/* author: Frauke Sprengel, Hs Hannover */"+System.lineSeparator();
 	// text & CDATA
 	private String specificfeedback="";
 

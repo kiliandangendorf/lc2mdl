@@ -40,7 +40,7 @@ public class Parameter extends ProblemElement {
             comment += text;
             if (type.equals("string")) {
                 text = "\""+text+"\"";}
-            variable += text;
+            variable += text+";";
             e.removeAttribute("default");
         }
 

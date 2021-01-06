@@ -1,14 +1,13 @@
 package lc2mdl.lc.problem;
 
+import lc2mdl.lc.problem.response.Response;
+import lc2mdl.util.FileFinder;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
-import java.util.TreeSet;
 import java.util.logging.Logger;
-
-import lc2mdl.lc.problem.response.Response;
-import lc2mdl.util.FileFinder;
 
 public class Problem {
 	public static Logger log = Logger.getLogger(ProblemElement.class.getName());
@@ -28,6 +27,7 @@ public class Problem {
 	private ArrayList<String> tags = new ArrayList<>();
 	// relative path of the problem, use it as category
 	private String category="";
+	private String categoryPrefix = "";
 	private int numberOfHints=0;
 
 	//list for language-codes found in problem.
@@ -160,6 +160,7 @@ public class Problem {
 		int startindex = 0;
 		if (path.startsWith("/res")) {
 			startindex = 3;
+			categoryPrefix = "/"+split[0]+"/"+split[1]+"/"+split[2];
 		}
 		for (int i=startindex; i<split.length-1; i++){
 			category += "/"+split[i];
@@ -214,6 +215,8 @@ public class Problem {
 	public String getCategory() {
 		return category;
 	}
+
+	public String getCategoryPrefix() { return categoryPrefix; }
 
 	public int getNumberOfHints() { return numberOfHints; }
 

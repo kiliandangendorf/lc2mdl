@@ -1,5 +1,11 @@
 package lc2mdl.lc.problem;
 
+import lc2mdl.Prefs;
+import lc2mdl.mdl.quiz.QuestionStack;
+import lc2mdl.util.ConvertAndFormatMethods;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -7,13 +13,6 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-
-import lc2mdl.Prefs;
-import lc2mdl.mdl.quiz.QuestionStack;
-import lc2mdl.util.ConvertAndFormatMethods;
 
 public class PerlScript extends ProblemElement{
 	/* HINT:
@@ -45,7 +44,7 @@ public class PerlScript extends ProblemElement{
 	public void consumeNode(){
 		log.finer("perl-script:");
 		this.script=node.getTextContent();
-		this.scriptComment="Original Perl Script"+System.lineSeparator()+this.script;
+		this.scriptComment="Original Perl Script"+this.script;
 		this.convertWarning="/*  Start Script Part */";
 
 		log.finer("--put original Perl script in comment.");
