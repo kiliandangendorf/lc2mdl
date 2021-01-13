@@ -1,20 +1,19 @@
 package lc2mdl.lc.problem;
 
+import lc2mdl.ConvertOptions;
+import lc2mdl.util.ConvertAndFormatMethods;
+import lc2mdl.xml.XMLParser;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-
-import lc2mdl.ConvertOptions;
-import lc2mdl.util.ConvertAndFormatMethods;
-import lc2mdl.xml.XMLParser;
 
 public class MultilanguageTextTransformer{
 	public static Logger log=Logger.getLogger(MultilanguageTextTransformer.class.getName());
@@ -126,7 +125,7 @@ public class MultilanguageTextTransformer{
 							log.warning("---found no text to language \""+defaultLang+"\"");
 						}
 					}
-					outtext="<!-- lc2mdl: chose best match in translated-block: "+translatedBlock+" -->"+outtext;
+				//	outtext="<!-- lc2mdl: chose best match in translated-block: "+translatedBlock+" -->"+outtext;
 				}
 				
 				matcher.appendReplacement(sb,Matcher.quoteReplacement(outtext));

@@ -13,7 +13,7 @@ public class Prefs {
 	public static final boolean ADD_SEMICOLON_AT_END_OF_STMT=true;
 
 	//Formatting / Syntax
-	public static final boolean ALLOW_MULTILINE_BLOCKS=true;
+	public static final boolean ALLOW_MULTILINE_BLOCKS=false;
 	public static final boolean ALLOW_MULTILINE_MAXIMA_STRINGS=false;	
 
 	public static final boolean ADD_BACKSLASH_FOR_CURLY_BRACE_IN_MAXIMA_STRINGS=true;	
