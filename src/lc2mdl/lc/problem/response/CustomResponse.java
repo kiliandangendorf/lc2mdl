@@ -125,7 +125,7 @@ public class CustomResponse extends Response {
 			Element element = (Element)nlist.item(i);
 			if (element.getTagName().equals("answer")) {
 			    String script =  element.getTextContent();
-			    String startString = System.lineSeparator()+"submission : "+inputName+System.lineSeparator()+answer+" : false";
+			    String startString = System.lineSeparator()+"submission : "+inputName+";"+System.lineSeparator()+answer+" : false;";
 			    String patString = "return\\s*?'EXACT_ANS'\\s*;";
 			    script = script.replaceAll(patString, answer+" : true");
 			    patString = "return\\s*?'INCORRECT'\\s*;";

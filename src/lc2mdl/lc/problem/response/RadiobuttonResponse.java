@@ -67,6 +67,7 @@ public class RadiobuttonResponse extends ChoiceResponse {
         input.setMustverify(false);
         input.setShowvalidation(false);
         question.addInput(input);
+        question.setPenalty(0.33);
 
         //NODE-TAG - only a single value expected here
         NodeMdl nodeMdl=new NodeMdl();

@@ -96,7 +96,7 @@ public class QuestionGenerator{
 		// for problems directly from the author - no meta basedon tag
 		String qnote = question.getQuestionnote();
 		if (!qnote.contains("LON-CAPA")) {
-			String basedOn = "/res" + p.getCategory() + "/" + p.getProblemName() + ".problem";
+			String basedOn = p.getCategoryPrefix() + p.getCategory() + "/" + p.getProblemName() + ".problem";
 			basedOn = "This question is based on LON-CAPA problem " + basedOn;
 			qnote +=  ", " + System.lineSeparator()  + basedOn;
 			question.setQuestionnote(qnote);
