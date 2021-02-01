@@ -9,6 +9,7 @@ public class CmdReader{
 		String shortOption;
 		boolean isset;
 		String usage;
+		String param=null;
 
 		public CmdOption(String option,String shortOption, boolean isset,String usage){
 			this.option=option;
@@ -28,21 +29,27 @@ public class CmdReader{
 
 	private ArrayList<String> arguments=new ArrayList<>();
 	private ArrayList<CmdOption> options=new ArrayList<>(Arrays.asList(
-			new CmdOption("-h","--help",false,"shows usage"),
-			new CmdOption("-v","--verbose",false,"verbose output"),
-			new CmdOption("-r","--recursive",false,"find files recursively in folder (lists and ask for confirmation before converting)"),			
-			new CmdOption("-R","--recnocon",false,"find files recursively in folder (starts converting without confirmation)"),			
-			new CmdOption("-t","--rmtmp",false,"remove tmp-files (automatically done if empty)"),			
-			new CmdOption("-T","--rmlog",false,"remove log-files (NOT RECOMMENDED)"),
+			//general
+			new CmdOption("","",false,"\nGeneral"),			
+			new CmdOption("-h","--help",false,"Shows usage."),
+			new CmdOption("-v","--verbose",false,"Verbose output."),
+			
+			//files management
+			new CmdOption("","",false,"\nFiles Management"),			
+			new CmdOption("-r","--recursive",false,"Find files recursively in folder (lists and ask for confirmation before converting)."),			
+			new CmdOption("-R","--recnocon",false,"Find files recursively in folder (starts converting without confirmation)."),			
+			new CmdOption("-t","--rmtmp",false,"Remove tmp-files (automatically done if empty)."),			
+			new CmdOption("-T","--rmlog",false,"Remove log-files (NOT RECOMMENDED)."),
 
 			//convert options
-			new CmdOption("-p","--prefercheckbox",false,"prefer checkbox, if only two options (optionresponse)"),
+			new CmdOption("","",false,"\nConvert Options"),			
+			new CmdOption("-p","--prefercheckbox",false,"Prefer checkbox, if only two options (optionresponse)."),
 
-			//languages beta
-			new CmdOption("","--de",false,"choose \"de\" as default language"),
-			new CmdOption("","--en",false,"choose \"en\" as default language"),
-			
-			new CmdOption("-m","--multilang",false,"use Moodle's multilang-Plugin in multilangugae text-output (so far only \"translated\"-tags)")
+			//language options
+			new CmdOption("-m","--multilang",false,"Use Moodle's multilang-plugin in multilangugae text-output (translated and languageblock)."),
+			new CmdOption("","--language",false,"Give a default language as two-letter code, ex. \"--language=de\"."),
+			new CmdOption("","",false,"If \"--language=xx\" is set without --multilang, other translations different from \"xx\" will be truncated.")
+
 			));
 	private String from;
 	private String to;
@@ -57,6 +64,13 @@ public class CmdReader{
 			if(o.option.equals(option))return o.isset;
 		}
 		return false;
+	}
+	public String getOptionsParam(String option){
+		for(CmdOption o:options){
+			if(o.shortOption.equals(option))return o.param;
+			if(o.option.equals(option))return o.param;
+		}
+		return null;
 	}
 	public String getFrom(){
 		return from;
@@ -107,9 +121,23 @@ public class CmdReader{
 	}
 
 	private void setOpt(String opt){
+		boolean hasParam=false;
+		String param=null;
+		if(opt.contains("=")){
+			hasParam=true;
+			String[] splitopt=opt.split("=");
+			//store clean opt
+			opt=splitopt[0];
+			//store opt-param
+			param=splitopt[splitopt.length-1];
+		}
 		for(CmdOption o:options){
-			if(o.option.equals(opt))o.isset=true;
-			if(o.shortOption.equals(opt))o.isset=true;
+			if(o.option.equals(opt) || o.shortOption.equals(opt)){
+				o.isset=true;
+				if(hasParam){
+					o.param=param;
+				}
+			}
 		}
 	}
 

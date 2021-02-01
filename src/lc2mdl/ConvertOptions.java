@@ -1,12 +1,14 @@
 package lc2mdl;
 
 import java.util.Locale;
+import java.util.logging.Logger;
 
 import lc2mdl.multilanguage.Messages;
 import lc2mdl.util.CmdReader;
 
 public class ConvertOptions{
-	
+	public static Logger log=Logger.getLogger(ConvertOptions.class.getName());
+
 	// all defaults are false
 	
 	// Prefer checkbox, if only two options (optionresponse)
@@ -26,10 +28,11 @@ public class ConvertOptions{
 		chooseDefaultLanguge(cmd);
 	}
 	private static void chooseDefaultLanguge(CmdReader cmd){
-		//TODO: more languages and a nicer condition ;)
-		boolean de=cmd.optionIsSet("--de");
-		boolean en=cmd.optionIsSet("--en");
-		if(en && !de)defaultLang="en";
+		String cmdLang=cmd.getOptionsParam("--language");
+		if(cmdLang!=null){
+			if(cmdLang.length()==2)defaultLang=cmdLang.toLowerCase();
+			else log.warning("could interpret language \""+cmdLang+"\". Will use default langauge \""+defaultLang+"\".");
+		}
 		
 		//be sure it's lower-case
 		Locale lang=new Locale(defaultLang);

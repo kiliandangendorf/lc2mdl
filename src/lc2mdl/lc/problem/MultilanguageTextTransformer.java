@@ -169,7 +169,7 @@ public class MultilanguageTextTransformer{
 						//text in defaultLang
 						textInDefaultLang=langElement.getTextContent();
 						log.finer("--found \""+defaultLang+"\"-languageblock");
-						log.finer(textInDefaultLang);
+//						log.finer(textInDefaultLang);
 					}else{
 						//text in different language
 						textInDefaultLang="<!-- lc2mdl: languageblock for different language found: "+langBlock+" -->";
