@@ -34,16 +34,23 @@ Usage: lc2mdl [options] FROMFILE TOFILE
 FROMFILE: LON-CAPA problem-file or folder.
 TOFILE:   Moodle-STACK xml-file or folder.
 FROMFILE and TOFILE must be both files or folders.
--h, --help           shows usage
--v, --verbose        verbose output
--r, --recursive      find files recursively in folder
--R, --recnocon       find files recursively in folder (starts converting without confirmation)
--t, --rmtmp          remove tmp-files (automatically done if empty)
--T, --rmlog          remove log-files (NOT RECOMMENDED)
--p, --prefercheckbox prefer checkbox, if only two options (optionresponse)
-    --de             choose "de" as default language
-    --en             choose "en" as default language
--m  --multilang      use Moodle's multilang-Plugin in multilangugae text-output (so far only "translated"-tags)
+
+General
+-h, --help           Shows usage.
+-v, --verbose        Verbose output.
+
+Files Management
+-r, --recursive      Find files recursively in folder (lists and ask for confirmation before converting).
+-R, --recnocon       Find files recursively in folder (starts converting without confirmation).
+-t, --rmtmp          Remove tmp-files (automatically done if empty).
+-T, --rmlog          Remove log-files (NOT RECOMMENDED).
+
+Convert Options
+-p, --prefercheckbox Prefer checkbox, if only two options (optionresponse).
+-m, --multilang      Use Moodle's multilang-plugin in multilangugae text-output (translated and languageblock).
+    --language       Give a default language as two-letter code, ex. "--language=de".
+   	                 If "--language=xx" is set without --multilang, other translations different from "xx" will be truncated.
+   	                 If "--language=xx" is not set default language is "de".
 ```
 # Prefs class
 In `Prefs.java` there are two booleans for formatting / syntax:
