@@ -41,18 +41,13 @@ public class MultilanguageTextTransformer{
 		text=text.replaceAll("< {0,}languageblock {0,}exclude {0,}= {0,}\\\" {0,}\\\" {0,}>([\\s\\S]*?)< {0,}\\/ {0,}languageblock {0,}>","$1");
 
 		if(text.contains("languageblock")){			
-			if(multilang){
-				String dummyGroup="lc2mdl_dummy_languageblock_group";
-				log.finer("--group languageblocks into dummy-groups temporarily.");
-				text=groupLanguageBlocks(text, dummyGroup);
+			String dummyGroup="lc2mdl_dummy_languageblock_group";
+			log.finer("--group languageblocks into dummy-groups temporarily.");
+			text=groupLanguageBlocks(text, dummyGroup);
 
-				//find languages in group similar to translated-blocks
-				log.finer("--sort and replace languageblocks-groups.");
-				text=findLanguagesInLanguageBlockGroups(text,defaultLang, dummyGroup);
-			}else{
-				//use "old" conversion with HTML-comments for other languages
-				text=chooseOneLanguageBlock(text,defaultLang);
-			}
+			//find languages in group similar to translated-blocks
+			log.finer("--sort and replace languageblocks-groups.");
+			text=findLanguagesInLanguageBlockGroups(text,defaultLang, dummyGroup, multilang);
 		}
 		return text;
 	}
@@ -75,6 +70,37 @@ public class MultilanguageTextTransformer{
 		return outtext;
 	}
 
+	private String generateOutputForBlock(HashMap<String,String> translations, String defaultLang, String blocktype, String wholeBlock, boolean multilang){
+		String outtext="";
+		
+		//IF MULTILANG
+		if(multilang){
+			log.finer("---generating multilang output for "+blocktype+".");
+			outtext=generateMultilangOutput(translations,defaultLang);					
+		}
+		
+		//IF NOT MULTILANG: CHOOSE ONE
+		if(!multilang){
+			if(translations.containsKey(defaultLang)){
+				//text in defaultLang
+				outtext=translations.get(defaultLang);
+				log.finer("---found \""+defaultLang+"\" in "+blocktype+".");
+			}else{
+				//text not in defaultLang
+				if(translations.containsKey("default")){
+					//default text 
+					outtext=translations.get("default");
+					log.finer("---found default text in "+blocktype+".");
+				}else{
+					//no text found
+					outtext="<!-- lc2mdl: found no match in "+blocktype+": "+wholeBlock+" -->";
+					log.warning("---found no text to preferred language \""+defaultLang+"\"");
+				}
+			}
+		}
+		return outtext;
+	}
+	
 	//================================================================================
     // TRANSLATED
     //================================================================================
@@ -103,34 +129,8 @@ public class MultilanguageTextTransformer{
 					putNodeContentIntoTranslationsMap(translations,lang,lang.getAttribute("which"));
 					log.finer("---found \""+lang.getAttribute("which")+"\" in translated-block.");
 				}
-	
-				String outtext="";
-				
-				//IF MULTILANG
-				if(multilang){
-					log.finer("---generating multilang output for translated-block.");
-					outtext=generateMultilangOutput(translations,defaultLang);					
-				}
-				
-				//IF NOT MULTILANG: CHOOSE ONE
-				if(!multilang){
-					if(translations.containsKey(defaultLang)){
-						//text in defaultLang
-						outtext=translations.get(defaultLang);
-						log.finer("---found \""+defaultLang+"\" in translated-block");
-					}else{
-						//text not in defaultLang
-						if(translations.containsKey("default")){
-							//default text 
-							outtext=translations.get("default");
-							log.finer("---found default text in translated-block");
-						}else{
-							//no text found
-							outtext="<!-- lc2mdl: found no match in translated-block: "+translatedBlock+" -->";
-							log.warning("---found no text to language \""+defaultLang+"\"");
-						}
-					}
-				}
+					
+				String outtext=generateOutputForBlock(translations,defaultLang,"translated-block",translatedBlock,multilang);
 				
 				matcher.appendReplacement(sb,Matcher.quoteReplacement(outtext));
 				
@@ -147,50 +147,6 @@ public class MultilanguageTextTransformer{
 	//================================================================================
     // LANGUAGEBLOCK
     //================================================================================
-	
-	private String chooseOneLanguageBlock(String text,String defaultLang){
-		String langBlockPat="< {0,}languageblock[\\s\\S]*?\\/ {0,}languageblock {0,}>";
-		Matcher matcher=Pattern.compile(langBlockPat).matcher(text);
-		while(matcher.find()){
-			String langBlock=matcher.group();
-			String textInDefaultLang="";
-			try{
-				Document dom=XMLParser.parseString2DOM(langBlock);
-				Element langElement=(Element)dom.getElementsByTagName("languageblock").item(0);
-				if(langElement.hasAttribute("include")){
-					if(langElement.getAttribute("include").toLowerCase().contains(defaultLang)){
-						//text in defaultLang
-						textInDefaultLang=langElement.getTextContent();
-						log.finer("--found \""+defaultLang+"\"-languageblock");
-					}else{
-						//text in different language
-						textInDefaultLang="<!-- lc2mdl: languageblock for different language found: "+langBlock+" -->";
-						log.finer("--found languageblock different to \""+defaultLang+"\". Put in comments.");						
-					}
-				}else{//languageblock has attribute exclude
-					if(!langElement.getAttribute("exclude").toLowerCase().contains(defaultLang)){
-						//text in defaultLang
-						textInDefaultLang=langElement.getTextContent();
-						log.finer("--found \""+defaultLang+"\"-languageblock");
-//						log.finer(textInDefaultLang);
-					}else{
-						//text in different language
-						textInDefaultLang="<!-- lc2mdl: languageblock for different language found: "+langBlock+" -->";
-						log.finer("--found languageblock different to \""+defaultLang+"\". Put in comments.");						
-					}
-				
-				
-				}
-				text=text.replace(langBlock,textInDefaultLang);
-			}catch(Exception e){
-				log.warning("---unable to read languageblock.");
-				log.warning(e.getLocalizedMessage());
-				e.printStackTrace();
-			}
-		}
-		return text;
-	}
-	
 	
 	private String groupLanguageBlocks(String text, String dummyGroup){
 		String dummyTagName="lc2mdl_dummy_outtext_tag";
@@ -264,7 +220,7 @@ public class MultilanguageTextTransformer{
 		return text;
 	}
 	
-	private String findLanguagesInLanguageBlockGroups(String text,String defaultLang,String dummyGroup){
+	private String findLanguagesInLanguageBlockGroups(String text,String defaultLang,String dummyGroup, boolean multilang){
 		String languageBlockGroupPat="< {0,}"+dummyGroup+"[\\s\\S]*?\\/ {0,}"+dummyGroup+">[\\r\\n]?";
 		Matcher matcher=Pattern.compile(languageBlockGroupPat).matcher(text);
 		
@@ -315,8 +271,7 @@ public class MultilanguageTextTransformer{
 					}
 				}
 
-				log.finer("---generating multilang output for languageblock-group.");
-				String outtext=generateMultilangOutput(translations, defaultLang);
+				String outtext=generateOutputForBlock(translations,defaultLang,"languageblock",languageBlockGroup,multilang);
 
 				matcher.appendReplacement(sb,Matcher.quoteReplacement(outtext));
 				
@@ -329,6 +284,7 @@ public class MultilanguageTextTransformer{
 		text=sb.toString();
 		return text;
 	}
+	
 	
 	//================================================================================
     // HELPER
