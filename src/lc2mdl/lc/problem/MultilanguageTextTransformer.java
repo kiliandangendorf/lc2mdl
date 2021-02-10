@@ -50,7 +50,7 @@ public class MultilanguageTextTransformer{
 				log.finer("--sort and replace languageblocks-groups.");
 				text=findLanguagesInLanguageBlockGroups(text,defaultLang, dummyGroup);
 			}else{
-				//use "old" conversion with HTML-comments for other langugaes
+				//use "old" conversion with HTML-comments for other languages
 				text=chooseOneLanguageBlock(text,defaultLang);
 			}
 		}
@@ -96,6 +96,10 @@ public class MultilanguageTextTransformer{
 				//find translations
 				for(int i=0;i<langs.getLength();i++) {
 					Element lang = (Element) langs.item(i);
+					if(getNodeContent(lang).trim().equals("")){
+						//skip if no content
+						continue;
+					}
 					putNodeContentIntoTranslationsMap(translations,lang,lang.getAttribute("which"));
 					log.finer("---found \""+lang.getAttribute("which")+"\" in translated-block.");
 				}
@@ -122,10 +126,10 @@ public class MultilanguageTextTransformer{
 							log.finer("---found default text in translated-block");
 						}else{
 							//no text found
+							outtext="<!-- lc2mdl: found no match in translated-block: "+translatedBlock+" -->";
 							log.warning("---found no text to language \""+defaultLang+"\"");
 						}
 					}
-				//	outtext="<!-- lc2mdl: chose best match in translated-block: "+translatedBlock+" -->"+outtext;
 				}
 				
 				matcher.appendReplacement(sb,Matcher.quoteReplacement(outtext));
