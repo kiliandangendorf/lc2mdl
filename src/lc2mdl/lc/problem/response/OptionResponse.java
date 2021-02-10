@@ -32,15 +32,16 @@ public class OptionResponse extends ChoiceResponse {
 
     public OptionResponse(Problem problem, Node node) {
         super(problem, node);
-        
-        optionText = Messages.getString("OptionResponse.optionText", this.problem);
-        checkboxText= Messages.getString("OptionResponse.checkboxText", this.problem);
-        checkboxTextEnd= Messages.getString("OptionResponse.checkboxTextEnd", this.problem);
+        //multilanguage strings needs to be initialized later in consumeNode() (after languages were found in the problem-file) 
     }
 
 
     @Override
     public void consumeNode() {
+        optionText = Messages.getString("OptionResponse.optionText", this.problem);
+        checkboxText= Messages.getString("OptionResponse.checkboxText", this.problem);
+        checkboxTextEnd= Messages.getString("OptionResponse.checkboxTextEnd", this.problem);
+        
         log.finer("optionresponse:");
 
          Element e=(Element)node;
