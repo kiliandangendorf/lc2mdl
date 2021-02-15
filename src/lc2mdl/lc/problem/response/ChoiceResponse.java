@@ -1,6 +1,8 @@
 package lc2mdl.lc.problem.response;
 
 import lc2mdl.lc.problem.Problem;
+import lc2mdl.util.ConvertAndFormatMethods;
+
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -227,6 +229,9 @@ public abstract class ChoiceResponse extends Response {
 
             //double backslashes in maxima string (because it's coming from HTML)
             foilString=foilString.replace("\\","\\\\");
+
+    		//escape quotes in string (potential generated multilang-tags)
+            foilString=ConvertAndFormatMethods.escapeUnescapedDoubleQuotesInString(foilString,true);
 
             return foilString;
         }

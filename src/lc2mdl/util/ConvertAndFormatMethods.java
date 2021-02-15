@@ -249,4 +249,34 @@ public class ConvertAndFormatMethods{
 
 	}
 
+	/**
+	 * Escapes almost all double quotes (") in given string with (\") not escaped yet 
+	 * @param text
+	 * @param isInQuotes if true, first and last character of given string will not be checked
+	 * @return
+	 */
+	public static String escapeUnescapedDoubleQuotesInString(String text, boolean isInQuotes){
+		//escape quotes in string (potential generated multilang-tags)
+		if(isInQuotes){
+	        char firstChar=text.charAt(0);
+	        char lastChar=text.charAt(text.length()-1);
+	        String midString=text.substring(1,text.length()-1);
+	        midString=escapeUnescapedDoubleQuotesInWholeString(midString);
+	        text=firstChar+midString+lastChar;
+		}else{
+			text=escapeUnescapedDoubleQuotesInWholeString(text);
+		}
+        return text;
+
+	}
+	/**
+	 * Escapes ALL double quotes (") in given string with (\") not escaped yet
+	 * @param text
+	 * @return
+	 */
+	public static String escapeUnescapedDoubleQuotesInWholeString(String text){
+//		return text.replaceAll("\"","\\\\\"");
+		return text.replaceAll("(?<!\\\\)\"","\\\\\"");
+	}
+
 }

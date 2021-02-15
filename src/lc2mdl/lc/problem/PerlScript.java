@@ -818,7 +818,8 @@ public class PerlScript extends ProblemElement{
 		}
 		
 		//escape quotes in svg-string
-		svgString=svgString.replaceAll("\"","\\\\\"");
+		svgString=ConvertAndFormatMethods.escapeUnescapedDoubleQuotesInWholeString(svgString);
+		
 		return svgString;
 	}
 
