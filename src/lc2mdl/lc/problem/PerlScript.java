@@ -816,6 +816,9 @@ public class PerlScript extends ProblemElement{
 			log.warning("could not find image: "+imagePath+" (leave unchanged)");
 			return pathString;			
 		}
+		
+		//escape quotes in svg-string
+		svgString=svgString.replaceAll("\"","\\\\\"");
 		return svgString;
 	}
 
