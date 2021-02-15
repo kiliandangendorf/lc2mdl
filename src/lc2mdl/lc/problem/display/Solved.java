@@ -1,8 +1,8 @@
 package lc2mdl.lc.problem.display;
 
-import lc2mdl.lc.problem.Problem;
-import lc2mdl.mdl.quiz.QuestionStack;
 import org.w3c.dom.Node;
+
+import lc2mdl.lc.problem.Problem;
 
 public class Solved extends DisplayFeedback {
 
