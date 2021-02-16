@@ -673,9 +673,14 @@ public class PerlScript extends ProblemElement{
 			if(!Prefs.ALLOW_MULTILINE_BLOCKS){
 				varAssignment=cleanUpOneLinedTerm(varAssignment);
 			}
-
+			
+			//replace optional trailing "," in assignment, eg."(a,b,c , );"
+			String trailingCommaPat=", {0,}\\] {0,};";
+			varAssignment=varAssignment.replaceFirst(trailingCommaPat," ];");
+			
 			// replace converted array assignment
 			script=script.replace(varAssignmentOriginal,varAssignment);
+			matcherAssignment=pattern.matcher(script);
 		}
 		if(arrays.size()>0){
 			// now replace all arrays in script
