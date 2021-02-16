@@ -58,7 +58,7 @@ In `Prefs.java` there are two booleans for formatting / syntax:
 ALLOW_MULTILINE_BLOCKS=true;
 ```
 In older versions of Stack multiline blocks were not allowed. 
-Switch this to remove all CR/LF and whitespaces within blocks.
+Switch this to remove all CR/LF and whitespaces within blocks (and other multiline statements as e.g. array assignments).
 
 ```
 ALLOW_MULTILINE_MAXIMA_STRINGS=false;

@@ -164,21 +164,28 @@ public class PerlScript extends ProblemElement{
 		//remove last comma in block
 		replacements.put(",(\\s+)\\)","$1)");
 		 
-		if(!Prefs.ALLOW_MULTILINE_BLOCKS){
-			//remove CR & LF
-			replacements.put("[\\r\\n]+"," ");
-			//remove everything after comma
-			replacements.put(",\\s*",", ");
-			//remove tabs
-			replacements.put("\\t"," ");
-			//cleanup multiple generated whitespace
-			replacements.put(" {2,}"," ");
-		}
 
 		for(String key:replacements.keySet()){
 			newBlock=newBlock.replaceAll(key,replacements.get(key));
 		}
+
+		if(!Prefs.ALLOW_MULTILINE_BLOCKS){
+			newBlock=cleanUpOneLinedTerm(newBlock);
+		}
 		return(newBlock);
+	}
+	
+	private String cleanUpOneLinedTerm(String text){
+		//remove CR & LF
+		text=text.replaceAll("[\\r\\n]+"," ");
+		//remove everything after comma
+		text=text.replaceAll(",\\s*",", ");
+		//remove tabs
+		text=text.replaceAll("\\t"," ");
+		//cleanup multiple generated whitespace
+		text=text.replaceAll(" {2,}"," ");
+		
+		return text;
 	}
 
 	private void searchForUnknownControlStructures(){
@@ -661,6 +668,10 @@ public class PerlScript extends ProblemElement{
 				problem.addVar(array);
 				varAssignment=varAssignment.replaceFirst(arrayPat,array);
 				break;
+			}
+			
+			if(!Prefs.ALLOW_MULTILINE_BLOCKS){
+				varAssignment=cleanUpOneLinedTerm(varAssignment);
 			}
 
 			// replace converted array assignment
