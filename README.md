@@ -8,20 +8,22 @@ It handles quite well:
 * Optionresponse
 * Radiobuttonresponse
 * Stringresponse
+* Matchresponse
+* Essayresponse
 * HTML elements
 * Multi part problems
-* Images (in the same folder, will be included as SVG)
-* gnuplot
-* conditional hints
+* Images (in the same folder/tree, will be included as SVG)
+* Gnuplot
+* Conditional hints
+* Multilingual questions
 
 It assists:
-* the use of conditional blocks
-* very simple Perl scripts
-* Essayresponse
+* The use of conditional blocks
+* Rather simple Perl scripts
 
 It cannot handle:
-* other responses than those mentioned above (will be ignored)
-* more complicated Perl scripts (will be included as comment)
+* Other responses than those mentioned above (will be ignored)
+* More complicated Perl scripts (will be included as comment)
 
 # requirements
 Java 8 or higher
