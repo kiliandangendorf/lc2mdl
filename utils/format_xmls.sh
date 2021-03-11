@@ -3,7 +3,7 @@
 # into xml-files in target directory.
 # Sources will not be modified.
 #
-# Uses on tidy from http://tidy.sourceforge.net
+# Uses tidy from http://tidy.sourceforge.net
 # 2020-02-06 Kilian
 
 skriptname=`basename "${0}"`

@@ -7,7 +7,7 @@ Sources will not be modified.
 ```
 Usage: format_xmls.sh <source directory> <target directory>
 ```
-(Uses on tidy from http://tidy.sourceforge.net)
+(Uses `tidy` from http://tidy.sourceforge.net)
 
 ## `collect_questions2quiz.sh`
 Combines all "question"-elements in all xml-files in source folder into one xml-file within "quiz"-elements (
@@ -18,4 +18,4 @@ Sources will not be modified.
 ```
 Usage: collect_questions2quiz.sh <directory>
 ```
-(Uses on xmllint from http://xmlsoft.org/xmllint.html)
+(Uses `xmllint` from http://xmlsoft.org/xmllint.html)

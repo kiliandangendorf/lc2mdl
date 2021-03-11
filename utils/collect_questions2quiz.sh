@@ -3,7 +3,7 @@
 # into one xml-file within "quiz"-elements ($pre & $post).
 # Sources will not be modified.
 #
-# Uses on xmllint from http://xmlsoft.org/xmllint.html
+# Uses xmllint from http://xmlsoft.org/xmllint.html
 # 2020-02-06 Kilian
 
 
