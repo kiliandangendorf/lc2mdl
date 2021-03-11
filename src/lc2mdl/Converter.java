@@ -11,7 +11,6 @@ import lc2mdl.util.LogFormatterKD;
 import lc2mdl.xml.PreParser;
 import lc2mdl.xml.XMLParser;
 import lc2mdl.xml.XMLWriter;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.w3c.dom.Document;
 
 import java.io.File;
@@ -169,7 +168,7 @@ public class Converter{
 		}catch(Exception e){
 			log.severe("error while converting: ");
 			log.severe(e.getMessage());
-			log.severe("Exception : "+ ExceptionUtils.getStackTrace(e));
+			log.log(Level.SEVERE, "Exception : "+e.getMessage(), e);
 			//TODO: here the StackTrace is shown as long as this program is under construction. 
 			// e.printStackTrace();
 
