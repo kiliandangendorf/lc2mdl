@@ -46,7 +46,7 @@ public class CmdReader{
 			new CmdOption("-p","--prefercheckbox",false,"Prefer checkbox, if only two options (optionresponse)."),
 
 			//language options
-			new CmdOption("-m","--multilang",false,"Use Moodle's multilang-plugin in multilangugae text-output (translated and languageblock)."),
+			new CmdOption("-m","--multilang",false,"Use Moodle's multilang-plugin in multilanguage text-output (translated and languageblock)."),
 			new CmdOption("","--language",false,"Give a default language as two-letter code, ex. \"--language=de\"."),
 			new CmdOption("","",false,"If \"--language=xx\" is set without --multilang, other translations different from \"xx\" will be truncated."),
 			new CmdOption("","",false,"If \"--language=xx\" is not set default language is \"de\".")
