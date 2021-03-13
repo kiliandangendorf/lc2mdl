@@ -45,6 +45,7 @@ public class Converter{
 
 	public int convertFile(final File inputfile, final File outputfile) {
 	   	File inputfolder=inputfile.getParentFile();
+	   	if(inputfolder==null)inputfolder=new File(".");
 	   	return convertFile(inputfolder,inputfile,outputfile);
 	}
 
