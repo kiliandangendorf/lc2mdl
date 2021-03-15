@@ -19,7 +19,7 @@ It handles quite well:
 * Images (in the same folder/tree, will be included inline as base64-SVG)
 * Gnuplot
 * Conditional hints
-* Multilingual questions
+* Multilingual questions (using [Multi-language content filter](https://docs.moodle.org/310/en/Multi-language_content_filter))
 
 It assists:
 * The use of conditional blocks
@@ -43,26 +43,40 @@ It cannot handle:
 - [Links](#links)
 
 # Background
+Our goal was to decrease number of used LMS.
 
-Both use kind of XML: one so one so
+One big feature of LON-CAPA is to generate *randomized* exercises for students.
+Each student can receive an *unique* problem to solve which answer will be compared with a dynamically computed solution.
+This feature is missing in Moodle.
 
-Could do it by hand -> annoying
+With STACK as plugin randomized questions are possible using Maxima as CAS on top of Moodle.
 
-We need a converter, doing 90% of handcraft
+Both LMS work with kind of XML. 
+Quite different, but XML (one document-centered, one data-centric).
 
+Sure, you could convert files by hand.
+But that's boring and very time consuming.
 
-There are several other projects dealing with similar ideas of converting or connecting to Moodle.
-Links are coming soon...
+So we need a converter, doing ~90% of this handcraft!
+
+`lc2mdl` has its roots in my [bachelor thesis](https://serwiss.bib.hs-hannover.de/frontdoor/index/index/searchtype/all/start/1/rows/1/doctypefq/bachelorthesis/docId/1458).
+After version 0.1, we continued to develop it until our courses were completely converted to Moodle.
+
+The implementation of `lc2mdl` was done iteratively.
+One LON-CAPA element was considered after another in order to how often it occurs in *our* pool of problems.
+This explains the selection of *what* this converter can handle.
+Thereby the most attention got the mathematics.
+
 
 # Installation
 
 Requirements:
 - Java 7 or higher
 
-Checkout our [releases](/releases/latest).  
-(There is also [development build](/releases/tag/latest).)
+Download our latest [releases](https://github.com/kiliandangendorf/lc2mdl/releases/latest).  
+(There is also [development build](https://github.com/kiliandangendorf/lc2mdl/releases/tag/latest).)
 
-When you got the `jar`-file, you can go on with [Bash Alias for Easy Use](#bash-alias-for-easy-use).
+When you got the `jar`-file, you can go on with "[Bash Alias for Easy Use](#bash-alias-for-easy-use)".
 
 If you like to develop, then clone and build on your own as stated below.
 
@@ -80,7 +94,7 @@ java -jar lc2mdl.jar
 ```
 
 ## Bash Alias for Easy Use
-To get rid of the uncomfortable `java -jar` you can add the following bash alias to your `.bashrc` (resp. `.bash_profile`):
+To get rid of the uncomfortable "`java -jar`" you can add the following bash alias to your `.bashrc` (resp. `.bash_profile`):
 ```
 echo "alias lc2mdl=\"java -jar <path-to-jar>/lc2mdl.jar\"" \
 	>> ~/.bashrc && source ~/.bashrc
@@ -108,7 +122,7 @@ Files Management
 
 Convert Options
 -p, --prefercheckbox Prefer checkbox, if only two options (optionresponse).
--m, --multilang      Use Moodle's multilang-plugin in multilangugae text-output (translated and languageblock).
+-m, --multilang      Use Moodle's multilang-plugin in multilanguage text-output (translated and languageblock).
     --language       Give a default language as two-letter code, ex. "--language=de".
    	                 If "--language=xx" is set without --multilang, other translations different from "xx" will be truncated.
    	                 If "--language=xx" is not set default language is "de".
@@ -121,9 +135,9 @@ lc2mdl -m --language=en from.problem to.xml
 
 Note: If `to.xml` already exists, it will be overwritten.
 
-If there are multi-language text-outputs in `from.problem` (in `translated`- and `languageblock`-tags), 
-`lc2mdl` will generate multi-language HTML output using Moodle plugin [Multi-language content filter](https://docs.moodle.org/310/en/Multi-language_content_filter).  
-Multi-language output will be sorted that if a default language exists (stated explicitly in `problem`-file) is in first place, 
+If there are multilingual text-outputs in `from.problem` (in `translated`- and `languageblock`-tags), 
+`lc2mdl` will generate multilingual HTML output using Moodle plugin [Multi-language content filter](https://docs.moodle.org/310/en/Multi-language_content_filter).  
+Multilingual output will be sorted that if a default language exists (stated explicitly in `problem`-file) is in first place, 
 followed by language set by `--language=xx`.
 This is because `multilang` will render only the first one, if no language matches.
 
@@ -207,7 +221,7 @@ Check the helper scripts here in [`utils/`](utils/README.md) to brighten and/or 
 
 # Version Support
 
-In [`Prefs.java`](/blob/master/src/lc2mdl/Prefs.java) there are two booleans for formatting / syntax.
+In [`Prefs.java`](https://github.com/kiliandangendorf/lc2mdl/blob/master/src/lc2mdl/Prefs.java) there are two booleans for formatting / syntax.
 Feel free to easily switch them and [rebuild as stated above](#build).
 
 1. `ALLOW_MULTILINE_BLOCKS=true;`  
@@ -225,12 +239,15 @@ Someday in future I will switch this one too ;)
 - LON-CAPA  
 	http://loncapa.org/index.html
 - Moodle-STACK Plugin  
-	https://moodle.org/plugins/qtype_stack
-- Multi-language content filter  
-	https://docs.moodle.org/310/en/Multi-language_content_filter
+	https://moodle.org/plugins/qtype_stack  
+	https://github.com/maths/moodle-qtype_stack  
+	https://www.ed.ac.uk/maths/stack
+	
+- Moodle Plugin: Multi-Language Content Filter  
+	https://docs.moodle.org/310/en/Multi-language_content_filter  
 
-- Bachelor Thesis  
+- Bachelor Thesis: "Entwurf und Implementierung eines Konverters für Aufgaben von LON-CAPA nach Moodle-STACK"  
 	https://serwiss.bib.hs-hannover.de/frontdoor/index/index/searchtype/all/start/1/rows/1/doctypefq/bachelorthesis/docId/1458
 	
-- Database of Math Instructions  
+- DOMAIN (Database of Math Instructions): Collection of digital exercises for diverse platforms  
 	https://db.ak-mathe-digital.de/
