@@ -379,7 +379,7 @@ In reverse conclusion this means Perl within comments will stay Perl.
 </pre>
 	</td><td>
 <pre>
-/\*Test comment with \0 "backslash" \\ \n etc. \\\;\*/
+/*Test comment with \0 "backslash" \\ \n etc. \\\;*/
 </pre>
 	</td>
 </tr><tr>
@@ -389,7 +389,7 @@ In reverse conclusion this means Perl within comments will stay Perl.
 </pre>
 	</td><td>
 <pre>
-/\*Test comment with Perl: &pow($x,$y)\*/
+/*Test comment with Perl: &pow($x,$y)*/
 </pre>
 	</td>
 </tr>
@@ -441,6 +441,7 @@ test8: "String \\'in\\' String 2.";
 	</td>
 </tr>
 </table>
+
 Here we can see problems with `test5` and `test7`. 
 But this will throw an error in STACK, so you can fix it in Moodle at the latest.
 
