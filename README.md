@@ -67,13 +67,16 @@ One LON-CAPA element was considered after another in order to how often it occur
 This explains the selection of *what* this converter can handle.
 Thereby the most attention got the mathematics.
 
+A big part was the conversion of Perl-scripts into CASText resp. Maxima.
+In [Perl Conversion Overview](perl_conversion_overview.md) you'll find a survey of how we convert conditions, functions, operators, comments and strings.
+
 
 # Installation
 
 Requirements:
 - Java 7 or higher
 
-Download our latest [releases](https://github.com/kiliandangendorf/lc2mdl/releases/latest).  
+Download our latest [release](https://github.com/kiliandangendorf/lc2mdl/releases/latest).  
 (There is also [development build](https://github.com/kiliandangendorf/lc2mdl/releases/tag/latest).)
 
 When you got the `jar`-file, you can go on with "[Bash Alias for Easy Use](#bash-alias-for-easy-use)".
