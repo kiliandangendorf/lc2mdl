@@ -395,7 +395,8 @@ public abstract class ProblemElement {
 		htmlReplacements.put("u","em");
 
 		for(String tag:htmlReplacements.keySet()){
-			String openTagPat="<"+tag+"[^>/]*>";
+			//improved regex: without that whitespace mismatch of eg. <u> for <ul> possible
+			String openTagPat="<"+tag+"( [^>/]*>|>)";;
 			text=replacePatternWithString(openTagPat,"<"+htmlReplacements.get(tag)+">",text);
 
 			String closeTagPat="</[^>]*"+tag+">";
